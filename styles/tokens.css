@@ -1,0 +1,42 @@
+:root {
+  /* 品牌色 */
+  --brand: #004080;
+  --brand-deep: #052b52;
+  --brand-soft: #e7f0f9;
+
+  /* 文字色 */
+  --ink: #17212b;
+  --muted: #66727f;
+  --nav-text: #31475f;
+
+  /* 背景色 */
+  --paper: #fbf7ef;
+  --band: #f4f8fc;
+  --white: #ffffff;
+
+  /* 暖色强调 */
+  --warm: #c89954;
+  --warm-soft: #f4eadc;
+
+  /* 边框与阴影 */
+  --line: rgba(0, 64, 128, 0.14);
+  --shadow: 0 24px 70px rgba(15, 38, 70, 0.14);
+  --shadow-sm: 0 14px 34px rgba(15, 38, 70, 0.07);
+  --shadow-btn: 0 16px 34px rgba(0, 64, 128, 0.24);
+
+  /* 圆角 */
+  --radius: 8px;
+  --radius-pill: 999px;
+
+  /* 间距 */
+  --space-xs: 8px;
+  --space-sm: 14px;
+  --space-md: 20px;
+  --space-lg: 30px;
+  --space-xl: 56px;
+  --space-2xl: 88px;
+
+  /* 布局 */
+  --container: min(1180px, calc(100% - 40px));
+  --header-height: 72px;
+}

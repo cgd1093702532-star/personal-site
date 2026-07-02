@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>扶摇 · AI个体户—活成样本，供你参考。</title>
+  <meta name="description" content="我把人生当成一场公开实验。这里记录我是谁、每天在做什么，以及所有的真实复盘。我不讲空洞的大道理，只沉淀亲身验证的经验与避坑指南。希望我这个不断试错的「样本」，能帮你解决当下的问题，成为你少走弯路的捷径。" />
+  <link rel="icon" href="assets/brand/avatar.jpg" type="image/jpeg" />
+  <link rel="canonical" href="https://cgd1093702532-star.github.io/personal-site/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="zh_CN" />
+  <meta property="og:title" content="扶摇 · AI个体户—活成样本，供你参考。" />
+  <meta property="og:description" content="我把人生当成一场公开实验。这里记录我是谁、每天在做什么，以及所有的真实复盘。我不讲空洞的大道理，只沉淀亲身验证的经验与避坑指南。希望我这个不断试错的「样本」，能帮你解决当下的问题，成为你少走弯路的捷径。" />
+  <meta property="og:image" content="assets/brand/avatar.jpg" />
+  <link rel="stylesheet" href="styles/tokens.css" />
+  <link rel="stylesheet" href="styles/base.css" />
+  <link rel="stylesheet" href="styles/components.css" />
+  <link rel="stylesheet" href="styles/sections.css" />
+</head>
+<body>
+  <header class="site-header" id="top">
+    <div class="container site-header__inner">
+      <a class="site-header__brand" href="#hero">
+        <img class="site-header__avatar" src="assets/brand/avatar.jpg" alt="扶摇" width="36" height="36" />
+        <span class="site-header__name">扶摇</span>
+      </a>
+
+      <nav class="site-header__nav" aria-label="主导航">
+        <div class="site-header__links">
+          <a class="site-header__link" href="#about">关于我</a>
+          <a class="site-header__link" href="#method">每日最佳</a>
+          <a class="site-header__link" href="#cases">每天写/做/拍点啥</a>
+          <a class="site-header__link" href="#pricing">合作</a>
+        </div>
+        <a class="btn btn--nav" href="#apply">链接我</a>
+      </nav>
+
+      <button class="site-header__toggle" type="button" aria-expanded="false" aria-controls="mobile-nav" aria-label="打开导航菜单">
+        <span class="site-header__toggle-icon"></span>
+      </button>
+    </div>
+
+    <nav class="site-header__mobile-nav container" id="mobile-nav" aria-label="移动端导航">
+      <a class="site-header__link" href="#about">关于我</a>
+      <a class="site-header__link" href="#method">每日最佳</a>
+      <a class="site-header__link" href="#delivery">服务</a>
+      <a class="site-header__link" href="#cases">每天写/做/拍点啥</a>
+      <a class="site-header__link" href="#pricing">合作</a>
+      <a class="btn btn--primary btn--full" href="#apply">链接我</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="hero section" id="hero">
+      <div class="container hero__grid">
+        <div class="hero__content">
+          <span class="hero__eyebrow">AI 个体户 · 个人品牌</span>
+          <h1>一个人，<br />也能把事业做起来</h1>
+          <p class="hero__promise">用AI探索我自己，活成样本，供你参考。</p>
+          <p class="hero__desc">我把人生当成一场公开实验。这里记录我是谁、每天在做什么，以及所有的真实复盘。我不讲空洞的大道理，只沉淀亲身验证的经验与避坑指南。希望我这个不断试错的「样本」，能帮你解决当下的问题，成为你少走弯路的捷径。</p>
+          <div class="btn-group">
+            <a class="btn btn--primary" href="#apply">我想链接你</a>
+            <a class="btn btn--secondary" href="#method">看看是否适合你</a>
+          </div>
+        </div>
+
+        <div class="hero__visual">
+          <div class="hero__map" aria-label="能力闭环示意图">
+            <div class="hero__map-grid">
+              <div class="hero__map-cell">
+                <div class="hero__map-cell-num">01</div>
+                <div class="hero__map-cell-title">定位 IP</div>
+                <div class="hero__map-cell-desc">找到差异化人设与受众</div>
+              </div>
+              <div class="hero__map-cell">
+                <div class="hero__map-cell-num">02</div>
+                <div class="hero__map-cell-title">内容输出</div>
+                <div class="hero__map-cell-desc">用 AI 稳定生产高质量内容</div>
+              </div>
+              <div class="hero__map-cell">
+                <div class="hero__map-cell-num">03</div>
+                <div class="hero__map-cell-title">产品交付</div>
+                <div class="hero__map-cell-desc">把能力打包成可售卖的服务</div>
+              </div>
+              <div class="hero__map-cell">
+                <div class="hero__map-cell-num">04</div>
+                <div class="hero__map-cell-title">持续变现</div>
+                <div class="hero__map-cell-desc">咨询、课程、社群多线收入</div>
+              </div>
+            </div>
+            <div class="hero__map-base">底层支撑：AI 工作流 + 自动化工具链</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="section" id="about">
+      <div class="container">
+        <header class="section__header">
+          <h2 class="section__title">关于我</h2>
+          <p class="section__lead">过去几年，我一直在帮个体户和创作者把「想法」变成「能卖的产品」。</p>
+        </header>
+
+        <div class="card card--gradient about__card">
+          <div class="about__avatar-wrap">
+            <img class="about__avatar" src="assets/brand/avatar.jpg" alt="扶摇个人照片" width="160" height="160" fetchpriority="high" />
+          </div>
+          <div>
+            <h3>扶摇</h3>
+            <p class="about__tagline">AI 个体户顾问 · 内容产品化实践者</p>
+            <p class="about__bio">曾服务 50+ 独立创作者与小型团队，专注 AI 工具链、个人 IP 定位与知识产品化。我相信一个人也能搭建可持续的事业系统。</p>
+            <p class="about__bio">如果你也想把专业能力变成可售卖的服务，我可以帮你梳理路径、搭建工作流，并在关键节点陪跑落地。</p>
+            <div class="about__stats">
+              <div class="stat">
+                <div class="stat__value">5年+</div>
+                <div class="stat__label">行业实践</div>
+              </div>
+              <div class="stat">
+                <div class="stat__value">50+</div>
+                <div class="stat__label">服务客户</div>
+              </div>
+              <div class="stat">
+                <div class="stat__value">3万+</div>
+                <div class="stat__label">内容粉丝</div>
+              </div>
+              <div class="stat">
+                <div class="stat__value">12+</div>
+                <div class="stat__label">实战项目</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline" aria-label="个人经历时间轴">
+          <div class="timeline__item">
+            <div class="timeline__content">
+              <div class="timeline__year">2019</div>
+              <div class="timeline__title">开始独立创作</div>
+              <p class="timeline__desc">从职场副业起步，探索内容输出与个人品牌。</p>
+            </div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__content">
+              <div class="timeline__year">2021</div>
+              <div class="timeline__title">首个知识产品上线</div>
+              <p class="timeline__desc">完成从免费内容到付费咨询的第一次转化验证。</p>
+            </div>
+          </div>
+          <div class="timeline__item timeline__item--highlight">
+            <div class="timeline__content">
+              <div class="timeline__year">2023 — 至今</div>
+              <div class="timeline__title">AI 个体户方法论</div>
+              <p class="timeline__desc">整合 AI 工具链，帮助更多一人公司跑通闭环。当前阶段。</p>
+            </div>
+          </div>
+          <div class="timeline__item">
+            <div class="timeline__content">
+              <div class="timeline__year">2025</div>
+              <div class="timeline__title">陪跑服务体系化</div>
+              <p class="timeline__desc">推出咨询 + 陪跑组合，覆盖定位到变现全链路。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pain points -->
+    <section class="section" id="method">
+      <div class="container">
+        <header class="section__header">
+          <h2 class="section__title">如果你也遇到以下问题</h2>
+          <p class="section__lead">这些问题很常见，不是你不够努力，而是缺少一套可复用的系统。</p>
+        </header>
+
+        <div class="pain-grid">
+          <article class="card">
+            <span class="card__num">01</span>
+            <h3 class="card__title">想学 AI，不懂从哪开始</h3>
+            <p class="card__desc">工具太多、教程太散，学了一堆却用不到自己的业务里。</p>
+          </article>
+          <article class="card">
+            <span class="card__num">02</span>
+            <h3 class="card__title">有专业能力，不会包装成产品</h3>
+            <p class="card__desc">知道自己是专家，但不知道怎么定价、怎么交付、怎么持续获客。</p>
+          </article>
+          <article class="card">
+            <span class="card__num">03</span>
+            <h3 class="card__title">内容做了不少，变现始终没起色</h3>
+            <p class="card__desc">粉丝在涨，咨询却很少，不知道问题出在定位、内容还是转化链路。</p>
+          </article>
+          <article class="card">
+            <span class="card__num">04</span>
+            <h3 class="card__title">一个人干活，效率总是跟不上</h3>
+            <p class="card__desc">写内容、做交付、回消息全靠自己，每天忙但看不到复利效应。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Delivery -->
+    <section class="section section--band" id="delivery">
+      <div class="container">
+        <header class="section__header">
+          <h2 class="section__title">我能提供的服务</h2>
+          <p class="section__lead">两种合作方式，按你的阶段与节奏选择。</p>
+        </header>
+
+        <div class="delivery-panels">
+          <article class="delivery-panel">
+            <div class="delivery-panel__header">
+              <span class="card__num">01</span>
+              <h3>1 对 1 咨询诊断</h3>
+            </div>
+            <div class="delivery-panel__body">
+              <p class="card__desc">90 分钟深度沟通，帮你梳理定位、产品与下一步行动清单。</p>
+              <ul class="bullet-list">
+                <li>现状诊断与机会点分析</li>
+                <li>定位与目标受众梳理</li>
+                <li>可执行的 30 天行动计划</li>
+              </ul>
+            </div>
+          </article>
+
+          <article class="delivery-panel delivery-panel--warm">
+            <div class="delivery-panel__header">
+              <span class="card__num">02</span>
+              <h3>30 天陪跑计划</h3>
+            </div>
+            <div class="delivery-panel__body">
+              <p class="card__desc">从定位到首个产品雏形，每周 1 次复盘，关键节点随时答疑。</p>
+              <ul class="bullet-list">
+                <li>AI 工作流搭建与工具选型</li>
+                <li>内容模板与产品框架共创</li>
+                <li>4 次 1 对 1 复盘会议</li>
+              </ul>
+            </div>
+          </article>
+        </div>
+
+        <h3 class="section__subtitle">服务交付大纲</h3>
+
+        <div class="curriculum-grid">
+          <article class="curriculum-day">
+            <div class="curriculum-day__header">
+              <p>Phase 1</p>
+              <h3>定位与诊断</h3>
+              <p>找到你的差异化与目标用户</p>
+            </div>
+            <div class="curriculum-day__body">
+              <div class="curriculum-day__item">
+                <span class="curriculum-day__num">01</span>
+                <span>竞品与用户画像分析</span>
+              </div>
+              <div class="curriculum-day__item">
+                <span class="curriculum-day__num">02</span>
+                <span>个人 IP 定位陈述打磨</span>
+              </div>
+              <div class="curriculum-day__item">
+                <span class="curriculum-day__num">03</span>
+                <span>内容方向与栏目规划</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="curriculum-day warm">
+            <div class="curriculum-day__header">
+              <p>Phase 2</p>
+              <h3>产品与交付</h3>
+              <p>把能力打包成可售卖的服务</p>
+            </div>
+            <div class="curriculum-day__body">
+              <div class="curriculum-day__item">
+                <span class="curriculum-day__num">01</span>
+                <span>服务产品设计与人设匹配</span>
+              </div>
+              <div class="curriculum-day__item">
+                <span class="curriculum-day__num">02</span>
+                <span>定价策略与交付 SOP</span>
+              </div>
+              <div class="curriculum-day__item">
+                <span class="curriculum-day__num">03</span>
+                <span>首个 MVP 上线与反馈迭代</span>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gains -->
+    <section class="section section--band" id="gains">
+      <div class="container">
+        <header class="section__header">
+          <h2 class="section__title">合作后，你能获得这些</h2>
+        </header>
+
+        <div class="gains-layout">
+          <article class="card card--dark gains-primary">
+            <h3>核心交付包</h3>
+            <p class="card__desc">不是一堆资料，而是能直接用的框架、模板与行动路径。</p>
+            <div class="gains-primary__metrics">
+              <div class="gains-primary__metric">
+                <div class="gains-primary__metric-value">1 份</div>
+                <div class="gains-primary__metric-label">定位文档</div>
+              </div>
+              <div class="gains-primary__metric">
+                <div class="gains-primary__metric-value">1 套</div>
+                <div class="gains-primary__metric-label">AI 工作流</div>
+              </div>
+              <div class="gains-primary__metric">
+                <div class="gains-primary__metric-value">1 个</div>
+                <div class="gains-primary__metric-label">产品雏形</div>
+              </div>
+            </div>
+          </article>
+
+          <div class="num-list">
+            <div class="num-list__item">
+              <span class="num-list__num">01</span>
+              <div class="num-list__content">
+                <h3>清晰的个人定位陈述</h3>
+                <p class="card__desc">一句话说清你是谁、帮谁、解决什么问题。</p>
+              </div>
+            </div>
+            <div class="num-list__item">
+              <span class="num-list__num">02</span>
+              <div class="num-list__content">
+                <h3>可复用的 AI 内容工作流</h3>
+                <p class="card__desc">选题、撰写、改稿、发布，全流程模板化。</p>
+              </div>
+            </div>
+            <div class="num-list__item">
+              <span class="num-list__num">03</span>
+              <div class="num-list__content">
+                <h3>首个可售卖的服务产品</h3>
+                <p class="card__desc">含定价、交付清单与宣传话术。</p>
+              </div>
+            </div>
+            <div class="num-list__item">
+              <span class="num-list__num">04</span>
+              <div class="num-list__content">
+                <h3>持续答疑与复盘支持</h3>
+                <p class="card__desc">陪跑期内关键决策点不再独自纠结。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Audience -->
+    <section class="section" id="audience">
+      <div class="container">
+        <header class="section__header">
+          <h2 class="section__title">谁适合 · 谁不适合</h2>
+        </header>
+
+        <div class="audience-grid">
+          <article class="card">
+            <span class="card__num">01</span>
+            <h3 class="card__title">独立创作者 / 自由职业者</h3>
+            <p class="card__desc">已有一定专业能力，想把影响力变成稳定收入。</p>
+          </article>
+          <article class="card">
+            <span class="card__num">02</span>
+            <h3 class="card__title">想副业变现的职场人</h3>
+            <p class="card__desc">白天上班，晚上想搭建自己的小型事业系统。</p>
+          </article>
+          <article class="card audience-card--no">
+            <span class="card__num">03</span>
+            <h3 class="card__title">不适合：只想速成暴富</h3>
+            <p class="card__desc">个体户需要持续投入，没有「一周见效」的捷径。</p>
+          </article>
+          <article class="card audience-card--no">
+            <span class="card__num">04</span>
+            <h3 class="card__title">不适合：完全不愿动手</h3>
+            <p class="card__desc">咨询和陪跑都需要你亲自执行，我无法替代你完成交付。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cases -->
+    <section class="section" id="cases">
+      <div class="container">
+        <header class="section__header">
+          <h2 class="section__title">成功案例</h2>
+          <p class="section__lead">以下是部分合作成果（数据已脱敏处理）。</p>
+        </header>
+
+        <div class="stats-row cases__stats">
+          <div class="stat">
+            <div class="stat__value">50+</div>
+            <div class="stat__label">服务客户</div>
+          </div>
+          <div class="stat">
+            <div class="stat__value stat__value--warm">85%</div>
+            <div class="stat__label">完成首个产品</div>
+          </div>
+          <div class="stat">
+            <div class="stat__value">3x</div>
+            <div class="stat__label">平均内容产出提升</div>
+          </div>
+          <div class="stat">
+            <div class="stat__value stat__value--warm">92%</div>
+            <div class="stat__label">客户满意度</div>
+          </div>
+        </div>
+
+        <div class="tabs" role="tablist" aria-label="案例分类">
+          <button class="tabs__btn is-active" type="button" role="tab" aria-selected="true" data-filter="all">全部</button>
+          <button class="tabs__btn" type="button" role="tab" aria-selected="false" data-filter="consulting">咨询</button>
+          <button class="tabs__btn" type="button" role="tab" aria-selected="false" data-filter="content">内容</button>
+          <button class="tabs__btn" type="button" role="tab" aria-selected="false" data-filter="product">产品</button>
+        </div>
+
+        <div class="cases-grid">
+          <article class="case-card" data-category="consulting">
+            <img class="case-card__img" src="assets/cases/case-placeholder.svg" alt="职场人副业咨询案例封面" width="560" height="350" loading="lazy" />
+            <div class="case-card__body">
+              <span class="case-card__tag">咨询</span>
+              <h3 class="case-card__title">职场人 30 天跑通首个咨询产品</h3>
+              <p class="case-card__result">从 0 到首单 ¥2,000 咨询，内容产出效率提升 3 倍。</p>
+            </div>
+          </article>
+
+          <article class="case-card" data-category="content">
+            <img class="case-card__img" src="assets/cases/case-placeholder.svg" alt="自媒体 AI 工作流案例封面" width="560" height="350" loading="lazy" />
+            <div class="case-card__body">
+              <span class="case-card__tag">内容</span>
+              <h3 class="case-card__title">自媒体博主 AI 工作流改造</h3>
+              <p class="case-card__result">周更从 2 篇提升到 6 篇，粉丝月增 40%。</p>
+            </div>
+          </article>
+
+          <article class="case-card" data-category="product">
+            <img class="case-card__img" src="assets/cases/case-placeholder.svg" alt="知识产品设计案例封面" width="560" height="350" loading="lazy" />
+            <div class="case-card__body">
+              <span class="case-card__tag">产品</span>
+              <h3 class="case-card__title">设计师知识产品从 0 到 1</h3>
+              <p class="case-card__result">4 周完成 mini 课程上线，首月销售 23 份。</p>
+            </div>
+          </article>
+
+          <article class="case-card" data-category="consulting">
+            <img class="case-card__img" src="assets/cases/case-placeholder.svg" alt="个体户定位咨询案例封面" width="560" height="350" loading="lazy" />
+            <div class="case-card__body">
+              <span class="case-card__tag">咨询</span>
+              <h3 class="case-card__title">个体户定位重塑与提价</h3>
+              <p class="case-card__result">咨询单价从 ¥500 提升到 ¥2,500，成交率不降反升。</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section class="section" id="pricing">
+      <div class="container">
+        <header class="section__header">
+          <h2 class="section__title">合作方式与报价</h2>
+          <p class="section__lead">透明定价，按阶段选择适合你的合作方式。</p>
+        </header>
+
+        <div class="pricing-wrap">
+          <article class="card card--gradient price-card">
+            <h3>30 天陪跑计划</h3>
+            <div class="price-card__amount">¥6,999 <span>/ 期</span></div>
+            <p class="price-card__note">含 4 次 1 对 1 复盘 + 全程答疑 + 全套模板</p>
+            <ul class="bullet-list">
+              <li>定位诊断与 IP 陈述打磨</li>
+              <li>AI 内容工作流搭建</li>
+              <li>首个服务产品设计与定价</li>
+              <li>30 天行动清单与复盘</li>
+            </ul>
+            <a class="btn btn--primary btn--full" href="#apply">我想报名咨询</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="container">
+        <header class="section__header">
+          <h2 class="section__title">常见问题</h2>
+        </header>
+
+        <div class="faq-list">
+          <details>
+            <summary>我没有粉丝基础，可以参加吗？</summary>
+            <p>可以。陪跑计划会从定位和内容冷启动开始，很多客户都是从零粉丝起步的。关键是你要有愿意投入的专业能力或行业经验。</p>
+          </details>
+          <details>
+            <summary>需要额外购买 AI 工具吗？</summary>
+            <p>大部分工作流基于免费或低成本的 AI 工具。如需付费工具，我会提前说明，并帮你评估是否值得投入。</p>
+          </details>
+          <details>
+            <summary>陪跑期间需要投入多少时间？</summary>
+            <p>建议每周至少 5~8 小时用于执行与复盘。陪跑不是代劳，我会帮你提高效率，但关键动作需要你自己完成。</p>
+          </details>
+          <details>
+            <summary>支持退款吗？</summary>
+            <p>开营前 7 天可全额退款；开营后按未服务比例协商。详情可在咨询时进一步说明。</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- Apply / Contact -->
+    <section class="apply" id="apply">
+      <div class="container apply__grid">
+        <div>
+          <h2>准备好开始了吗？<br />添加微信，聊聊你的情况</h2>
+          <p class="apply__lead">告诉我你目前在做什么、想达成什么目标。我会在 24 小时内回复，帮你判断哪种合作方式更适合。</p>
+          <a class="btn btn--primary" href="mailto:1093702532@qq.com">或发送邮件联系</a>
+        </div>
+        <div class="apply__contact">
+          <img class="apply__qr" src="assets/qr/wechat.svg" alt="微信二维码，扫码添加咨询" width="180" height="180" />
+          <p class="apply__hint">添加时备注：咨询</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© 2026 扶摇 · <a href="#top">返回顶部</a></p>
+    </div>
+  </footer>
+
+  <button class="back-to-top" type="button" aria-label="返回顶部">↑</button>
+
+  <script src="scripts/main.js" defer></script>
+</body>
+</html>

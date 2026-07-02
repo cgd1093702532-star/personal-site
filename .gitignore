@@ -1,0 +1,9 @@
+.DS_Store
+Thumbs.db
+*.log
+.cursor/
+.agents/
+skills-lock.json
+.vscode/
+tests/
+src/

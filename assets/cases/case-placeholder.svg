@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="350" viewBox="0 0 560 350" role="img" aria-label="H�b`M�">
+  <defs>
+    <linearGradient id="case-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e7f0f9"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <rect width="560" height="350" fill="url(#case-bg)"/>
+  <rect x="40" y="40" width="480" height="200" rx="8" fill="#052b52" opacity="0.08"/>
+  <text x="280" y="170" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="18" fill="#052b52">H�b`M</text>
+  <text x="280" y="300" text-anchor="middle" font-family="PingFang SC, sans-serif" font-size="14" fill="#66727f">�b:�H�*�</text>
+</svg>

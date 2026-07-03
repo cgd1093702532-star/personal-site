@@ -2,6 +2,8 @@
 Thumbs.db
 *.log
 .cursor/
+!.cursor/rules/
+!.cursor/rules/**
 .agents/
 skills-lock.json
 .vscode/

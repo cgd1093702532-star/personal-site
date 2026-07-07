@@ -1,0 +1,156 @@
+<view class="page hero-detail" wx:if="{{hero}}">
+  <view class="hero-profile">
+    <view class="hero-profile__cover"></view>
+    <view class="hero-profile__main">
+      <view class="hero-profile__avatar cover-placeholder"></view>
+      <text class="hero-profile__name">{{hero.name}}</text>
+      <text class="hero-profile__subtitle">{{hero.project_types.join(' · ')}} · {{hero.years_exp}}年经验</text>
+      <view class="hero-profile__rating">
+        <view class="hero-profile__stars">
+          <text
+            class="hero-profile__star {{item.filled ? 'hero-profile__star--filled' : ''}} {{item.half ? 'hero-profile__star--half' : ''}}"
+            wx:for="{{stars}}"
+            wx:key="index"
+          >★</text>
+        </view>
+        <text class="hero-profile__score">{{hero.rating}}</text>
+      </view>
+      <view class="hero-profile__tags">
+        <view class="hero-profile__tag" wx:for="{{detailTags}}" wx:key="*this">{{item}}</view>
+      </view>
+      <view class="hero-profile__stats">
+        <view class="hero-profile__stat">
+          <text class="hero-profile__stat-num">{{hero.student_count}}</text>
+          <text class="hero-profile__stat-label">学员</text>
+        </view>
+        <view class="hero-profile__stat">
+          <text class="hero-profile__stat-num">{{hero.rating}}</text>
+          <text class="hero-profile__stat-label">评分</text>
+        </view>
+        <view class="hero-profile__stat">
+          <text class="hero-profile__stat-num">{{honors.length}}</text>
+          <text class="hero-profile__stat-label">荣誉</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="hero-detail__block">
+    <view class="hero-detail__label-row">
+      <text class="hero-detail__label">关于我</text>
+      <text class="hero-profile-edit__link" bindtap="onEditAbout">编辑</text>
+    </view>
+    <text class="hero-detail__bio hero-profile-edit__bio">{{aboutMe}}</text>
+  </view>
+
+  <view class="hero-detail__block">
+    <view class="hero-detail__label-row">
+      <text class="hero-detail__label">过往荣誉</text>
+      <text class="hero-profile-edit__link" bindtap="onAddHonor">新增</text>
+    </view>
+    <view class="honor-row" wx:for="{{honors}}" wx:key="id">
+      <view class="hero-detail__honor honor-row__body">
+        <view class="hero-detail__honor-icon">{{item.icon}}</view>
+        <view class="hero-detail__honor-body">
+          <text class="hero-detail__honor-name">{{item.name}}</text>
+          <text class="hero-detail__honor-summary">{{item.summary}}</text>
+        </view>
+      </view>
+      <view class="honor-row__actions">
+        <view class="honor-row__icon honor-row__icon--edit" data-index="{{index}}" catchtap="onEditHonor"></view>
+        <view class="honor-row__icon honor-row__icon--delete" data-index="{{index}}" catchtap="onDeleteHonor"></view>
+      </view>
+    </view>
+    <view wx:if="{{honors.length === 0}}" class="hero-profile-edit__empty">暂无荣誉，点击新增添加</view>
+  </view>
+
+  <view class="hero-detail__block">
+    <view class="hero-detail__label-row">
+      <text class="hero-detail__label">精彩瞬间</text>
+      <text class="hero-profile-edit__hint">长按拖动排序</text>
+    </view>
+    <view class="hero-profile-edit__gallery">
+      <view
+        class="hero-profile-edit__media {{dragMomentIndex === index ? 'hero-profile-edit__media--dragging' : ''}}"
+        wx:for="{{moments}}"
+        wx:key="id"
+        data-index="{{index}}"
+        bindtap="onPreviewMoment"
+        bindlongpress="onMomentLongPress"
+        bindtouchmove="onMomentTouchMove"
+        bindtouchend="onMomentTouchEnd"
+      >
+        <image wx:if="{{item.isLocal}}" class="hero-profile-edit__media-img" src="{{item.url}}" mode="aspectFill" />
+        <view wx:else class="hero-detail__gallery-item cover-placeholder hero-profile-edit__media-img"></view>
+        <text class="hero-profile-edit__media-del" catchtap="onDeleteMoment" data-index="{{index}}">×</text>
+        <text class="hero-profile-edit__media-handle">⋮⋮</text>
+      </view>
+      <view wx:if="{{moments.length < maxPhotos}}" class="hero-profile-edit__add" bindtap="onAddMoment">
+        <text class="hero-profile-edit__add-icon">+</text>
+        <text>添加图片</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="hero-detail__block">
+    <view class="hero-detail__label-row">
+      <text class="hero-detail__label">资质证书</text>
+      <text class="hero-profile-edit__hint">长按拖动排序</text>
+    </view>
+    <view class="hero-profile-edit__cert-grid">
+      <view
+        class="hero-profile-edit__media hero-profile-edit__media--cert {{dragCertIndex === index ? 'hero-profile-edit__media--dragging' : ''}}"
+        wx:for="{{certificates}}"
+        wx:key="id"
+        data-index="{{index}}"
+        bindtap="onPreviewCert"
+        bindlongpress="onCertLongPress"
+        bindtouchmove="onCertTouchMove"
+        bindtouchend="onCertTouchEnd"
+      >
+        <image wx:if="{{item.isLocal}}" class="hero-profile-edit__media-img" src="{{item.image}}" mode="aspectFill" />
+        <view wx:else class="hero-detail__cert-img cover-placeholder hero-profile-edit__media-img"></view>
+        <text class="hero-profile-edit__media-name">{{item.name}}</text>
+        <text class="hero-profile-edit__media-del" catchtap="onDeleteCert" data-index="{{index}}">×</text>
+        <text class="hero-profile-edit__media-handle">⋮⋮</text>
+      </view>
+      <view wx:if="{{certificates.length < maxPhotos}}" class="hero-profile-edit__add" bindtap="onAddCert">
+        <text class="hero-profile-edit__add-icon">+</text>
+        <text>添加证书</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="hero-detail__bottom-spacer"></view>
+</view>
+
+<view class="hero-profile-sheet" wx:if="{{honorForm.visible}}" catchtouchmove="noop">
+  <view class="hero-profile-sheet__mask" bindtap="onHonorFormClose"></view>
+  <view class="hero-profile-sheet__panel" catchtap="noop">
+    <text class="hero-profile-sheet__title">{{honorForm.mode === 'add' ? '新增荣誉' : '编辑荣誉'}}</text>
+    <view class="hero-profile-sheet__field">
+      <text class="hero-profile-sheet__label">图标（emoji）</text>
+      <input class="hero-profile-sheet__input" placeholder="如 🏆" value="{{honorForm.icon}}" data-field="icon" bindinput="onHonorFormInput" />
+    </view>
+    <view class="hero-profile-sheet__field">
+      <text class="hero-profile-sheet__label">荣誉名称</text>
+      <input class="hero-profile-sheet__input" placeholder="荣誉名称" value="{{honorForm.name}}" data-field="name" bindinput="onHonorFormInput" />
+    </view>
+    <view class="hero-profile-sheet__field">
+      <text class="hero-profile-sheet__label">简介</text>
+      <textarea class="hero-profile-sheet__textarea" placeholder="简要说明" value="{{honorForm.summary}}" data-field="summary" bindinput="onHonorFormInput" />
+    </view>
+    <view class="hero-profile-sheet__actions">
+      <view class="hero-profile-sheet__btn hero-profile-sheet__btn--cancel" bindtap="onHonorFormClose">取消</view>
+      <view class="hero-profile-sheet__btn hero-profile-sheet__btn--save" bindtap="onHonorFormSave">保存</view>
+    </view>
+  </view>
+</view>
+
+<image-viewer
+  visible="{{viewerVisible}}"
+  urls="{{viewerUrls}}"
+  current="{{viewerCurrent}}"
+  bind:close="onViewerClose"
+  bind:change="onViewerChange"
+/>

@@ -1,0 +1,96 @@
+<view class="page page--tab profile">
+  <view class="profile-user">
+    <view class="profile-user__head">
+      <view class="profile-user__avatar cover-placeholder"></view>
+      <view class="profile-user__info">
+        <text class="profile-user__name">{{user.nickname}}</text>
+        <view class="profile-user__meta">
+          <text class="profile-user__member">{{user.member}}</text>
+          <text wx:if="{{!isHero}}" class="profile-user__cert profile-user__cert--none">未认证</text>
+          <view wx:else class="profile-user__cert profile-user__cert--hero profile-user__cert--tap" bindtap="onHeroCertSuccess">
+            <text class="profile-user__cert-text">已认证英雄</text>
+            <text class="profile-user__cert-arrow">›</text>
+          </view>
+        </view>
+      </view>
+    </view>
+    <view class="profile-user__stats" wx:if="{{isHero}}">
+      <view class="profile-user__stat profile-user__stat--tap" bindtap="onMyStudents">
+        <text class="profile-user__stat-num">{{hero.student_count}}</text>
+        <text class="profile-user__stat-label">学员</text>
+      </view>
+      <view class="profile-user__stat profile-user__stat--tap" bindtap="onMyRatings">
+        <text class="profile-user__stat-num">{{hero.rating}}</text>
+        <text class="profile-user__stat-label">评分</text>
+      </view>
+      <view class="profile-user__stat profile-user__stat--tap" bindtap="onMyCourses">
+        <text class="profile-user__stat-num">{{hero.course_count}}</text>
+        <text class="profile-user__stat-label">课程</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="profile-dev-toggle" bindtap="onToggleHeroState">
+    <text>预览：切换为{{isHero ? '未认证' : '已认证'}}状态</text>
+  </view>
+
+  <view wx:if="{{!isHero}}" class="profile-hero-cta {{heroPending ? 'profile-hero-cta--pending' : ''}}">
+    <text class="profile-hero-cta__hint">{{heroPending ? '认证申请审核中，请耐心等待' : '成为英雄，发布赛事招募，开启您的水上教育事业'}}</text>
+    <view class="profile-hero-cta__btn" bindtap="onApplyHero">{{heroPending ? '查看审核进度' : '申请成为英雄'}}</view>
+  </view>
+
+  <view wx:else class="profile-hero-center">
+    <text class="profile-section__title">英雄中心</text>
+    <view class="profile-hero-shortcuts">
+      <view class="profile-hero-shortcuts__row">
+        <view class="profile-hero-shortcuts__item" bindtap="onCreateRecruitment">
+          <text class="profile-hero-shortcuts__icon">📢</text>
+          <text class="profile-hero-shortcuts__label">发布招募/课程</text>
+        </view>
+        <view class="profile-hero-shortcuts__item" bindtap="onMyRecruitments">
+          <text class="profile-hero-shortcuts__icon">📋</text>
+          <text class="profile-hero-shortcuts__label">我的招募</text>
+        </view>
+        <view class="profile-hero-shortcuts__item" bindtap="onMyCourses">
+          <text class="profile-hero-shortcuts__icon">📚</text>
+          <text class="profile-hero-shortcuts__label">我的课程</text>
+        </view>
+      </view>
+      <view class="profile-hero-shortcuts__row profile-hero-shortcuts__row--secondary">
+        <view class="profile-hero-shortcuts__item" bindtap="onHeroProfile">
+          <text class="profile-hero-shortcuts__icon">👤</text>
+          <text class="profile-hero-shortcuts__label">英雄资料</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="profile-section">
+    <text class="profile-section__title">我的活动</text>
+    <view class="profile-menu__item" bindtap="onMySignups">
+      <view class="profile-menu__icon">📋</view>
+      <view class="profile-menu__body">
+        <text class="profile-menu__title">我的报名</text>
+        <text class="profile-menu__desc">进行中 {{activity.signupOngoing}}，已完成 {{activity.signupDone}}</text>
+      </view>
+      <text class="profile-menu__arrow">›</text>
+    </view>
+    <view class="profile-menu__item" bindtap="onMyReviews">
+      <view class="profile-menu__icon">⭐</view>
+      <view class="profile-menu__body">
+        <text class="profile-menu__title">我的评价</text>
+        <text class="profile-menu__desc">已评价 {{activity.reviewCount}}</text>
+      </view>
+      <text class="profile-menu__arrow">›</text>
+    </view>
+  </view>
+
+  <view class="profile-action-sheet" wx:if="{{showPublishSheet}}" catchtouchmove="noop">
+    <view class="profile-action-sheet__mask" bindtap="onClosePublishSheet"></view>
+    <view class="profile-action-sheet__panel" catchtap="noop">
+      <view class="profile-action-sheet__item" bindtap="onPublishEvent">发布赛事招募</view>
+      <view class="profile-action-sheet__item" bindtap="onPublishCourse">发布课程</view>
+      <view class="profile-action-sheet__item profile-action-sheet__item--cancel" bindtap="onClosePublishSheet">取消</view>
+    </view>
+  </view>
+</view>

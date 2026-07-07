@@ -1,0 +1,9 @@
+{
+  "navigationStyle": "custom",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "section-header": "/components/section-header/section-header",
+    "hero-card": "/components/hero-card/hero-card",
+    "event-card": "/components/event-card/event-card"
+  }
+}

@@ -1,0 +1,43 @@
+---
+description: 预览 SPA 返回导航规范 · nav-back 必须回到上一页而非写死 href
+globs: preview/assets/preview-nav.js,preview/build-pages.py,preview/miniprogram/**
+alwaysApply: false
+---
+
+# 预览 SPA 返回导航
+
+## 问题复盘（英雄详情 ‹ 按钮）
+
+**现象**：`href="heroes.html"` 的返回按钮，从营销首页进入英雄详情后点返回，却跳到英雄广场。
+
+**根因（三层）**：
+
+1. **HTML 里的 `href` 只是兜底**，不能作为唯一返回目标；各子页在 `build-pages.py` 里写死了不同 back 链接。
+2. **前进导航未同步压栈**：仅在 `fetch` 成功后才 `push`，若整页刷新或栈与 `history` 不同步，栈长度变为 1，返回走兜底 `href`。
+3. **`syncStackOnLoad` 过于激进**：当前 URL 不在栈顶时直接 `stack = [current]`，丢掉真实来源。
+
+## 必须遵守
+
+| 规则 | 说明 |
+|------|------|
+| 返回优先级 | **导航栈上一页** → `document.referrer`（同域 miniprogram）→ HTML `href` 兜底 |
+| 前进压栈时机 | 点击链接后**同步**记录「当前页 + 目标页」，不要等到 `fetch` 完成 |
+| URL 比较 | 栈内 URL 统一 `normalizeUrl()`（`new URL().href`），避免相对/绝对路径不一致 |
+| 返回实现 | 用 `navigateTo(prev, { replace: true })` 加载上一页，**不要**依赖 `history.back()` 与栈双轨 |
+| 禁止 | 只改 `href`、只加 `history.back()`、不设栈就声称「已修复返回」 |
+
+## 修改检查清单
+
+改 `preview-nav.js` 或子页导航后，**必须**在浏览器验证这三条路径：
+
+1. 营销首页 → 英雄详情 → ‹ → 回首页
+2. 英雄广场 → 英雄详情 → ‹ → 回英雄广场
+3. 个人中心 → 修改英雄资料 → ‹ → 回个人中心
+
+直接打开子页（无历史）时，才应走 `href` 兜底。
+
+## 相关文件
+
+- 导航核心：`preview/assets/preview-nav.js`
+- 兜底 href 生成：`preview/build-pages.py` → `navbar(back=...)`
+- 子页标记：`.mp-navbar__back.nav-back`

@@ -1,0 +1,32 @@
+{
+  "folders": [
+    { "name": "📱 小程序", "path": "miniprogram" },
+    { "name": "🖥️ 管理后台", "path": "admin" },
+    { "name": "🔌 本地 API", "path": "server" },
+    { "name": "🌐 预览", "path": "preview" },
+    { "name": "📚 文档", "path": "docs" },
+    { "name": "🛠️ 脚本", "path": "scripts" },
+    { "name": "💾 数据", "path": "data" },
+    {
+      "name": "📋 根目录配置",
+      "path": "."
+    }
+  ],
+  "settings": {
+    "files.exclude": {
+      "miniprogram": true,
+      "admin": true,
+      "server": true,
+      "preview": true,
+      "docs": true,
+      "scripts": true,
+      "data": true,
+      "node_modules": true,
+      ".git": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/data/local.db": true
+    }
+  }
+}

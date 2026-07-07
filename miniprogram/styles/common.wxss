@@ -1,0 +1,65 @@
+/* 通用布局与文字工具类 */
+
+.page {
+  min-height: 100vh;
+  background: var(--color-bg-page);
+}
+
+.page--tab {
+  padding-bottom: 32rpx;
+}
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-ellipsis-2 {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.section {
+  padding: 0 var(--space-page-x);
+  margin-top: var(--space-section-y);
+}
+
+.section:first-child {
+  margin-top: 0;
+}
+
+.cover-placeholder {
+  background: linear-gradient(135deg, #dbe6ff 0%, #1b579c 100%);
+}
+
+.cover-placeholder--warm {
+  background: linear-gradient(135deg, #fde3d4 0%, #f47528 100%);
+}
+
+.cover-placeholder--green {
+  background: linear-gradient(135deg, #e8f5e9 0%, #09633f 100%);
+}
+
+.cover-placeholder--gray {
+  background: var(--color-bg-subtle);
+}

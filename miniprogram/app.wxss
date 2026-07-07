@@ -1,0 +1,16 @@
+@import "./styles/tokens.wxss";
+@import "./styles/common.wxss";
+
+page {
+  font-family: -apple-system, "PingFang SC", "Helvetica Neue", sans-serif;
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-page);
+  box-sizing: border-box;
+}
+
+view,
+text,
+image {
+  box-sizing: border-box;
+}

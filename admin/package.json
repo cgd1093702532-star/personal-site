@@ -1,0 +1,9 @@
+{
+  "name": "hero-plaza-admin",
+  "version": "0.1.0",
+  "private": true,
+  "description": "英雄广场管理后台（待初始化框架）",
+  "scripts": {
+    "dev": "echo \"Admin scaffold: run npm init after stack decision\" && exit 1"
+  }
+}

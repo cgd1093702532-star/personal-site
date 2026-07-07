@@ -1,0 +1,37 @@
+---
+description: 个人站前端开发约束。编写 HTML/CSS/JS 时必须遵守。
+globs: "**/*.{html,css,js}"
+alwaysApply: false
+---
+
+# 个人站前端开发规则
+
+完整规范见 `docs/FRONTEND-CONSTRAINTS.md`、`docs/DESIGN-SPEC.md`、`docs/TECH-STACK.md`、`docs/TECH-SPEC.md`。
+
+## 已确认决策
+
+- 首版：纯 HTML + CSS + 可选原生 ES Module JS
+- 部署：GitHub Pages
+- 首版不含访问统计（禁止 Umami / Plausible / GA / 百度统计等脚本）
+
+## 必须
+
+- 颜色、间距、圆角、阴影只用 DESIGN-SPEC 的 CSS variables（`:root` tokens），禁止硬编码色值
+- 移动优先；断点 Mobile < 768px · Tablet 768~1023px · Desktop ≥ 1024px
+- 语义化 HTML；全页一个 H1；FAQ 用 `<details>`；nav 带 `aria-label="主导航"`
+- 核心内容无 JS 可访问；JS 仅增强 Tab、移动菜单等轻交互
+- 性能：零或极少 JS；LCP 图不 lazy；图片用 WebP
+- 资源路径兼容 GitHub Pages（优先相对路径）
+- 固定顶栏区块使用 `scroll-margin-top` 避免锚点被遮挡
+
+## 禁止
+
+- 引入 React、Vue、Tailwind、Bootstrap 等框架（首版）
+- 内联 style / onclick、滥用 `!important`、远程 `@import`、Google Fonts
+- 任何访问统计或第三方追踪脚本
+- 偏离 DESIGN-SPEC 的色彩系统与区块结构
+- 为单页 landing 引入重型 UI 库或在线客服 widget
+
+## 提交前
+
+对照 `docs/FRONTEND-CONSTRAINTS.md` §8 与 `docs/DESIGN-SPEC.md` §12 自检。

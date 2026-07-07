@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "英雄广场",
+  "enablePullDownRefresh": true,
+  "usingComponents": {
+    "hero-card": "/components/hero-card/hero-card"
+  }
+}

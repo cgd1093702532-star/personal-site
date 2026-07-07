@@ -1,0 +1,42 @@
+<view class="page create">
+  <view class="create-field">
+    <text class="create-label">课程标题 *</text>
+    <input class="create-input" placeholder="2-50字" data-field="title" value="{{form.title}}" bindinput="onInput" />
+  </view>
+
+  <view class="create-field">
+    <text class="create-label">上课地点 *</text>
+    <input class="create-input" placeholder="如：滴水湖二号码头" data-field="location" value="{{form.location}}" bindinput="onInput" />
+  </view>
+
+  <view class="create-field">
+    <text class="create-label">开课日期 *</text>
+    <picker mode="date" data-field="start_date" bindchange="onDateChange">
+      <view class="create-picker">{{form.start_date || '请选择'}} ›</view>
+    </picker>
+  </view>
+
+  <view class="create-field">
+    <text class="create-label">招生人数 *</text>
+    <input class="create-input" type="number" placeholder="1-100" data-field="headcount" value="{{form.headcount}}" bindinput="onInput" />
+  </view>
+
+  <view class="create-field">
+    <text class="create-label">费用（元/人）*</text>
+    <input class="create-input" type="digit" placeholder="0 表示免费" data-field="fee" value="{{form.fee}}" bindinput="onInput" />
+  </view>
+
+  <view class="create-field">
+    <text class="create-label">报名截止 *</text>
+    <picker mode="date" data-field="deadline" bindchange="onDateChange">
+      <view class="create-picker">{{form.deadline || '请选择'}} ›</view>
+    </picker>
+  </view>
+
+  <view class="create-field">
+    <text class="create-label">课程介绍 *</text>
+    <textarea class="create-textarea" placeholder="10-2000字" maxlength="2000" data-field="desc" value="{{form.desc}}" bindinput="onInput" />
+  </view>
+
+  <view class="create-submit" bindtap="onSubmit">发布课程</view>
+</view>

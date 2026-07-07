@@ -1,0 +1,128 @@
+@import "../../styles/common.wxss";
+
+.my-signup {
+  min-height: 100vh;
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+  background: var(--color-bg-subtle);
+}
+
+.my-signup__tabs {
+  display: flex;
+  background: var(--color-bg-page);
+  border-bottom: 1rpx solid var(--color-divider);
+}
+
+.my-signup__tab {
+  flex: 1;
+  padding: 24rpx 8rpx;
+  text-align: center;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.my-signup__tab--active {
+  color: var(--color-primary);
+  font-weight: 600;
+  border-bottom: 4rpx solid var(--color-primary);
+}
+
+.my-signup__list {
+  padding: 24rpx var(--space-page-x);
+}
+
+.my-signup__card {
+  margin-bottom: 20rpx;
+  padding: 24rpx;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+  border-left: 6rpx solid var(--color-primary);
+  box-shadow: 0 4rpx 16rpx rgba(27, 87, 156, 0.06);
+}
+
+.my-signup__card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.my-signup__title {
+  flex: 1;
+  font-size: var(--text-card-title);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
+.my-signup__badge {
+  flex-shrink: 0;
+  padding: 4rpx 12rpx;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  line-height: 1.4;
+}
+
+.my-signup__badge--active {
+  color: var(--color-primary);
+  background: rgba(27, 87, 156, 0.1);
+}
+
+.my-signup__badge--ended {
+  color: var(--color-text-secondary);
+  background: var(--color-bg-gray);
+}
+
+.my-signup__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8rpx;
+  margin-top: 12rpx;
+}
+
+.my-signup__row-icon {
+  flex-shrink: 0;
+  font-size: 24rpx;
+  line-height: 36rpx;
+}
+
+.my-signup__row-text {
+  flex: 1;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  line-height: 36rpx;
+}
+
+.my-signup__meta {
+  display: block;
+  margin-top: 12rpx;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}
+
+.my-signup__empty {
+  padding: 120rpx 32rpx;
+  text-align: center;
+}
+
+.my-signup__empty-icon {
+  display: block;
+  font-size: 72rpx;
+  line-height: 1;
+}
+
+.my-signup__empty-title {
+  display: block;
+  margin-top: 24rpx;
+  font-size: var(--text-card-title);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.my-signup__empty-hint {
+  display: block;
+  margin-top: 12rpx;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  line-height: 36rpx;
+}

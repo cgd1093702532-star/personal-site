@@ -1,0 +1,21 @@
+<view class="event-card" bindtap="onTap">
+  <view class="event-card__bg cover-placeholder"></view>
+  <view class="event-card__overlay"></view>
+  <view class="event-card__time">
+    <view class="event-card__dot"></view>
+    <text>{{item.time}}</text>
+  </view>
+  <view class="event-card__body">
+    <category-tag label="{{item.typeLabel}}" variant="{{item.type === 'event' ? 'event' : 'activity'}}" />
+    <text class="event-card__title">{{item.title}}</text>
+    <text class="event-card__location">{{item.location}}</text>
+    <view class="event-card__footer">
+      <view class="event-card__price">
+        <text class="event-card__price-symbol">¥</text>
+        <text class="event-card__price-num">{{item.fee}}</text>
+        <text class="event-card__price-unit">/人</text>
+      </view>
+      <view class="event-card__btn">立即报名</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,36 @@
+<view class="page my-courses">
+  <view class="my-courses__tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="my-courses__tab {{activeTab === item.key ? 'my-courses__tab--active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTabChange"
+    >{{item.display}}</view>
+  </view>
+
+  <view class="my-courses__list">
+    <block wx:for="{{currentList}}" wx:key="course_id">
+      <view class="my-courses__card">
+        <view class="my-courses__card-head">
+          <text class="my-courses__title">{{item.title}}</text>
+          <text wx:if="{{item.listTab === 'ended'}}" class="my-courses__badge">已结束</text>
+        </view>
+        <text class="my-courses__meta">{{item.timeDisplay}} · {{item.location}}</text>
+        <text class="my-courses__price">¥{{item.price}}/人</text>
+        <view wx:if="{{item.listTab !== 'ended'}}" class="my-courses__progress">
+          <text>已报名 {{item.signed}}/{{item.total}}</text>
+          <view class="my-courses__bar">
+            <view class="my-courses__bar-inner" style="width: {{item.progress}}%;"></view>
+          </view>
+        </view>
+      </view>
+    </block>
+
+    <view wx:if="{{currentList.length === 0}}" class="my-courses__empty">
+      <text class="my-courses__empty-icon">{{emptyState.icon}}</text>
+      <text class="my-courses__empty-title">{{emptyState.title}}</text>
+      <text class="my-courses__empty-hint">{{emptyState.hint}}</text>
+    </view>
+  </view>
+</view>

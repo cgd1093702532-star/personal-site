@@ -1,0 +1,4 @@
+<view class="page edit-page">
+  <textarea class="edit-page__textarea" maxlength="500" value="{{bio}}" bindinput="onInput" />
+  <view class="edit-page__submit" bindtap="onSave">保存</view>
+</view>

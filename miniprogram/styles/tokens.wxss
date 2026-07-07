@@ -1,0 +1,62 @@
+/**
+ * Design Tokens — 375px 设计稿 → 750rpx
+ * 换算：1px = 2rpx
+ * 完整规范见 docs/DESIGN-SPEC.md
+ */
+page {
+  /* 品牌主色 */
+  --color-primary: #1b579c;
+  --color-accent: #fecf13;
+  --color-accent-gold: #e3c086;
+  --color-accent-gold-light: #ddc6a0;
+
+  /* 功能色 */
+  --color-activity: #f47528;
+  --color-activity-bg: #fde3d4;
+  --color-price: #eb590d;
+  --color-course-tag: #09633f;
+  --color-course-tag-bg: rgba(0, 199, 119, 0.4);
+
+  /* 文字 */
+  --color-text-primary: #222222;
+  --color-text-secondary: #5c6c7a;
+  --color-text-body: #1d2d38;
+  --color-text-muted: #888888;
+  --color-text-tag: #3e4f5b;
+  --color-text-inverse: #ffffff;
+
+  /* 背景 */
+  --color-bg-page: #ffffff;
+  --color-bg-subtle: #fafafa;
+  --color-bg-gray: #f5f5f5;
+  --color-divider: #e1e5e8;
+  --color-divider-navy: #103cb7;
+
+  /* 遮罩 */
+  --color-overlay-light: rgba(0, 0, 0, 0.24);
+  --color-overlay-medium: rgba(0, 0, 0, 0.2);
+  --color-overlay-card: rgba(255, 255, 255, 0.7);
+
+  /* 字号（rpx） */
+  --text-hero: 48rpx;
+  --text-section-title: 36rpx;
+  --text-card-title: 28rpx;
+  --text-body: 24rpx;
+  --text-caption: 22rpx;
+  --text-micro: 20rpx;
+  --text-price-lg: 32rpx;
+  --text-price-xl: 36rpx;
+
+  /* 间距（rpx） */
+  --space-page-x: 32rpx;
+  --space-section-y: 64rpx;
+  --space-card-gap: 16rpx;
+  --space-tag-gap: 8rpx;
+  --space-list-gap: 20rpx;
+
+  /* 圆角（rpx） */
+  --radius-sm: 8rpx;
+  --radius-md: 16rpx;
+  --radius-pill: 24rpx;
+  --radius-circle: 64rpx;
+}

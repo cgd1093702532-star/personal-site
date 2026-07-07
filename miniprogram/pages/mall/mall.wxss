@@ -1,0 +1,52 @@
+@import "../../styles/common.wxss";
+
+.mall-header {
+  padding: 32rpx var(--space-page-x);
+}
+
+.mall-header__title {
+  display: block;
+  font-size: var(--text-section-title);
+  font-weight: 600;
+}
+
+.mall-header__sub {
+  display: block;
+  margin-top: 8rpx;
+  font-size: var(--text-body);
+  color: var(--color-text-secondary);
+}
+
+.mall-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24rpx;
+  padding: 0 var(--space-page-x);
+}
+
+.mall-item__cover {
+  width: 100%;
+  height: 280rpx;
+  border-radius: var(--radius-md);
+}
+
+.mall-item__title {
+  display: block;
+  margin-top: 12rpx;
+  font-size: var(--text-body);
+}
+
+.mall-item__price {
+  display: block;
+  margin-top: 8rpx;
+  color: var(--color-price);
+  font-size: var(--text-card-title);
+  font-weight: 600;
+}
+
+.mall-tip {
+  margin: 48rpx var(--space-page-x);
+  text-align: center;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+}

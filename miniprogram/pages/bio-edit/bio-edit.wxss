@@ -1,0 +1,25 @@
+@import "../../styles/common.wxss";
+
+.edit-page {
+  padding: 32rpx var(--space-page-x);
+}
+
+.edit-page__textarea {
+  width: 100%;
+  min-height: 320rpx;
+  padding: 24rpx;
+  box-sizing: border-box;
+  background: var(--color-bg-gray);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body);
+}
+
+.edit-page__submit {
+  margin-top: 48rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+  border-radius: var(--radius-md);
+}

@@ -1,0 +1,139 @@
+<view class="page create-form">
+  <view class="create-section">
+    <text class="create-section__title">基本信息</text>
+
+    <view class="create-field">
+      <text class="create-label create-label--required">招募标题</text>
+      <input class="create-input" placeholder="如：周末帆船体验营" data-field="title" value="{{form.title}}" bindinput="onInput" />
+    </view>
+
+    <view class="create-field">
+      <text class="create-label create-label--required">活动地点</text>
+      <view class="create-location-row">
+        <input class="create-input create-input--flex" placeholder="如：三亚帆船港" data-field="location" value="{{form.location}}" bindinput="onInput" />
+        <view class="create-map-btn" bindtap="onChooseLocation">地图</view>
+      </view>
+    </view>
+
+    <view class="create-row">
+      <view class="create-field create-field--half">
+        <text class="create-label create-label--required">开始日期</text>
+        <picker mode="date" value="{{form.start_date}}" data-field="start_date" bindchange="onDateChange">
+          <view class="create-picker">{{form.start_date || '请选择'}} ›</view>
+        </picker>
+      </view>
+      <view class="create-field create-field--half">
+        <text class="create-label">开始时间</text>
+        <picker mode="time" value="{{form.start_time}}" data-field="start_time" bindchange="onTimeChange">
+          <view class="create-picker">{{form.start_time || '09:00'}} ›</view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="create-row">
+      <view class="create-field create-field--half">
+        <text class="create-label">结束日期</text>
+        <picker mode="date" value="{{form.end_date}}" data-field="end_date" bindchange="onDateChange">
+          <view class="create-picker">{{form.end_date || '请选择'}} ›</view>
+        </picker>
+      </view>
+      <view class="create-field create-field--half">
+        <text class="create-label">结束时间</text>
+        <picker mode="time" value="{{form.end_time}}" data-field="end_time" bindchange="onTimeChange">
+          <view class="create-picker">{{form.end_time || '17:00'}} ›</view>
+        </picker>
+      </view>
+    </view>
+  </view>
+
+  <view class="create-section">
+    <text class="create-section__title">招募设置</text>
+
+    <view class="create-row">
+      <view class="create-field create-field--half">
+        <text class="create-label create-label--required">招募人数</text>
+        <input class="create-input" type="number" placeholder="1-100" data-field="headcount" value="{{form.headcount}}" bindinput="onInput" />
+      </view>
+      <view class="create-field create-field--half">
+        <text class="create-label create-label--required">费用（元/人）</text>
+        <input class="create-input" type="digit" placeholder="0 表示免费" data-field="fee" value="{{form.fee}}" bindinput="onInput" />
+      </view>
+    </view>
+
+    <view class="create-field">
+      <text class="create-label create-label--required">报名截止时间</text>
+      <picker mode="date" value="{{form.deadline}}" data-field="deadline" bindchange="onDateChange">
+        <view class="create-picker">{{form.deadline || '请选择'}} ›</view>
+      </picker>
+    </view>
+
+    <view class="create-field">
+      <text class="create-label">招募对象</text>
+      <view class="create-tags">
+        <view
+          wx:for="{{audienceOptions}}"
+          wx:key="*this"
+          class="create-tag {{audienceMap[item] ? 'create-tag--active' : ''}}"
+          data-audience="{{item}}"
+          bindtap="onAudienceToggle"
+        >{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="create-section">
+    <text class="create-section__title">活动详情</text>
+
+    <view class="create-field">
+      <text class="create-label">活动亮点</text>
+      <textarea
+        class="create-textarea"
+        placeholder="如：专业教练全程指导、配备全套装备、含午餐和保险"
+        maxlength="500"
+        data-field="highlights"
+        value="{{form.highlights}}"
+        bindinput="onInput"
+      />
+    </view>
+
+    <view class="create-field">
+      <text class="create-label create-label--required">详细描述</text>
+      <textarea
+        class="create-textarea create-textarea--lg"
+        placeholder="详细描述活动内容、流程与注意事项"
+        maxlength="2000"
+        data-field="desc"
+        value="{{form.desc}}"
+        bindinput="onInput"
+      />
+    </view>
+
+    <view class="create-field">
+      <text class="create-label">封面图片</text>
+      <view class="create-cover" bindtap="onChooseCover">
+        <block wx:if="{{form.cover}}">
+          <image class="create-cover__img" src="{{form.cover}}" mode="aspectFill" />
+          <text class="create-cover__hint">点击更换封面图</text>
+        </block>
+        <block wx:else>
+          <text class="create-cover__icon">🖼</text>
+          <text class="create-cover__hint">点击上传封面图（建议比例 16:9）</text>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <view class="create-section">
+    <text class="create-section__title">联系方式</text>
+
+    <view class="create-field">
+      <text class="create-label create-label--required">咨询手机</text>
+      <input class="create-input" type="number" maxlength="11" placeholder="请输入手机号" data-field="phone" value="{{form.phone}}" bindinput="onInput" />
+    </view>
+  </view>
+
+  <view class="create-footer">
+    <view class="create-footer__draft" bindtap="onSaveDraft">保存草稿</view>
+    <view class="create-footer__publish" bindtap="onSubmit">立即发布</view>
+  </view>
+</view>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>英雄管理 · 管理后台预览</title>
+  <link rel="stylesheet" href="../assets/preview.css">
+</head>
+<body>
+  <div class="admin-layout" id="heroes-admin-root">
+    <a href="../index.html">← 预览目录</a>
+    <h1 style="margin:16px 0">英雄管理 · 申请审核</h1>
+    <p id="heroes-admin-hint" class="admin-page__hint"></p>
+    <nav class="admin-nav">
+      <a href="dashboard.html">仪表盘</a>
+      <a href="heroes.html" class="active">英雄管理</a>
+      <a href="recruitments.html">招募管理</a>
+      <a href="signups.html">报名管理</a>
+      <a href="reviews.html">评价管理</a>
+      <a href="users.html">用户管理</a>
+      <a href="settings.html">系统配置</a>
+      <a href="profile-changes.html">主页变更审核</a>
+    </nav>
+    <div class="admin-tabs">
+      <button type="button" class="admin-tabs__item active" data-status-tab="pending">待审核</button>
+      <button type="button" class="admin-tabs__item" data-status-tab="approved">已通过</button>
+      <button type="button" class="admin-tabs__item" data-status-tab="rejected">已驳回</button>
+      <button type="button" class="admin-tabs__item" data-status-tab="">全部</button>
+    </div>
+    <div class="admin-panel">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>姓名</th>
+            <th>手机号</th>
+            <th>项目类型</th>
+            <th>申请时间</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="heroes-admin-tbody">
+          <tr><td colspan="6">加载中…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="heroes-admin-detail" class="admin-panel admin-detail-panel" hidden></div>
+  </div>
+  <script src="../assets/db-client.js"></script>
+  <script src="../assets/heroes-admin-preview.js"></script>
+</body>
+</html>

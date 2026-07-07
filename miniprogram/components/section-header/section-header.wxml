@@ -1,0 +1,7 @@
+<view class="section-header">
+  <text class="section-header__title">{{title}}</text>
+  <view wx:if="{{showMore}}" class="section-header__more" bindtap="onMoreTap">
+    <text class="section-header__more-text">{{moreText}}</text>
+    <text class="section-header__arrow">›</text>
+  </view>
+</view>

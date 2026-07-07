@@ -1,0 +1,33 @@
+<view class="page my-review">
+  <view class="my-review__list">
+    <view class="my-review__item" wx:for="{{list}}" wx:key="id">
+      <view class="my-review__head">
+        <image
+          wx:if="{{item.reviewer_avatar}}"
+          class="my-review__avatar"
+          src="{{item.reviewer_avatar}}"
+          mode="aspectFill"
+        />
+        <view wx:else class="my-review__avatar my-review__avatar--placeholder cover-placeholder"></view>
+        <view class="my-review__info">
+          <text class="my-review__name">{{item.reviewer_nickname}}</text>
+          <view class="my-review__rating">
+            <view class="my-review__stars">
+              <text
+                wx:for="{{item.stars}}"
+                wx:for-item="star"
+                wx:key="index"
+                class="my-review__star {{star.filled ? 'my-review__star--filled' : ''}} {{star.half ? 'my-review__star--half' : ''}}"
+              >★</text>
+            </view>
+            <text class="my-review__score">{{item.score}}</text>
+          </view>
+        </view>
+      </view>
+      <text wx:if="{{item.content}}" class="my-review__content">{{item.content}}</text>
+      <text wx:if="{{item.timeDisplay}}" class="my-review__time">{{item.timeDisplay}}</text>
+    </view>
+
+    <view wx:if="{{list.length === 0}}" class="my-review__empty">暂无评价</view>
+  </view>
+</view>

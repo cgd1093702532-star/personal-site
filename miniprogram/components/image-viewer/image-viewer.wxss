@@ -1,0 +1,91 @@
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+}
+
+.viewer__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+}
+
+.viewer__panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.viewer__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(env(safe-area-inset-top) + 12rpx) 32rpx 16rpx;
+  color: #fff;
+}
+
+.viewer__index {
+  font-size: 30rpx;
+  font-weight: 500;
+}
+
+.viewer__close {
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  text-align: center;
+  font-size: 44rpx;
+  color: #fff;
+}
+
+.viewer__swiper {
+  flex: 1;
+  width: 100%;
+}
+
+.viewer__area {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.viewer__move {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.viewer__img {
+  width: 100%;
+  height: 100%;
+}
+
+.viewer__actions {
+  display: flex;
+  justify-content: center;
+  gap: 80rpx;
+  padding: 24rpx 32rpx calc(env(safe-area-inset-bottom) + 32rpx);
+}
+
+.viewer__btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 24rpx;
+  color: #fff;
+}
+
+.viewer__btn-icon {
+  width: 80rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  font-size: 36rpx;
+}

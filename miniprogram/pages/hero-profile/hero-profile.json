@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "修改英雄资料",
+  "usingComponents": {
+    "image-viewer": "/components/image-viewer/image-viewer"
+  }
+}

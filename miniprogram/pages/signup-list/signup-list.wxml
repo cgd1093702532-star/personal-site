@@ -1,0 +1,8 @@
+<view class="page sub-page">
+  <text class="sub-page__head">{{recruitTitle}}</text>
+  <view class="sub-page__item" wx:for="{{list}}" wx:key="id">
+    <text class="sub-page__title">{{item.name}} · {{item.phone}}</text>
+    <text class="sub-page__meta">{{item.time}} · {{item.status}}</text>
+    <view wx:if="{{item.status === '待确认'}}" class="sub-page__btn" data-id="{{item.id}}" bindtap="onConfirm">确认</view>
+  </view>
+</view>

@@ -1,0 +1,21 @@
+<view class="page page--tab mall">
+  <view class="mall-header">
+    <text class="mall-header__title">好物商城</text>
+    <text class="mall-header__sub">航海装备与精选好物</text>
+  </view>
+
+  <view class="mall-grid">
+    <view
+      class="mall-item"
+      wx:for="{{products}}"
+      wx:key="id"
+      bindtap="onProductTap"
+    >
+      <view class="mall-item__cover cover-placeholder cover-placeholder--warm"></view>
+      <text class="mall-item__title text-ellipsis-2">{{item.title}}</text>
+      <text class="mall-item__price">¥{{item.price}}</text>
+    </view>
+  </view>
+
+  <view class="mall-tip">更多商品即将上线</view>
+</view>

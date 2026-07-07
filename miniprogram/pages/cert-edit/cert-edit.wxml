@@ -1,0 +1,8 @@
+<view class="page edit-page">
+  <text class="edit-page__tip">上传资质证书（最多5张）</text>
+  <view class="edit-page__upload" bindtap="onChoose">
+    <text wx:if="{{certCount === 0}}">+ 选择图片</text>
+    <text wx:else>已选 {{certCount}} 张</text>
+  </view>
+  <view class="edit-page__submit" bindtap="onSave">保存</view>
+</view>

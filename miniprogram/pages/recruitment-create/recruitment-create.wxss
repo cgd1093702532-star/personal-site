@@ -1,0 +1,227 @@
+@import "../../styles/common.wxss";
+
+/* 简易表单（发布课程等复用） */
+.create {
+  padding: 32rpx var(--space-page-x) 64rpx;
+}
+
+.create-field {
+  margin-bottom: 28rpx;
+}
+
+.create-label {
+  display: block;
+  margin-bottom: 12rpx;
+  font-size: var(--text-body);
+  color: var(--color-text-secondary);
+}
+
+.create-input,
+.create-picker {
+  height: 80rpx;
+  padding: 0 24rpx;
+  background: var(--color-bg-gray);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body);
+  line-height: 80rpx;
+  color: var(--color-text-body);
+}
+
+.create-textarea {
+  width: 100%;
+  min-height: 200rpx;
+  padding: 24rpx;
+  box-sizing: border-box;
+  background: var(--color-bg-gray);
+  border-radius: var(--radius-md);
+  font-size: var(--text-body);
+  line-height: 40rpx;
+}
+
+.create-submit {
+  margin-top: 48rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  background: var(--color-accent);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-md);
+  font-size: var(--text-card-title);
+}
+
+/* 分区表单（发布赛事招募） */
+.create-form {
+  padding: 24rpx var(--space-page-x) calc(140rpx + env(safe-area-inset-bottom));
+  background: var(--color-bg-subtle);
+}
+
+.create-section {
+  margin-bottom: 24rpx;
+  padding: 28rpx;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+}
+
+.create-section__title {
+  display: block;
+  margin-bottom: 24rpx;
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.create-section .create-field {
+  margin-bottom: 28rpx;
+}
+
+.create-section .create-field:last-child {
+  margin-bottom: 0;
+}
+
+.create-label--required::after {
+  content: ' *';
+  color: var(--color-price);
+}
+
+.create-row {
+  display: flex;
+  gap: 16rpx;
+}
+
+.create-field--half {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 28rpx;
+}
+
+.create-location-row {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.create-input--flex {
+  flex: 1;
+  min-width: 0;
+}
+
+.create-map-btn {
+  flex-shrink: 0;
+  padding: 0 24rpx;
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: var(--radius-md);
+  background: rgba(27, 87, 156, 0.1);
+  font-size: var(--text-caption);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.create-map-btn:active {
+  opacity: 0.85;
+}
+
+.create-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.create-tag {
+  padding: 12rpx 24rpx;
+  background: var(--color-bg-gray);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-caption);
+  color: var(--color-text-body);
+  border: 1rpx solid transparent;
+}
+
+.create-tag--active {
+  background: rgba(27, 87, 156, 0.1);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+  font-weight: 500;
+}
+
+.create-textarea--lg {
+  min-height: 240rpx;
+}
+
+.create-cover {
+  min-height: 280rpx;
+  padding: 32rpx 24rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  background: var(--color-bg-gray);
+  border: 2rpx dashed var(--color-divider);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  position: relative;
+}
+
+.create-cover__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.create-cover__icon {
+  font-size: 48rpx;
+  line-height: 1;
+}
+
+.create-cover__hint {
+  position: relative;
+  z-index: 1;
+  font-size: var(--text-caption);
+  color: var(--color-text-secondary);
+  text-align: center;
+  line-height: 36rpx;
+  padding: 8rpx 16rpx;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.create-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 16rpx;
+  padding: 16rpx var(--space-page-x) calc(16rpx + env(safe-area-inset-bottom));
+  background: var(--color-bg-page);
+  border-top: 1rpx solid var(--color-divider);
+  box-sizing: border-box;
+}
+
+.create-footer__draft,
+.create-footer__publish {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  border-radius: var(--radius-md);
+  font-size: var(--text-card-title);
+  font-weight: 600;
+}
+
+.create-footer__draft {
+  background: var(--color-bg-page);
+  color: var(--color-text-body);
+  border: 1rpx solid var(--color-divider);
+}
+
+.create-footer__publish {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.create-footer__draft:active,
+.create-footer__publish:active {
+  opacity: 0.9;
+}

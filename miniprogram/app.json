@@ -1,0 +1,69 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/heroes/heroes",
+    "pages/mall/mall",
+    "pages/profile/profile",
+    "pages/hero-detail/hero-detail",
+    "pages/recruitment-detail/recruitment-detail",
+    "pages/course-detail/course-detail",
+    "pages/hero-apply/hero-apply",
+    "pages/hero-apply-success/hero-apply-success",
+    "pages/hero-apply-submitted/hero-apply-submitted",
+    "pages/hero-profile/hero-profile",
+    "pages/recruitment-create/recruitment-create",
+    "pages/course-create/course-create",
+    "pages/my-recruitments/my-recruitments",
+    "pages/my-courses/my-courses",
+    "pages/my-signups/my-signups",
+    "pages/my-reviews/my-reviews",
+    "pages/my-students/my-students",
+    "pages/recruitment-edit/recruitment-edit",
+    "pages/signup-list/signup-list",
+    "pages/cert-edit/cert-edit",
+    "pages/bio-edit/bio-edit",
+    "pages/hero-reviews/hero-reviews"
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTitleText": "英雄广场",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#ffffff",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#222222",
+    "selectedColor": "#1b579c",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "assets/icons/tab-home.png",
+        "selectedIconPath": "assets/icons/tab-home-active.png"
+      },
+      {
+        "pagePath": "pages/heroes/heroes",
+        "text": "英雄",
+        "iconPath": "assets/icons/tab-hero.png",
+        "selectedIconPath": "assets/icons/tab-hero-active.png"
+      },
+      {
+        "pagePath": "pages/mall/mall",
+        "text": "商城",
+        "iconPath": "assets/icons/tab-mall.png",
+        "selectedIconPath": "assets/icons/tab-mall-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "assets/icons/tab-profile.png",
+        "selectedIconPath": "assets/icons/tab-profile-active.png"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

@@ -1,0 +1,88 @@
+<view class="page recruit-detail" wx:if="{{item}}">
+  <view class="recruit-detail__chrome recruit-detail__chrome--{{navSolid ? 'solid' : 'transparent'}}">
+    <view class="recruit-detail__status" style="height: {{statusBarHeight}}px;"></view>
+    <view class="recruit-detail__navbar" style="height: {{navBarHeight}}px;">
+      <view class="recruit-detail__back" bindtap="onBack">‹</view>
+      <text class="recruit-detail__nav-title {{navSolid ? 'is-visible' : ''}}">{{item.title}}</text>
+    </view>
+  </view>
+
+  <view class="recruit-detail__cover" style="{{coverStyle}}">
+    <swiper
+      wx:if="{{coverImages.length > 1}}"
+      class="recruit-detail__swiper"
+      circular
+      autoplay
+      interval="{{2000}}"
+      indicator-dots
+      indicator-color="rgba(255,255,255,0.45)"
+      indicator-active-color="#ffffff"
+    >
+      <swiper-item wx:for="{{coverImages}}" wx:key="*this">
+        <view class="recruit-detail__cover-slide cover-placeholder recruit-detail__cover-slide--{{index}}"></view>
+      </swiper-item>
+    </swiper>
+    <view wx:else class="recruit-detail__cover-slide cover-placeholder recruit-detail__cover-slide--0"></view>
+  </view>
+
+  <view class="recruit-detail__body">
+    <category-tag label="{{item.typeLabel}}" variant="{{item.type === 'event' ? 'event' : 'activity'}}" />
+    <text class="recruit-detail__title">{{item.title}}</text>
+    <text class="recruit-detail__meta">🕐 {{item.timeDisplay}}</text>
+    <text class="recruit-detail__meta">📍 {{item.location}}</text>
+    <view class="recruit-detail__publisher">
+      <text class="recruit-detail__publisher-label">发布</text>
+      <text class="recruit-detail__publisher-name">{{item.hero_name}}</text>
+    </view>
+
+    <view class="recruit-detail__progress">
+      <text>已报名 {{item.signed}} / {{item.total}} 人</text>
+      <view class="recruit-detail__bar"><view class="recruit-detail__bar-inner" style="width: {{progress}}%;"></view></view>
+    </view>
+
+    <view class="recruit-detail__section">
+      <text class="recruit-detail__label">活动详情</text>
+      <text class="recruit-detail__desc">{{item.description}}</text>
+      <view class="recruit-detail__dim" wx:if="{{item.organizer_profile.credentials}}">
+        <text class="recruit-detail__dim-label">专业资质与荣誉</text>
+        <text class="recruit-detail__dim-text">{{item.organizer_profile.credentials}}</text>
+      </view>
+      <view class="recruit-detail__dim" wx:if="{{item.organizer_profile.teaching_philosophy}}">
+        <text class="recruit-detail__dim-label">教学理念</text>
+        <text class="recruit-detail__dim-text">{{item.organizer_profile.teaching_philosophy}}</text>
+      </view>
+      <view class="recruit-detail__dim" wx:if="{{item.organizer_profile.race_experience}}">
+        <text class="recruit-detail__dim-label">丰富的赛事经验</text>
+        <text class="recruit-detail__dim-text">{{item.organizer_profile.race_experience}}</text>
+      </view>
+      <view class="recruit-detail__dim" wx:if="{{item.organizer_profile.leadership_style}}">
+        <text class="recruit-detail__dim-label">卓越长航领队教学特色</text>
+        <text class="recruit-detail__dim-text">{{item.organizer_profile.leadership_style}}</text>
+      </view>
+      <view class="recruit-detail__dim" wx:if="{{item.organizer_profile.social_contribution}}">
+        <text class="recruit-detail__dim-label">社会贡献</text>
+        <text class="recruit-detail__dim-text">{{item.organizer_profile.social_contribution}}</text>
+      </view>
+      <view class="recruit-detail__slogan" wx:if="{{item.organizer_profile.slogan}}">{{item.organizer_profile.slogan}}</view>
+    </view>
+  </view>
+
+  <view class="recruit-detail__footer">
+    <text class="recruit-detail__price">¥{{item.fee}}<text class="recruit-detail__unit">/人</text></text>
+    <view class="recruit-detail__btn {{canSignup ? '' : 'recruit-detail__btn--disabled'}}" bindtap="onSignupTap">{{canSignup ? '立即报名' : disabledReason}}</view>
+  </view>
+</view>
+
+<view wx:if="{{showForm}}" class="recruit-modal">
+  <view class="recruit-modal__mask" bindtap="onCloseForm"></view>
+  <view class="recruit-modal__panel">
+    <text class="recruit-modal__title">填写报名信息</text>
+    <input class="recruit-modal__input" placeholder="联系人姓名" data-field="name" value="{{form.name}}" bindinput="onInput" />
+    <input class="recruit-modal__input" placeholder="联系电话" type="number" maxlength="11" data-field="phone" value="{{form.phone}}" bindinput="onInput" />
+    <input class="recruit-modal__input" placeholder="备注（选填）" data-field="remark" value="{{form.remark}}" bindinput="onInput" />
+    <view class="recruit-modal__actions">
+      <view class="recruit-modal__cancel" bindtap="onCloseForm">取消</view>
+      <view class="recruit-modal__submit" bindtap="onSubmit">提交</view>
+    </view>
+  </view>
+</view>

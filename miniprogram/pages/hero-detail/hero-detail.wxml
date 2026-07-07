@@ -1,0 +1,152 @@
+<view class="page hero-detail" wx:if="{{hero}}">
+  <view class="hero-profile">
+    <view class="hero-profile__cover"></view>
+    <view class="hero-profile__main">
+      <view class="hero-profile__avatar cover-placeholder"></view>
+      <view class="hero-detail__share" bindtap="onShareTap">
+        <text class="hero-detail__share-icon">↗</text>
+        <text class="hero-detail__share-text">分享</text>
+      </view>
+      <text class="hero-profile__name">{{hero.name}}</text>
+      <text class="hero-profile__subtitle">{{hero.project_types.join(' · ')}} · {{hero.years_exp}}年经验</text>
+      <view class="hero-profile__rating">
+        <view class="hero-profile__stars">
+          <text
+            class="hero-profile__star {{item.filled ? 'hero-profile__star--filled' : ''}} {{item.half ? 'hero-profile__star--half' : ''}}"
+            wx:for="{{stars}}"
+            wx:key="index"
+          >★</text>
+        </view>
+        <text class="hero-profile__score">{{hero.rating}}</text>
+      </view>
+      <view class="hero-profile__tags">
+        <view class="hero-profile__tag" wx:for="{{detailTags}}" wx:key="*this">{{item}}</view>
+      </view>
+      <view class="hero-profile__stats">
+        <view class="hero-profile__stat">
+          <text class="hero-profile__stat-num">{{hero.student_count}}</text>
+          <text class="hero-profile__stat-label">学员</text>
+        </view>
+        <view class="hero-profile__stat">
+          <text class="hero-profile__stat-num">{{hero.rating}}</text>
+          <text class="hero-profile__stat-label">评分</text>
+        </view>
+        <view class="hero-profile__stat">
+          <text class="hero-profile__stat-num">{{hero.honors_count}}</text>
+          <text class="hero-profile__stat-label">荣誉</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="hero-detail__block">
+    <text class="hero-detail__label">关于我</text>
+    <text class="hero-detail__bio">{{hero.about_me}}</text>
+  </view>
+
+  <view class="hero-detail__block" wx:if="{{hero.past_honors.length}}">
+    <text class="hero-detail__label">过往荣誉</text>
+    <view class="hero-detail__honor" wx:for="{{hero.past_honors}}" wx:key="name">
+      <view class="hero-detail__honor-icon">{{item.icon}}</view>
+      <view class="hero-detail__honor-body">
+        <text class="hero-detail__honor-name">{{item.name}}</text>
+        <text class="hero-detail__honor-summary">{{item.summary}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="hero-detail__block" wx:if="{{hero.moments.length}}">
+    <text class="hero-detail__label">精彩瞬间</text>
+    <view class="hero-detail__gallery">
+      <view
+        class="hero-detail__gallery-item cover-placeholder"
+        wx:for="{{hero.moments}}"
+        wx:key="*this"
+        data-current="{{item}}"
+        bindtap="onPreviewMoment"
+      ></view>
+    </view>
+  </view>
+
+  <view class="hero-detail__block" wx:if="{{hero.certificates.length}}">
+    <text class="hero-detail__label">资质证书</text>
+    <scroll-view class="hero-detail__cert-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+      <view
+        class="hero-detail__cert-card"
+        wx:for="{{hero.certificates}}"
+        wx:key="name"
+        data-current="{{item.image}}"
+        bindtap="onPreviewCert"
+      >
+        <view class="hero-detail__cert-img cover-placeholder"></view>
+        <text class="hero-detail__cert-name">{{item.name}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="hero-detail__block" wx:if="{{recruitments.length}}">
+    <view class="hero-detail__label-row">
+      <text class="hero-detail__label">赛事招募</text>
+      <text class="hero-detail__label-extra">共{{recruitments.length}}个</text>
+    </view>
+    <view
+      class="hero-detail__recruit-card"
+      wx:for="{{recruitments}}"
+      wx:key="recruit_id"
+      data-id="{{item.recruit_id}}"
+      bindtap="onRecruitmentTap"
+    >
+      <view class="hero-detail__recruit-thumb cover-placeholder hero-detail__recruit-thumb--{{index % 3}}"></view>
+      <view class="hero-detail__recruit-body">
+        <text class="hero-detail__recruit-title">{{item.title}}</text>
+        <text class="hero-detail__recruit-meta">{{item.timeDisplay}}</text>
+        <text class="hero-detail__recruit-meta">赛事地点：{{item.location}}</text>
+        <view class="hero-detail__recruit-bottom">
+          <text class="hero-detail__recruit-fee">¥{{item.fee}}/人</text>
+          <text class="hero-detail__recruit-signup">{{item.signupDisplay}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="hero-detail__block" wx:if="{{courses.length}}">
+    <view class="hero-detail__label-row">
+      <text class="hero-detail__label">我的课程</text>
+      <text class="hero-detail__label-extra">共{{courses.length}}门</text>
+    </view>
+    <view
+      class="hero-detail__course-card"
+      wx:for="{{courses}}"
+      wx:key="course_id"
+      data-id="{{item.course_id}}"
+      bindtap="onCourseTap"
+    >
+      <view class="hero-detail__course-thumb cover-placeholder hero-detail__course-thumb--{{index % 3}}"></view>
+      <view class="hero-detail__course-body">
+        <text class="hero-detail__recruit-title">{{item.title}}</text>
+        <text class="hero-detail__recruit-meta">{{item.timeDisplay}}</text>
+        <text class="hero-detail__recruit-meta">课程地点：{{item.location}}</text>
+        <view class="hero-detail__recruit-bottom">
+          <text class="hero-detail__recruit-fee">¥{{item.fee}}/人</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="hero-detail__bottom-spacer"></view>
+</view>
+
+<hero-share
+  visible="{{shareVisible}}"
+  hero="{{hero}}"
+  hero-id="{{heroId}}"
+  bind:close="onShareClose"
+/>
+
+<image-viewer
+  visible="{{viewerVisible}}"
+  urls="{{viewerUrls}}"
+  current="{{viewerCurrent}}"
+  bind:close="onViewerClose"
+  bind:change="onViewerChange"
+/>

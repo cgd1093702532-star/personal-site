@@ -1,0 +1,30 @@
+.tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8rpx;
+  height: 28rpx;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-micro);
+  line-height: 28rpx;
+}
+
+.tag--event {
+  background: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.tag--activity {
+  background: var(--color-activity);
+  color: var(--color-text-inverse);
+}
+
+.tag--course {
+  background: var(--color-course-tag-bg);
+  color: var(--color-course-tag);
+}
+
+.tag--skill {
+  background: var(--color-text-inverse);
+  color: var(--color-text-tag);
+}

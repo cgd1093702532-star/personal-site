@@ -1,0 +1,37 @@
+<view class="page my-signup">
+  <view class="my-signup__tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="my-signup__tab {{activeTab === item.key ? 'my-signup__tab--active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTabChange"
+    >{{item.display}}</view>
+  </view>
+
+  <view class="my-signup__list">
+    <block wx:for="{{currentList}}" wx:key="id">
+      <view class="my-signup__card" data-id="{{item.recruit_id}}" bindtap="onItemTap">
+        <view class="my-signup__card-head">
+          <text class="my-signup__title">{{item.title}}</text>
+          <text class="my-signup__badge my-signup__badge--{{item.listTab}}">{{item.listTab === 'ended' ? '已结束' : '进行中'}}</text>
+        </view>
+        <view class="my-signup__row">
+          <text class="my-signup__row-icon">📅</text>
+          <text class="my-signup__row-text">{{item.timeDisplay}}</text>
+        </view>
+        <view class="my-signup__row" wx:if="{{item.location}}">
+          <text class="my-signup__row-icon">📍</text>
+          <text class="my-signup__row-text">{{item.location}}</text>
+        </view>
+        <text class="my-signup__meta">¥{{item.fee}} · {{item.status}} · {{item.payStatus}}</text>
+      </view>
+    </block>
+
+    <view wx:if="{{currentList.length === 0}}" class="my-signup__empty">
+      <text class="my-signup__empty-icon">{{emptyState.icon}}</text>
+      <text class="my-signup__empty-title">{{emptyState.title}}</text>
+      <text class="my-signup__empty-hint">{{emptyState.hint}}</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,6 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "category-tag": "/components/category-tag/category-tag"
+  }
+}

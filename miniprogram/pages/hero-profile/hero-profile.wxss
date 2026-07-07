@@ -1,0 +1,2 @@
+@import "../hero-detail/hero-detail.wxss";
+@import "./hero-profile-edit.wxss";

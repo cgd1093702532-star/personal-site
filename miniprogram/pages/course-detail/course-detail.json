@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "课程详情",
+  "usingComponents": {
+    "category-tag": "/components/category-tag/category-tag"
+  }
+}

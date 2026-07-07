@@ -1,0 +1,169 @@
+<view class="page apply-page">
+  <scroll-view class="apply-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="apply">
+  <view class="apply-header">
+    <text class="apply-header__title">认证成为英雄教练</text>
+    <text class="apply-header__desc">发布课程/赛事，开启你的水上教育事业</text>
+  </view>
+
+  <view class="apply-section">
+    <text class="apply-section__title">基本信息</text>
+
+    <view class="apply-field">
+      <text class="apply-label apply-label--required">姓名</text>
+      <input class="apply-input" placeholder="请输入" data-field="name" value="{{form.name}}" bindinput="onInput" />
+    </view>
+
+    <view class="apply-field">
+      <text class="apply-label apply-label--required">手机号</text>
+      <view class="apply-phone-wrap">
+        <input
+          class="apply-input apply-input--phone"
+          type="number"
+          maxlength="11"
+          placeholder="请输入"
+          data-field="phone"
+          value="{{form.phone}}"
+          bindinput="onPhoneInput"
+        />
+        <text
+          class="apply-sms-code {{smsCanSend && smsCountdown <= 0 ? 'apply-sms-code--active' : ''}} {{smsCountdown > 0 ? 'apply-sms-code--countdown' : ''}}"
+          bindtap="onSendSmsCode"
+        >{{smsCountdown > 0 ? smsCountdown + 's' : (smsSentOnce ? '重新获取验证码' : '获取验证码')}}</text>
+      </view>
+      <view class="apply-sms-field {{showSmsField ? 'apply-sms-field--visible' : ''}}">
+        <input
+          class="apply-input"
+          type="number"
+          maxlength="6"
+          placeholder="请输入"
+          data-field="sms_code"
+          value="{{form.sms_code}}"
+          bindinput="onInput"
+        />
+      </view>
+    </view>
+
+    <view class="apply-field">
+      <text class="apply-label apply-label--required">项目类型</text>
+      <view class="apply-tags">
+        <view
+          wx:for="{{projectTypes}}"
+          wx:key="*this"
+          class="apply-tag {{selectedMap[item] ? 'apply-tag--active' : ''}}"
+          data-type="{{item}}"
+          bindtap="onProjectToggle"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="apply-field">
+      <text class="apply-label apply-label--required">常驻城市</text>
+      <textarea
+        class="apply-textarea apply-textarea--city"
+        placeholder="请输入"
+        auto-height
+        maxlength="100"
+        data-field="city"
+        value="{{form.city}}"
+        bindinput="onInput"
+      />
+    </view>
+  </view>
+
+  <view class="apply-section">
+    <text class="apply-section__title">资质认证</text>
+
+    <view class="apply-field">
+      <text class="apply-label apply-label--required">教练资质等级</text>
+      <picker mode="selector" range="{{certOptions}}" value="{{certIndex}}" bindchange="onCertChange">
+        <view class="apply-picker">{{form.certification || '请选择'}} ›</view>
+      </picker>
+    </view>
+
+    <view class="apply-field">
+      <text class="apply-label apply-label--required">从业年限</text>
+      <view class="apply-tags">
+        <view
+          wx:for="{{yearsOptions}}"
+          wx:key="*this"
+          class="apply-tag {{form.years_exp === item ? 'apply-tag--active' : ''}}"
+          data-years="{{item}}"
+          bindtap="onYearsTap"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="apply-field">
+      <text class="apply-label apply-label--required">资质证书上传</text>
+      <view class="apply-cert-grid">
+        <view class="apply-cert-item" wx:for="{{certFiles}}" wx:key="id">
+          <image wx:if="{{item.url}}" class="apply-cert-item__img" src="{{item.url}}" mode="aspectFill" />
+          <view wx:else class="apply-cert-item__placeholder cover-placeholder"></view>
+          <text class="apply-cert-item__label">{{item.label}}</text>
+        </view>
+        <view wx:if="{{certFiles.length < 5}}" class="apply-cert-add" bindtap="onChooseCert">
+          <text class="apply-cert-add__icon">+</text>
+          <text class="apply-cert-add__text">添加更多</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="apply-section">
+    <text class="apply-section__title">荣誉与成就</text>
+    <view class="apply-field">
+      <text class="apply-label">曾获荣誉（选填）</text>
+      <textarea
+        class="apply-textarea"
+        placeholder="填写赛事获奖、执教荣誉等"
+        maxlength="200"
+        data-field="honors"
+        value="{{form.honors}}"
+        bindinput="onInput"
+      />
+    </view>
+  </view>
+
+  <view class="apply-section">
+    <text class="apply-section__title">个人简介</text>
+
+    <view class="apply-field">
+      <text class="apply-label apply-label--required">详细介绍</text>
+      <textarea
+        class="apply-textarea apply-textarea--lg"
+        placeholder="介绍执教经历、教学风格与擅长方向"
+        maxlength="500"
+        data-field="bio"
+        value="{{form.bio}}"
+        bindinput="onInput"
+      />
+    </view>
+
+    <view class="apply-field">
+      <text class="apply-label">个人展示视频（选填）</text>
+      <view class="apply-video" bindtap="onChooseVideo">
+        <block wx:if="{{videoPath}}">
+          <text class="apply-video__selected">已选择视频，点击重新上传</text>
+        </block>
+        <block wx:else>
+          <text class="apply-video__icon">🎬</text>
+          <text class="apply-video__hint">点击上传/拍摄视频介绍（建议30秒以内）</text>
+        </block>
+      </view>
+    </view>
+  </view>
+
+    </view>
+  </scroll-view>
+
+  <view class="apply-footer">
+    <view class="apply-agreement" bindtap="onToggleAgree">
+      <view class="apply-agreement__check {{agreed ? 'apply-agreement__check--on' : ''}}">
+        <text wx:if="{{agreed}}">✓</text>
+      </view>
+      <text class="apply-agreement__text">我已阅读并同意<text class="apply-agreement__link" catchtap="onOpenAgreement" data-doc="hero">《英雄认证协议》</text><text class="apply-agreement__link" catchtap="onOpenAgreement" data-doc="terms">《平台服务条款》</text>和<text class="apply-agreement__link" catchtap="onOpenAgreement" data-doc="safety">《安全保障须知》</text>，承诺以上信息真实有效。</text>
+    </view>
+    <view class="apply-submit" bindtap="onSubmit">提交申请</view>
+  </view>
+</view>

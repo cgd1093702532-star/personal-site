@@ -1,0 +1,94 @@
+<view class="page page--tab heroes">
+  <view class="heroes-search">
+    <view class="heroes-search__field">
+      <input
+        class="heroes-search__input"
+        placeholder="搜索教练姓名或项目名称"
+        value="{{keyword}}"
+        bindinput="onSearchInput"
+        bindconfirm="onSearchConfirm"
+        confirm-type="search"
+      />
+      <text wx:if="{{keyword}}" class="heroes-search__clear" bindtap="onSearchClear">×</text>
+    </view>
+    <view
+      class="heroes-search__filter {{filterActive ? 'heroes-search__filter--active' : ''}}"
+      bindtap="onFilterOpen"
+    >
+      <view class="heroes-search__filter-icon"></view>
+      <text wx:if="{{filterCount > 0}}" class="heroes-search__filter-badge">{{filterCount}}</text>
+    </view>
+  </view>
+
+  <view class="heroes-banner cover-placeholder"></view>
+
+  <view class="heroes-list">
+    <view wx:if="{{keyword && heroes.length > 0}}" class="heroes-result-hint">找到 {{heroes.length}} 位教练</view>
+
+    <hero-card
+      wx:for="{{heroes}}"
+      wx:key="hero_id"
+      hero="{{item}}"
+      layout="list"
+      bind:tap="onHeroTap"
+    />
+
+    <view wx:if="{{heroes.length === 0 && keyword}}" class="heroes-empty">
+      <text class="heroes-empty__icon">🔍</text>
+      <text class="heroes-empty__title">未找到相关教练和项目</text>
+      <text class="heroes-empty__hint">试试调整关键词或筛选条件</text>
+    </view>
+    <view wx:elif="{{heroes.length === 0}}" class="heroes-empty">暂无符合条件的认证教练</view>
+  </view>
+
+  <view class="heroes-filter-sheet" wx:if="{{filterVisible}}" catchtouchmove="noop">
+    <view class="heroes-filter-sheet__mask" bindtap="onFilterClose"></view>
+    <view class="heroes-filter-sheet__panel" catchtap="noop">
+      <view class="heroes-filter-sheet__header">
+        <text class="heroes-filter-sheet__title">筛选</text>
+        <text class="heroes-filter-sheet__reset" bindtap="onFilterReset">重置</text>
+      </view>
+
+      <view class="heroes-filter-sheet__group">
+        <text class="heroes-filter-sheet__label">项目</text>
+        <view class="heroes-filter-sheet__chips">
+          <view
+            class="heroes-filter-sheet__chip {{activeType === item ? 'heroes-filter-sheet__chip--active' : ''}}"
+            wx:for="{{projectTypes}}"
+            wx:key="*this"
+            data-type="{{item}}"
+            bindtap="onFilterTap"
+          >{{item}}</view>
+        </view>
+      </view>
+
+      <view class="heroes-filter-sheet__group">
+        <text class="heroes-filter-sheet__label">排序</text>
+        <view class="heroes-filter-sheet__chips">
+          <view
+            class="heroes-filter-sheet__chip {{activeSort === item.id ? 'heroes-filter-sheet__chip--active' : ''}}"
+            wx:for="{{sortOptions}}"
+            wx:key="id"
+            data-sort="{{item.id}}"
+            bindtap="onSortTap"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="heroes-filter-sheet__group">
+        <text class="heroes-filter-sheet__label">年限</text>
+        <view class="heroes-filter-sheet__chips">
+          <view
+            class="heroes-filter-sheet__chip {{activeYears === item.id ? 'heroes-filter-sheet__chip--active' : ''}}"
+            wx:for="{{yearsOptions}}"
+            wx:key="id"
+            data-years="{{item.id}}"
+            bindtap="onYearsTap"
+          >{{item.label}}</view>
+        </view>
+      </view>
+
+      <view class="heroes-filter-sheet__confirm" bindtap="onFilterClose">完成</view>
+    </view>
+  </view>
+</view>

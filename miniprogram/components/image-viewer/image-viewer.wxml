@@ -1,0 +1,33 @@
+<view class="viewer" wx:if="{{visible}}" catchtouchmove="noop">
+  <view class="viewer__mask" bindtap="onClose"></view>
+  <view class="viewer__panel" catchtap="noop">
+    <view class="viewer__top">
+      <text class="viewer__index">{{current + 1}} / {{urls.length}}</text>
+      <text class="viewer__close" bindtap="onClose">×</text>
+    </view>
+    <swiper
+      class="viewer__swiper"
+      current="{{current}}"
+      bindchange="onSwiperChange"
+      circular="{{urls.length > 1}}"
+    >
+      <swiper-item wx:for="{{urls}}" wx:key="*this">
+        <movable-area class="viewer__area" scale-area>
+          <movable-view class="viewer__move" direction="all" scale scale-min="1" scale-max="4" inertia>
+            <image class="viewer__img" src="{{item}}" mode="aspectFit" show-menu-by-longpress />
+          </movable-view>
+        </movable-area>
+      </swiper-item>
+    </swiper>
+    <view class="viewer__actions">
+      <view class="viewer__btn" bindtap="onSave">
+        <text class="viewer__btn-icon">↓</text>
+        <text>保存</text>
+      </view>
+      <view class="viewer__btn" bindtap="onShare">
+        <text class="viewer__btn-icon">↗</text>
+        <text>分享</text>
+      </view>
+    </view>
+  </view>
+</view>

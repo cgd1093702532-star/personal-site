@@ -1,0 +1,35 @@
+---
+description: Figma MCP 集成规则。从 Figma 提取设计规范或实现页面时必须遵守。
+alwaysApply: true
+---
+
+# Figma MCP 集成规则
+
+## 资源处理
+
+- Figma MCP 提供 assets 端点，可返回图片与 SVG
+- 若返回 localhost 来源的图片或 SVG，**必须直接使用该地址**，不要用占位图
+- **禁止**为此引入新的图标库；素材应来自 Figma payload
+- 有 localhost 资源时**禁止**使用或创建占位符
+
+## 从 Figma 提取设计规范（推荐流程）
+
+1. 用户粘贴 Figma 画板/Frame 链接（含 `node-id`）
+2. 先调用 `get_variable_defs` 提取颜色、间距、字号等变量/token
+3. 调用 `get_design_context` 获取结构化布局与组件信息
+4. 调用 `get_screenshot` 作为视觉对照
+5. 若响应过大或被截断：先用 `get_metadata` 获取节点地图，再对所需子节点单独调用 `get_design_context`
+6. 将结果整理为 `docs/DESIGN-SPEC.md`（tokens → 组件 → 布局 → 页面模板）
+7. 输出须与项目 `frontend-development.mdc` 对齐（纯 HTML/CSS、CSS variables、移动优先）
+
+## 实现页面时
+
+- 将 MCP 输出（常为 React + Tailwind）视为**设计意图参考**，非最终代码风格
+- 翻译为本项目约定：语义化 HTML、`:root` design tokens、无 Tailwind/React
+- 优先复用已有组件与 token，避免硬编码色值与间距
+- 实现后对照 `get_screenshot` 校验视觉一致性
+
+## 提示
+
+- 大画板拆成小组件分别读取，避免上下文过大
+- Figma 文件须对用户账号可读；链接需含具体 `node-id`

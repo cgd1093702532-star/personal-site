@@ -1,0 +1,327 @@
+@import "../../styles/common.wxss";
+
+.home {
+  padding-bottom: 32rpx;
+}
+
+/* Banner */
+.home-banner {
+  position: relative;
+  height: 562rpx;
+  overflow: hidden;
+}
+
+.home-banner__bg {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, #1b579c 0%, #0c3c86 45%, #2563a8 100%);
+}
+
+.home-banner__fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 76rpx;
+  background: linear-gradient(180deg, transparent, var(--color-bg-page));
+}
+
+.home-banner__safe {
+  position: relative;
+  z-index: 1;
+}
+
+.home-banner__season {
+  position: absolute;
+  top: 200rpx;
+  left: 72rpx;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  height: 48rpx;
+  padding: 0 24rpx;
+  background: var(--color-overlay-light);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-caption);
+  color: var(--color-text-inverse);
+  backdrop-filter: blur(8rpx);
+}
+
+.home-banner__dot {
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: var(--color-accent);
+}
+
+.home-banner__content {
+  position: absolute;
+  left: 72rpx;
+  top: 256rpx;
+  z-index: 2;
+}
+
+.home-banner__title,
+.home-banner__date {
+  display: block;
+  font-size: var(--text-hero);
+  font-weight: 700;
+  color: var(--color-text-inverse);
+  line-height: 60rpx;
+}
+
+.home-banner__desc {
+  display: block;
+  margin-top: 8rpx;
+  font-size: var(--text-body);
+  color: var(--color-text-inverse);
+  opacity: 0.95;
+}
+
+.home-banner__cta {
+  display: inline-block;
+  margin-top: 24rpx;
+  padding: 16rpx 24rpx;
+  background: var(--color-accent);
+  border-radius: var(--radius-md);
+  font-size: var(--text-card-title);
+  color: var(--color-text-primary);
+}
+
+/* 金刚区 */
+.home-nav {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24rpx;
+}
+
+.home-nav__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 25%;
+}
+
+.home-nav__icon {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: var(--radius-circle);
+  background: var(--color-primary);
+  box-shadow: 0 0 8rpx rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40rpx;
+}
+
+.home-nav__label {
+  margin-top: 8rpx;
+  font-size: var(--text-body);
+  color: var(--color-text-primary);
+}
+
+/* 权益卡 */
+.membership__card {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: linear-gradient(135deg, #0c3c86 0%, #1b579c 100%);
+}
+
+.membership__main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 32rpx 16rpx;
+}
+
+.membership__title {
+  font-size: var(--text-price-xl);
+  font-weight: 700;
+}
+
+.membership__title-white {
+  color: var(--color-text-inverse);
+}
+
+.membership__title-gold {
+  color: var(--color-accent-gold);
+}
+
+.membership__price {
+  display: flex;
+  align-items: baseline;
+  margin-top: 8rpx;
+  color: var(--color-accent-gold-light);
+}
+
+.membership__price-symbol {
+  font-size: var(--text-card-title);
+}
+
+.membership__price-num {
+  font-size: var(--text-price-lg);
+  font-weight: 600;
+}
+
+.membership__btn {
+  padding: 16rpx 24rpx;
+  background: var(--color-accent);
+  border-radius: var(--radius-md);
+  font-size: var(--text-card-title);
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.membership__footer {
+  display: flex;
+  justify-content: space-around;
+  padding: 16rpx 24rpx;
+  background: linear-gradient(90deg, #0c3c86 0%, #0f347a 100%);
+}
+
+.membership__benefit {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: var(--text-caption);
+  color: var(--color-text-inverse);
+}
+
+.membership__check {
+  color: var(--color-accent);
+}
+
+/* 横向滚动 */
+.home-scroll-x {
+  width: 100%;
+}
+
+.home-scroll-x__track {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 16rpx;
+  padding-right: 32rpx;
+}
+
+.home-scroll-x__track .hero-card,
+.home-scroll-x__track .course-card {
+  flex-shrink: 0;
+  margin-right: 0;
+}
+
+.section--last {
+  margin-bottom: 48rpx;
+}
+
+/* 课程卡片 */
+.course-card {
+  display: inline-block;
+  vertical-align: top;
+  width: 256rpx;
+  margin-right: 16rpx;
+  padding-bottom: 16rpx;
+  background: var(--color-bg-subtle);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.course-card__cover {
+  width: 256rpx;
+  height: 192rpx;
+}
+
+.course-card__title {
+  display: block;
+  padding: 16rpx 16rpx 0;
+  font-size: var(--text-card-title);
+  font-weight: 500;
+  color: var(--color-text-body);
+  height: 80rpx;
+  white-space: normal;
+}
+
+.course-card__price {
+  display: block;
+  padding: 8rpx 16rpx 0;
+  font-size: var(--text-card-title);
+  color: var(--color-price);
+}
+
+/* 商品网格 */
+.product-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22rpx;
+}
+
+.product-card {
+  width: calc(50% - 11rpx);
+}
+
+.product-card__cover {
+  position: relative;
+  width: 100%;
+  height: 332rpx;
+  border-radius: var(--radius-md);
+}
+
+.product-card__tag {
+  position: absolute;
+  left: 20rpx;
+  bottom: 24rpx;
+  font-size: 40rpx;
+  font-weight: 600;
+  color: var(--color-text-inverse);
+  letter-spacing: 4rpx;
+}
+
+.product-card__title {
+  display: block;
+  margin-top: 16rpx;
+  font-size: var(--text-card-title);
+  font-weight: 500;
+  color: var(--color-text-body);
+}
+
+.product-card__price {
+  display: block;
+  margin-top: 8rpx;
+  font-size: var(--text-price-lg);
+  color: var(--color-price);
+}
+
+/* 新闻 */
+.news-item {
+  display: flex;
+  gap: 20rpx;
+  margin-bottom: 24rpx;
+}
+
+.news-item__cover {
+  width: 220rpx;
+  height: 168rpx;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.news-item__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.news-item__title {
+  font-size: var(--text-card-title);
+  font-weight: 500;
+  color: var(--color-text-primary);
+  line-height: 40rpx;
+  white-space: normal;
+}
+
+.news-item__cat {
+  display: block;
+  margin-top: 8rpx;
+  font-size: var(--text-micro);
+  color: var(--color-text-muted);
+}

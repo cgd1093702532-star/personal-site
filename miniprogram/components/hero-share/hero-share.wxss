@@ -1,0 +1,125 @@
+.share-sheet__mask,
+.poster-modal__mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 1100;
+}
+
+.share-sheet__panel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1101;
+  padding: 32rpx 32rpx calc(env(safe-area-inset-bottom) + 24rpx);
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+}
+
+.share-sheet__title {
+  display: block;
+  text-align: center;
+  font-size: 28rpx;
+  color: var(--color-text-secondary);
+  margin-bottom: 32rpx;
+}
+
+.share-sheet__options {
+  display: flex;
+  justify-content: center;
+  gap: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+.share-sheet__option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.share-sheet__option--btn {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  line-height: normal;
+}
+
+.share-sheet__option--btn::after {
+  border: none;
+}
+
+.share-sheet__icon-wrap {
+  width: 96rpx;
+  height: 96rpx;
+  border-radius: 50%;
+  background: var(--color-bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.share-sheet__icon {
+  font-size: 40rpx;
+}
+
+.share-sheet__label {
+  font-size: 24rpx;
+  color: var(--color-text-body);
+}
+
+.share-sheet__cancel {
+  height: 88rpx;
+  line-height: 88rpx;
+  text-align: center;
+  font-size: 30rpx;
+  color: var(--color-text-primary);
+  border-top: 1rpx solid var(--color-divider);
+}
+
+.poster-modal__body {
+  position: fixed;
+  left: 48rpx;
+  right: 48rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1101;
+}
+
+.poster-modal__img {
+  width: 100%;
+  border-radius: 16rpx;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.2);
+}
+
+.poster-modal__actions {
+  display: flex;
+  gap: 16rpx;
+  margin-top: 24rpx;
+}
+
+.poster-modal__btn {
+  flex: 1;
+  height: 80rpx;
+  line-height: 80rpx;
+  text-align: center;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.92);
+  font-size: 28rpx;
+  color: var(--color-text-primary);
+}
+
+.poster-modal__btn--primary {
+  background: var(--color-primary);
+  color: var(--color-text-inverse);
+}
+
+.poster-canvas {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 300px;
+  height: 480px;
+}

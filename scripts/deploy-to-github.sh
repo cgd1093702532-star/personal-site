@@ -13,7 +13,13 @@ git remote get-url origin >/dev/null 2>&1 || \
   git remote add origin "https://github.com/${USER}/${REPO}.git"
 
 echo "推送 main 分支..."
-git push -u origin main
+if git rev-parse origin/main >/dev/null 2>&1 && ! git merge-base --is-ancestor origin/main main 2>/dev/null; then
+  echo "检测到本地与远程 main 无共同历史（将用英雄广场覆盖旧 personal-site）。"
+  echo "执行：git push -u origin main --force-with-lease"
+  git push -u origin main --force-with-lease
+else
+  git push -u origin main
+fi
 
 echo ""
 echo "GitHub Actions 将把 preview/ 部署到 gh-pages 分支。"

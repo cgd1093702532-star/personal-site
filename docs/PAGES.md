@@ -23,7 +23,6 @@
 | 项 | 链接 |
 |----|------|
 | **预览入口** | [https://cgd1093702532-star.github.io/personal-site/](https://cgd1093702532-star.github.io/personal-site/) |
-| 离线演示（无需 API） | [英雄广场-离线演示.html](https://cgd1093702532-star.github.io/personal-site/%E8%8B%B1%E9%9B%84%E5%B9%BF%E5%9C%BA-%E7%A6%BB%E7%BA%BF%E6%BC%94%E7%A4%BA.html) |
 
 > 线上仅静态预览；申请提交与后台审核需本地 `bash scripts/start-dev.sh`（预览 :8765 + API :8787）。
 
@@ -123,5 +122,5 @@
 
 | 日期 | 变更 |
 |------|------|
-| 2026-07-07 | 补充 GitHub Pages 线上预览与离线演示链接 |
+| 2026-07-07 | 补充 GitHub Pages 线上预览链接 |
 | 2026-07-03 | 建立页面总索引；补全商城需求；区分 miniprogram / admin 文档与源码 |

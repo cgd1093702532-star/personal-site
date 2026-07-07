@@ -24,6 +24,5 @@ fi
 echo ""
 echo "GitHub Actions 将把 preview/ 部署到 gh-pages 分支。"
 echo "Pages 地址：${PAGES_URL}"
-echo "离线演示：${PAGES_URL}英雄广场-离线演示.html"
 echo ""
 echo "请在 GitHub 仓库 Settings → Pages 中确认 Source 为 Deploy from branch → gh-pages → / (root)"

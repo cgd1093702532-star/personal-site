@@ -112,6 +112,51 @@ class Handler(BaseHTTPRequestHandler):
                 json_response(self, 404, {"error": "course_not_found"})
             return
 
+        if path == "/api/admin/courses":
+            json_response(self, 200, {"items": db.list_courses()})
+            return
+
+        if path == "/api/admin/signups":
+            status = qs.get("status", [None])[0]
+            pay_status = qs.get("pay_status", [None])[0]
+            q = qs.get("q", [None])[0]
+            json_response(self, 200, {"items": db.list_admin_signups(status=status, pay_status=pay_status, q=q)})
+            return
+
+        if path == "/api/admin/recruitments":
+            status = qs.get("status", [None])[0]
+            q = qs.get("q", [None])[0]
+            json_response(self, 200, {"items": db.list_admin_recruitments(status=status, q=q)})
+            return
+
+        m = re.match(r"^/api/admin/recruitments/([^/]+)/signups$", path)
+        if m:
+            json_response(self, 200, {"items": db.list_recruitment_signups(m.group(1))})
+            return
+
+        m = re.match(r"^/api/admin/recruitments/([^/]+)$", path)
+        if m:
+            item = db.get_recruitment(m.group(1))
+            if item:
+                json_response(self, 200, db.recruit_admin_view(item))
+            else:
+                json_response(self, 404, {"error": "recruitment_not_found"})
+            return
+
+        if path == "/api/admin/heroes":
+            q = qs.get("q", [None])[0]
+            json_response(self, 200, {"items": db.list_admin_heroes(q=q)})
+            return
+
+        m = re.match(r"^/api/admin/signups/([^/]+)$", path)
+        if m:
+            item = db.get_signup(m.group(1))
+            if item:
+                json_response(self, 200, item)
+            else:
+                json_response(self, 404, {"error": "signup_not_found"})
+            return
+
         m = re.match(r"^/api/app-state/([^/]+)$", path)
         if m:
             value = db.get_app_state(m.group(1))
@@ -164,6 +209,15 @@ class Handler(BaseHTTPRequestHandler):
             json_response(self, 200, item)
             return
 
+        m = re.match(r"^/api/courses/([^/]+)$", path)
+        if m:
+            cid = m.group(1)
+            existing = db.get_course(cid) or {}
+            merged = {**existing, **body, "course_id": cid}
+            item = db.upsert_course(cid, merged)
+            json_response(self, 200, item)
+            return
+
         m = re.match(r"^/api/app-state/([^/]+)$", path)
         if m:
             value = db.set_app_state(m.group(1), body.get("value"))
@@ -189,6 +243,12 @@ class Handler(BaseHTTPRequestHandler):
             if scope in ("active", "ended", "draft"):
                 scope = f"mine_{scope}"
             db.upsert_recruitment(item, scope=scope)
+            json_response(self, 201, item)
+            return
+
+        if path == "/api/courses":
+            cid = body.get("course_id") or f"c{int(__import__('time').time() * 1000)}"
+            item = db.upsert_course(cid, {**body, "course_id": cid})
             json_response(self, 201, item)
             return
 
@@ -231,6 +291,24 @@ class Handler(BaseHTTPRequestHandler):
                 json_response(self, 404, {"error": "invalid_status"})
             return
 
+        m = re.match(r"^/api/admin/signups/([^/]+)/cancel$", path)
+        if m:
+            item = db.cancel_signup(m.group(1))
+            if item:
+                json_response(self, 200, item)
+            else:
+                json_response(self, 404, {"error": "signup_not_found"})
+            return
+
+        m = re.match(r"^/api/admin/recruitments/([^/]+)/close$", path)
+        if m:
+            item = db.close_recruitment(m.group(1))
+            if item:
+                json_response(self, 200, item)
+            else:
+                json_response(self, 404, {"error": "recruitment_not_found"})
+            return
+
         json_response(self, 404, {"error": "not_found"})
 
     def do_DELETE(self) -> None:
@@ -240,6 +318,12 @@ class Handler(BaseHTTPRequestHandler):
         m = re.match(r"^/api/recruitments/([^/]+)$", path)
         if m:
             ok = db.delete_recruitment(m.group(1))
+            json_response(self, 200 if ok else 404, {"ok": ok})
+            return
+
+        m = re.match(r"^/api/admin/applications/([^/]+)$", path)
+        if m:
+            ok = db.delete_hero_application(m.group(1))
             json_response(self, 200 if ok else 404, {"ok": ok})
             return
 

@@ -32,10 +32,19 @@ def tabbar(active):
         for h, l in tabs
     )
 
-def navbar(title, back="index.html", *, title_id="", share=False, right_action=None):
+def navbar(title, back="index.html", *, back_target="", title_id="", share=False, right_action=None):
     tid = f' id="{title_id}"' if title_id else ""
     share_btn = '<button type="button" class="mp-navbar__share" data-hero-share aria-label="分享">↗</button>' if share else ""
-    back_link = f'<a class="mp-navbar__back nav-back" href="{back}">‹</a>' if back else ""
+    # href 用真实兜底页，JS 未加载时仍可跳转；SPA 内由 preview-nav.js 拦截
+    back_href = back_target or back or "index.html"
+    back_attrs = f'href="{back_href}" data-back-fallback="{back}"'
+    if back_target:
+        back_attrs += f' data-back-target="{back_target}"'
+    back_link = (
+        f'<a class="mp-navbar__back nav-back" {back_attrs}>‹</a>'
+        if back
+        else ""
+    )
     right_btn = ""
     if right_action:
         href, label = right_action[0], right_action[1]
@@ -618,11 +627,21 @@ sub_pages = {
     '''),
     "recruitment-detail.html": ("招募详情", '''
           <div id="recruitment-detail-root"></div>
+          <script src="../assets/db-client.js"></script>
+          <script src="../assets/preview-toast.js"></script>
+          <script src="../assets/my-signups-preview.js"></script>
+          <script src="../assets/signup-action-preview.js"></script>
           <script src="../assets/recruitments-data.js"></script>
           <script src="../assets/cover-carousel.js"></script>
           <script src="../assets/recruitment-detail-preview.js"></script>
     '''),
-    "course-detail.html": ("课程详情", f'<div class="cover-full"><img src="{I}/course.jpg" alt="课程封面"></div><div style="padding:16px"><span class="tag tag--course">课程</span><h2 style="font-size:18px;margin:8px 0">ASA101-103培训课</h2><div class="card__meta">7月26日 09:00 - 16:30 · 滴水湖二号码头</div><a class="btn-primary" href="#">立即报名 ¥1280/人</a></div>'),
+    "course-detail.html": ("课程详情", '''
+          <div id="course-detail-root"></div>
+          <script src="../assets/db-client.js"></script>
+          <script src="../assets/heroes-data.js"></script>
+          <script src="../assets/cover-carousel.js"></script>
+          <script src="../assets/course-detail-preview.js"></script>
+    '''),
     "hero-apply.html": ("申请成为英雄", '''
           <div id="hero-apply-root"></div>
           <script src="../assets/db-client.js"></script>
@@ -647,12 +666,23 @@ sub_pages = {
     '''),
     "recruitment-create.html": ("发布赛事招募", '''
           <div id="recruitment-create-root"></div>
+          <script src="../assets/db-client.js"></script>
+          <script src="../assets/preview-toast.js"></script>
           <script src="../assets/recruitment-form-preview.js"></script>
           <script src="../assets/recruitment-create-preview.js"></script>
     '''),
-    "course-create.html": ("发布课程", '<div class="form-field" style="margin-top:16px"><label>课程标题</label><input placeholder="课程名称" /></div><a class="btn-primary nav-forward" href="my-recruitments.html">发布课程</a>'),
+    "course-create.html": ("发布课程", '''
+          <div id="course-create-root"></div>
+          <script src="../assets/db-client.js"></script>
+          <script src="../assets/preview-toast.js"></script>
+          <script src="../assets/cover-carousel.js"></script>
+          <script src="../assets/course-form-preview.js"></script>
+          <script src="../assets/course-create-preview.js"></script>
+    '''),
     "my-recruitments.html": ("我的招募", '''
           <div id="my-recruitments-root"></div>
+          <script src="../assets/db-client.js"></script>
+          <script src="../assets/preview-toast.js"></script>
           <script src="../assets/recruitments-data.js"></script>
           <script src="../assets/my-recruitments-preview.js"></script>
     '''),
@@ -663,6 +693,8 @@ sub_pages = {
     '''),
     "recruitment-edit.html": ("编辑招募", '''
           <div id="recruitment-edit-root"></div>
+          <script src="../assets/db-client.js"></script>
+          <script src="../assets/preview-toast.js"></script>
           <script src="../assets/recruitments-data.js"></script>
           <script src="../assets/recruitment-form-preview.js"></script>
           <script src="../assets/recruitment-edit-preview.js"></script>
@@ -715,17 +747,18 @@ for fname, (title, body) in sub_pages.items():
         back = "profile.html"
     nav_title_id = ""
     nav_right_action = None
+    back_target = ""
+    if fname in ("hero-apply-submitted.html", "hero-apply-success.html"):
+        back_target = "profile.html"
     if fname == "hero-detail.html":
         nav_title_id = "navbar-hero-title"
     elif fname == "recruitment-detail.html":
         nav_title_id = "navbar-recruit-title"
-    elif fname == "hero-apply-submitted.html":
-        nav_right_action = ("hero-apply.html", "未提交", "navbar-apply-draft")
     (MP / fname).write_text(
         render(
             title,
             body,
-            navbar_html=navbar(title, back, title_id=nav_title_id, right_action=nav_right_action),
+            navbar_html=navbar(title, back, back_target=back_target, title_id=nav_title_id, right_action=nav_right_action),
             immersive=fname == "recruitment-detail.html",
         ),
         encoding="utf-8",

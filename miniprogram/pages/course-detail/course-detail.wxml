@@ -1,15 +1,39 @@
 <view class="page course-detail" wx:if="{{item}}">
-  <view class="course-detail__cover cover-placeholder cover-placeholder--green"></view>
+  <view class="course-detail__banner">
+    <swiper
+      wx:if="{{bannerImages.length > 1}}"
+      class="course-detail__swiper"
+      circular
+      autoplay
+      interval="{{4000}}"
+      indicator-dots
+      indicator-color="rgba(255,255,255,0.45)"
+      indicator-active-color="#ffffff"
+    >
+      <swiper-item wx:for="{{bannerImages}}" wx:key="*this">
+        <image class="course-detail__cover-img" src="{{item}}" mode="aspectFill" />
+      </swiper-item>
+    </swiper>
+    <image
+      wx:else
+      class="course-detail__cover-img course-detail__cover-img--single"
+      src="{{bannerImages[0]}}"
+      mode="aspectFill"
+    />
+  </view>
+
   <view class="course-detail__body">
     <category-tag label="课程" variant="course" />
     <text class="course-detail__title">{{item.title}}</text>
-    <text class="course-detail__meta">🕐 {{item.time}}</text>
-    <text class="course-detail__meta">📍 {{item.location}}</text>
+    <text wx:if="{{item.time}}" class="course-detail__meta">🕐 {{item.time}}</text>
+    <text wx:if="{{item.location}}" class="course-detail__meta">📍 {{item.location}}</text>
     <text class="course-detail__meta">授课：{{item.hero_name}}</text>
+    <text wx:if="{{item.total}}" class="course-detail__meta">名额：{{item.signed || 0}}/{{item.total}} 人</text>
 
     <view class="course-detail__section">
-      <text class="course-detail__label">课程介绍</text>
-      <text class="course-detail__desc">{{item.description}}</text>
+      <text class="course-detail__label">课程详情</text>
+      <rich-text wx:if="{{item.detail_html}}" class="course-detail__rich" nodes="{{item.detail_html}}" />
+      <text wx:else class="course-detail__desc">{{item.description}}</text>
     </view>
   </view>
 

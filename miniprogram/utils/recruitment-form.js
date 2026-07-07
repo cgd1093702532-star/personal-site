@@ -68,6 +68,18 @@ function buildAudienceMap(audience) {
   return map;
 }
 
+function resolvePublishedStatus(item, now = Date.now()) {
+  const startMs = item.start_at ? new Date(item.start_at).getTime() : NaN;
+  const endMs = item.end_at ? new Date(item.end_at).getTime() : NaN;
+  if (!Number.isNaN(endMs) && now > endMs) {
+    return { displayStatus: 'ended', listTab: 'ended', scope: 'mine_ended' };
+  }
+  if (!Number.isNaN(startMs) && now >= startMs) {
+    return { displayStatus: 'ongoing', listTab: 'active', scope: 'mine_active' };
+  }
+  return { displayStatus: 'recruiting', listTab: 'active', scope: 'mine_active' };
+}
+
 function formToRecruitment(form, existing) {
   const base = existing || {};
   return {
@@ -140,4 +152,5 @@ module.exports = {
   formToRecruitment,
   validateForm,
   parseIso,
+  resolvePublishedStatus,
 };

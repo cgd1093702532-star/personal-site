@@ -1,42 +1,63 @@
-<view class="page create">
-  <view class="create-field">
-    <text class="create-label">课程标题 *</text>
-    <input class="create-input" placeholder="2-50字" data-field="title" value="{{form.title}}" bindinput="onInput" />
+<view class="page create-form create-form--course">
+  <view class="course-create-banner">
+    <swiper
+      wx:if="{{banners.length > 1}}"
+      class="course-create-banner__swiper"
+      circular
+      autoplay
+      interval="{{4000}}"
+      indicator-dots
+      indicator-color="rgba(255,255,255,0.45)"
+      indicator-active-color="#ffffff"
+    >
+      <swiper-item wx:for="{{banners}}" wx:key="*this">
+        <image class="course-create-banner__img" src="{{item}}" mode="aspectFill" />
+      </swiper-item>
+    </swiper>
+    <image
+      wx:elif="{{banners.length === 1}}"
+      class="course-create-banner__img course-create-banner__img--single"
+      src="{{banners[0]}}"
+      mode="aspectFill"
+    />
+    <view wx:else class="course-create-banner__placeholder" bindtap="onAddBanner">
+      <text class="course-create-banner__placeholder-icon">🖼</text>
+      <text class="course-create-banner__placeholder-text">点击上传 Banner 图片</text>
+    </view>
+    <view wx:if="{{banners.length}}" class="course-create-banner__add" bindtap="onAddBanner">+ 添加 Banner 图片</view>
   </view>
 
-  <view class="create-field">
-    <text class="create-label">上课地点 *</text>
-    <input class="create-input" placeholder="如：滴水湖二号码头" data-field="location" value="{{form.location}}" bindinput="onInput" />
+  <view class="create-section">
+    <text class="create-section__title">基本信息</text>
+
+    <view class="create-field">
+      <text class="create-label create-label--required">课程名称</text>
+      <input class="create-input" placeholder="2-50字" data-field="title" value="{{form.title}}" bindinput="onInput" />
+    </view>
+
+    <view class="create-row">
+      <view class="create-field create-field--half">
+        <text class="create-label create-label--required">课程价格</text>
+        <input class="create-input" type="digit" placeholder="元/人" data-field="price" value="{{form.price}}" bindinput="onInput" />
+      </view>
+      <view class="create-field create-field--half">
+        <text class="create-label create-label--required">课程人数</text>
+        <input class="create-input" type="number" placeholder="1-100" data-field="headcount" value="{{form.headcount}}" bindinput="onInput" />
+      </view>
+    </view>
   </view>
 
-  <view class="create-field">
-    <text class="create-label">开课日期 *</text>
-    <picker mode="date" data-field="start_date" bindchange="onDateChange">
-      <view class="create-picker">{{form.start_date || '请选择'}} ›</view>
-    </picker>
+  <view class="create-section">
+    <text class="create-section__title">课程详情</text>
+    <view class="create-field">
+      <text class="course-detail-admin-hint">课程详情请在管理后台使用富文本编辑器维护，发布后可前往「课程管理」编辑图文介绍。</text>
+      <view class="course-detail-admin-preview">
+        <text class="course-detail-admin-preview__placeholder">发布后可在后台编辑课程详情</text>
+      </view>
+    </view>
   </view>
 
-  <view class="create-field">
-    <text class="create-label">招生人数 *</text>
-    <input class="create-input" type="number" placeholder="1-100" data-field="headcount" value="{{form.headcount}}" bindinput="onInput" />
+  <view class="create-footer create-footer--single">
+    <view class="create-footer__publish" bindtap="onSubmit">发布课程</view>
   </view>
-
-  <view class="create-field">
-    <text class="create-label">费用（元/人）*</text>
-    <input class="create-input" type="digit" placeholder="0 表示免费" data-field="fee" value="{{form.fee}}" bindinput="onInput" />
-  </view>
-
-  <view class="create-field">
-    <text class="create-label">报名截止 *</text>
-    <picker mode="date" data-field="deadline" bindchange="onDateChange">
-      <view class="create-picker">{{form.deadline || '请选择'}} ›</view>
-    </picker>
-  </view>
-
-  <view class="create-field">
-    <text class="create-label">课程介绍 *</text>
-    <textarea class="create-textarea" placeholder="10-2000字" maxlength="2000" data-field="desc" value="{{form.desc}}" bindinput="onInput" />
-  </view>
-
-  <view class="create-submit" bindtap="onSubmit">发布课程</view>
 </view>

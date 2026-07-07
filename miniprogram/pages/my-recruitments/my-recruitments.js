@@ -89,7 +89,10 @@ Page({
     monthStats: { signups: 28, income: '8,520' },
   },
 
-  onLoad() {
+  onLoad(options) {
+    if (options.tab === 'draft' || options.tab === 'active' || options.tab === 'ended') {
+      this.setData({ activeTab: options.tab, emptyState: getEmptyState(options.tab) });
+    }
     data.getMyRecruitmentLists().then((source) => {
       applyLists(this, buildLists(source));
     });

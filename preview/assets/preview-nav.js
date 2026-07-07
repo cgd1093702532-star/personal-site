@@ -155,10 +155,11 @@
   }
 
   async function navigateTo(href, transition = 'forward', options = {}) {
-    const { replace = false, fromPopstate = false, skipStack = false } = options;
+    const { replace = false, fromPopstate = false, skipStack = false, force = false } = options;
     const url = resolveUrl(href);
 
-    if (!fromPopstate && url === window.location.href) return;
+    const isBackNav = transition === 'back' || transition === 'tab';
+    if (!fromPopstate && !force && !isBackNav && url === window.location.href) return;
 
     if (!fromPopstate && !replace && !skipStack && transition !== 'back') {
       prepareForwardStack(href);
@@ -185,10 +186,13 @@
         const normalized = normalizeUrl(url);
         if (replace) {
           history.replaceState({ previewUrl: url }, '', url);
+          navStack = readStack();
           if (navStack.length) {
             navStack[navStack.length - 1] = normalized;
-            writeStack(navStack);
+          } else {
+            navStack = [normalized];
           }
+          writeStack(navStack);
         } else {
           history.pushState({ previewUrl: url }, '', url);
           navStack = readStack();
@@ -223,11 +227,37 @@
     return null;
   }
 
+  function resolveBackFallback(link) {
+    const explicit = link.getAttribute('data-back-fallback');
+    if (explicit && isInternalHref(explicit)) return explicit;
+    const href = link.getAttribute('href');
+    if (href && isInternalHref(href)) return href;
+    return null;
+  }
+
+  function isTabHref(href) {
+    const base = (href || '').split('/').pop().split('?')[0];
+    return ['index.html', 'heroes.html', 'mall.html', 'profile.html'].includes(base);
+  }
+
+  function navigateToBackTarget(link) {
+    const target = link.getAttribute('data-back-target');
+    if (!target || !isInternalHref(target)) return false;
+    const url = normalizeUrl(resolveUrl(target));
+    navStack = readStack();
+    const idx = navStack.lastIndexOf(url);
+    navStack = idx >= 0 ? navStack.slice(0, idx + 1) : [url];
+    writeStack(navStack);
+    const transition = isTabHref(target) ? 'tab' : 'back';
+    navigateTo(target, transition, { replace: true, skipStack: true, force: true });
+    return true;
+  }
+
   async function goBack(fallbackHref) {
     const target = resolveBackTarget(fallbackHref);
     if (!target) {
       if (fallbackHref && isInternalHref(fallbackHref)) {
-        return navigateTo(resolveUrl(fallbackHref), 'back', { replace: true, skipStack: true });
+        return navigateTo(fallbackHref, 'back', { replace: true, skipStack: true, force: true });
       }
       return;
     }
@@ -235,58 +265,41 @@
       navStack = navStack.slice(0, -1);
       writeStack(navStack);
     }
-    return navigateTo(target.url, 'back', { replace: true, skipStack: true });
+    const transition = isTabHref(target.url) ? 'tab' : 'back';
+    return navigateTo(target.url, transition, { replace: true, skipStack: true, force: true });
   }
 
+  /** 返回：data-back-target 固定页 > 导航栈 > fallback */
   function handleBack(link) {
-    const href = link.getAttribute('href');
-    if (!href || !isInternalHref(href)) return;
-
-    const dest = resolveUrl(href);
-    const destNorm = normalizeUrl(dest);
-    const current = normalizeUrl(window.location.href);
-    navStack = readStack();
-
-    const stackPrev = navStack.length > 1 ? normalizeUrl(navStack[navStack.length - 2]) : null;
-
-    // 声明的父页与栈上一页一致：标准出栈返回
-    if (stackPrev && stackPrev === destNorm) {
-      goBack(href);
-      return;
-    }
-
-    // 声明的父页在栈中（如 我的招募 → 个人中心，栈被编辑页污染时）
-    const parentIdx = navStack.lastIndexOf(destNorm);
-    if (parentIdx >= 0) {
-      navStack = navStack.slice(0, parentIdx + 1);
-      writeStack(navStack);
-      navigateTo(dest, 'back', { replace: true, skipStack: true });
-      return;
-    }
-
-    // 栈有上一页但与 href 不同（如 首页 → 英雄详情，应回首页而非 heroes.html）
-    if (stackPrev) {
-      goBack(href);
-      return;
-    }
-
-    // 无历史：走 href 兜底
-    navStack = [destNorm];
-    writeStack(navStack);
-    navigateTo(dest, 'back', { replace: true, skipStack: true });
+    if (navigating) return;
+    if (navigateToBackTarget(link)) return;
+    goBack(resolveBackFallback(link));
   }
 
-  document.addEventListener('click', (e) => {
+  function isBackLink(link) {
+    return link.classList.contains('nav-back') || link.classList.contains('mp-navbar__back');
+  }
+
+  function onBackClick(e) {
+    const link = e.target.closest('a.mp-navbar__back, a.nav-back');
+    if (!link || !isInDevice(link)) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    handleBack(link);
+  }
+
+  function onDocumentClick(e) {
     const link = e.target.closest('a[href]');
     if (link && isInDevice(link)) {
       if (e.defaultPrevented || link.hasAttribute('data-spa-ignore')) return;
-      const href = link.getAttribute('href');
-      if (!isInternalHref(href)) return;
-      e.preventDefault();
-      if (link.classList.contains('nav-back') || link.classList.contains('mp-navbar__back')) {
+      if (isBackLink(link)) {
+        e.preventDefault();
         handleBack(link);
         return;
       }
+      const href = link.getAttribute('href');
+      if (!isInternalHref(href)) return;
+      e.preventDefault();
       navigateTo(href, detectTransition(link));
       return;
     }
@@ -296,7 +309,10 @@
       e.preventDefault();
       navigateTo(action.dataset.href, 'forward');
     }
-  });
+  }
+
+  document.addEventListener('click', onBackClick, true);
+  document.addEventListener('click', onDocumentClick);
 
   window.addEventListener('popstate', () => {
     if (navigating) return;

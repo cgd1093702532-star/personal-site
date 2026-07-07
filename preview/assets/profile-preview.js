@@ -267,6 +267,10 @@
 
   async function render() {
     const { hero, pending } = await resolveDisplayRole();
+    renderContent(hero, pending);
+  }
+
+  function renderContent(hero, pending) {
     root.innerHTML = `
       ${userBlock(hero)}
       ${hero ? heroBlock() : uncertCta(pending)}
@@ -277,6 +281,10 @@
     bindApplyHero();
     updateSignupDesc();
     updateReviewDesc();
+  }
+
+  function renderInitial() {
+    renderContent(false, false);
   }
 
   toggle.addEventListener('click', async () => {
@@ -290,7 +298,9 @@
   });
 
   function init() {
+    sessionStorage.removeItem(OVERRIDE_KEY);
     bindPublishSheet();
+    renderInitial();
     render();
   }
 

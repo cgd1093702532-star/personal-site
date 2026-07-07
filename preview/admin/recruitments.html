@@ -3,15 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>招募管理 · 管理后台预览</title>
+  <title>赛事管理 · 英雄广场管理后台</title>
   <link rel="stylesheet" href="../assets/preview.css">
+  <link rel="stylesheet" href="../assets/admin.css">
 </head>
-<body>
-  <div class="admin-layout">
-    <a href="../index.html">← 预览目录</a>
-    <h1 style="margin:16px 0">招募管理</h1>
-    <nav class="admin-nav"><a href="dashboard.html">仪表盘</a><a href="heroes.html">英雄管理</a><a href="recruitments.html" class="active">招募管理</a><a href="signups.html">报名管理</a><a href="reviews.html">评价管理</a><a href="users.html">用户管理</a><a href="settings.html">系统配置</a><a href="profile-changes.html">主页变更审核</a></nav>
-    <div class="admin-panel"><ul><li>企业家杯月赛</li></ul></div>
+<body data-admin-page="recruitments" data-admin-title="赛事管理" data-admin-breadcrumb="管理中心 / 赛事管理">
+  <div id="admin-page-root">
+
+    <p id="recruitments-admin-hint" class="admin-page-tip"></p>
+    <div class="admin-card">
+      <div class="admin-card__body admin-card__body--compact">
+        <div class="admin-filter">
+          <div class="admin-form-item"><label class="admin-form-item__label">赛事标题</label><input id="recruitments-admin-search" class="admin-input" type="search" placeholder="请输入活动标题" /></div>
+          <div class="admin-filter__actions">
+            <button type="button" class="admin-btn admin-btn--primary" id="recruitments-admin-search-btn">🔍 查询</button>
+            <button type="button" class="admin-btn" id="recruitments-admin-reset-btn">重置</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="admin-tabs admin-tabs--pills">
+      <button type="button" class="admin-tabs__item is-active" data-recruit-status="">全部</button>
+      <button type="button" class="admin-tabs__item" data-recruit-status="recruiting">招募中</button>
+      <button type="button" class="admin-tabs__item" data-recruit-status="enrolling">报名中</button>
+      <button type="button" class="admin-tabs__item" data-recruit-status="full">已满员</button>
+      <button type="button" class="admin-tabs__item" data-recruit-status="ended">已结束</button>
+      <button type="button" class="admin-tabs__item" data-recruit-status="cancelled">已取消</button>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card__body admin-card__body--compact">
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>活动</th><th>类型</th><th>英雄</th><th>报名情况</th><th>价格</th><th>时间</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody id="recruitments-admin-tbody"><tr><td colspan="8" class="admin-table__empty">加载中…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="recruitments-admin-detail" class="admin-card admin-detail-panel" hidden><div class="admin-card__body"></div></div>
+
   </div>
+  <script src="../assets/admin-layout.js"></script>
+  <script src="../assets/db-client.js"></script>
+  <script src="../assets/recruitments-admin-preview.js"></script>
 </body>
 </html>

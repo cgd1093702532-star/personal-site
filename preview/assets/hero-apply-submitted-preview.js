@@ -3,26 +3,6 @@
   const root = document.getElementById('hero-apply-submitted-root');
   if (!root) return;
 
-  const draftBtn = document.getElementById('navbar-apply-draft');
-  draftBtn?.addEventListener('click', async (e) => {
-    e.preventDefault();
-    const db = window.HeroPlazaDB;
-    if (db) {
-      try {
-        if (await db.isAvailable()) {
-          await db.withdrawHeroApply();
-        }
-      } catch (err) {
-        console.warn(err);
-      }
-    }
-    if (window.PreviewNav && window.PreviewNav.navigateTo) {
-      window.PreviewNav.navigateTo('hero-apply.html');
-    } else {
-      window.location.href = 'hero-apply.html';
-    }
-  });
-
   root.innerHTML = `
     <div class="apply-submitted">
       <div class="apply-submitted__hero">

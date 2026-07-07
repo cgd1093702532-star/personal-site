@@ -119,8 +119,11 @@ Page({
   onSubmit() {
     if (!this.validate(true)) return;
     const item = formUtil.formToRecruitment(this.data.form, this.data.sourceItem);
+    const status = formUtil.resolvePublishedStatus(item);
+    item.displayStatus = status.displayStatus;
+    item.listTab = status.listTab;
     data
-      .updateRecruitment(this.data.recruitId, item)
+      .updateRecruitment(this.data.recruitId, { ...item, scope: status.scope })
       .then(() => {
         try {
           wx.removeStorageSync(DRAFT_KEY);

@@ -1,9 +1,15 @@
 <template>
   <section class="admin-page">
     <h1>英雄管理</h1>
-    <p class="admin-page__hint">申请审核 · API: GET /api/admin/applications</p>
+    <p class="admin-page__hint">{{ mode === 'applications' ? '申请审核 · GET /api/admin/applications' : '已认证英雄 · GET /api/admin/heroes' }}</p>
 
     <div class="admin-tabs">
+      <button type="button" class="admin-tabs__item" :class="{ active: mode === 'applications' }" @click="setMode('applications')">申请审核</button>
+      <button type="button" class="admin-tabs__item" :class="{ active: mode === 'certified' }" @click="setMode('certified')">已认证英雄</button>
+    </div>
+
+    <template v-if="mode === 'applications'">
+    <div class="admin-tabs admin-tabs--sub">
       <button
         v-for="tab in tabs"
         :key="tab.value"
@@ -36,6 +42,7 @@
           <td>{{ row.status_label }}</td>
           <td>
             <button type="button" @click="viewDetail(row.application_id)">查看</button>
+            <button type="button" class="btn-danger" @click="remove(row.application_id)">删除</button>
             <template v-if="row.status === 'pending'">
               <button type="button" @click="approve(row.application_id)">批准</button>
               <button type="button" @click="reject(row.application_id)">驳回</button>
@@ -53,6 +60,33 @@
       <p><strong>资质：</strong>{{ detail.certification }}</p>
       <p><strong>简介：</strong>{{ detail.bio }}</p>
     </div>
+    </template>
+
+    <template v-else>
+      <div class="admin-toolbar">
+        <input v-model="heroSearch" class="admin-search" type="search" placeholder="搜索英雄姓名" @keydown.enter="loadHeroes" />
+        <button type="button" @click="loadHeroes">搜索</button>
+      </div>
+      <table class="admin-page__table">
+        <thead>
+          <tr>
+            <th>姓名</th><th>评分</th><th>执教年限</th><th>学员数</th><th>项目类型</th><th>荣誉</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-if="heroLoading"><td colspan="6">加载中…</td></tr>
+          <tr v-else-if="!heroes.length"><td colspan="6">暂无英雄</td></tr>
+          <tr v-for="hero in heroes" :key="hero.hero_id">
+            <td>{{ hero.name }}</td>
+            <td>{{ hero.rating }}</td>
+            <td>{{ hero.years_exp }} 年</td>
+            <td>{{ hero.student_count }}</td>
+            <td>{{ hero.project_types_display }}</td>
+            <td>{{ (hero.honor_titles || []).slice(0, 2).join('、') }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </template>
   </section>
 </template>
 
@@ -68,9 +102,13 @@ const tabs = [
 ];
 
 const rows = ref([]);
+const heroes = ref([]);
 const detail = ref(null);
 const loading = ref(false);
+const heroLoading = ref(false);
 const currentStatus = ref('pending');
+const mode = ref('applications');
+const heroSearch = ref('');
 
 async function request(path, options) {
   const res = await fetch(`${API_BASE}${path}`, {
@@ -109,6 +147,27 @@ function switchTab(status) {
   loadList();
 }
 
+function setMode(next) {
+  mode.value = next;
+  detail.value = null;
+  if (next === 'applications') loadList();
+  else loadHeroes();
+}
+
+async function loadHeroes() {
+  heroLoading.value = true;
+  try {
+    const qs = heroSearch.value.trim() ? `?q=${encodeURIComponent(heroSearch.value.trim())}` : '';
+    const data = await request(`/api/admin/heroes${qs}`);
+    heroes.value = data.items || [];
+  } catch (err) {
+    heroes.value = [];
+    console.error(err);
+  } finally {
+    heroLoading.value = false;
+  }
+}
+
 async function viewDetail(id) {
   detail.value = await request(`/api/admin/applications/${id}`);
 }
@@ -131,6 +190,13 @@ async function reject(id) {
   loadList();
 }
 
+async function remove(id) {
+  if (!window.confirm('确认删除该申请记录？删除后用户将恢复为未认证状态。')) return;
+  await request(`/api/admin/applications/${id}`, { method: 'DELETE' });
+  if (detail.value?.application_id === id) detail.value = null;
+  loadList();
+}
+
 onMounted(loadList);
 </script>
 
@@ -143,4 +209,8 @@ onMounted(loadList);
 .admin-page__table { width: 100%; border-collapse: collapse; }
 .admin-page__table th, .admin-page__table td { border: 1px solid #e1e5e8; padding: 12px; text-align: left; }
 .admin-detail { margin-top: 24px; padding: 16px; border: 1px solid #e1e5e8; border-radius: 8px; }
+.admin-toolbar { display: flex; gap: 8px; margin-bottom: 12px; }
+.admin-search { flex: 1; max-width: 320px; padding: 8px 12px; border: 1px solid #e1e5e8; border-radius: 6px; }
+.admin-tabs--sub { margin-top: 0; margin-bottom: 12px; }
+.btn-danger { margin-left: 8px; color: #dc3545; border-color: #dc3545; background: #fff; cursor: pointer; padding: 4px 10px; border-radius: 4px; }
 </style>

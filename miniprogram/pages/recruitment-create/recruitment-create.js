@@ -8,6 +8,8 @@ Page({
     audienceOptions: formUtil.AUDIENCE_OPTIONS,
     audienceMap: {},
     form: { ...formUtil.EMPTY_FORM },
+    draftRecruitId: '',
+    draftItem: null,
   },
 
   onLoad(options) {
@@ -24,6 +26,8 @@ Page({
         this.setData({
           form,
           audienceMap: formUtil.buildAudienceMap(form.audience),
+          draftRecruitId: item.recruit_id || '',
+          draftItem: item,
         });
       });
       return;
@@ -110,18 +114,26 @@ Page({
 
   onSaveDraft() {
     if (!this.validate(false)) return;
-    const item = formUtil.formToRecruitment(this.data.form);
+    const item = formUtil.formToRecruitment(this.data.form, this.data.draftItem);
     item.displayStatus = 'draft';
     item.listTab = 'draft';
-    data
-      .createRecruitment(item, 'draft')
-      .then(() => {
+    const save = this.data.draftRecruitId
+      ? data.updateRecruitment(this.data.draftRecruitId, { ...item, scope: 'mine_draft' })
+      : data.createRecruitment(item, 'draft');
+    save
+      .then((saved) => {
+        const recruitId = (saved && saved.recruit_id) || item.recruit_id;
+        this.setData({ draftRecruitId: recruitId, draftItem: saved || item });
         try {
           wx.setStorageSync(DRAFT_KEY, this.data.form);
         } catch (e) {
           /* ignore */
         }
         wx.showToast({ title: '草稿已保存', icon: 'success' });
+        setTimeout(
+          () => wx.redirectTo({ url: '/pages/my-recruitments/my-recruitments?tab=draft' }),
+          800,
+        );
       })
       .catch(() => {
         wx.showToast({ title: '保存失败', icon: 'none' });
@@ -135,12 +147,23 @@ Page({
     } catch (e) {
       /* ignore */
     }
-    const item = formUtil.formToRecruitment(this.data.form);
-    data
-      .createRecruitment(item, 'active')
+    const item = formUtil.formToRecruitment(this.data.form, this.data.draftItem);
+    const status = formUtil.resolvePublishedStatus(item);
+    item.displayStatus = status.displayStatus;
+    item.listTab = status.listTab;
+    const save = this.data.draftRecruitId
+      ? data.updateRecruitment(this.data.draftRecruitId, { ...item, scope: status.scope })
+      : data.createRecruitment(item, status.listTab);
+    save
       .then(() => {
         wx.showToast({ title: '发布成功', icon: 'success' });
-        setTimeout(() => wx.redirectTo({ url: '/pages/my-recruitments/my-recruitments' }), 800);
+        setTimeout(
+          () =>
+            wx.redirectTo({
+              url: `/pages/my-recruitments/my-recruitments?tab=${status.listTab}`,
+            }),
+          800,
+        );
       })
       .catch(() => {
         wx.showToast({ title: '发布失败', icon: 'none' });

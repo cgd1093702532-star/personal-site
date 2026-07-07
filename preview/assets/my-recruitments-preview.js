@@ -255,7 +255,16 @@
     });
   }
 
+  function applySessionTab() {
+    const tab = sessionStorage.getItem('my-recruitments-tab');
+    if (tab === 'draft' || tab === 'active' || tab === 'ended') {
+      activeTab = tab;
+      sessionStorage.removeItem('my-recruitments-tab');
+    }
+  }
+
   async function refresh() {
+    applySessionTab();
     lists = await loadLists();
     render();
   }

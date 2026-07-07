@@ -76,6 +76,29 @@
       return request(`/api/recruitments/${id}`, { method: 'DELETE' });
     },
 
+    async listCourses() {
+      const data = await request('/api/courses');
+      return data.items || [];
+    },
+
+    async getCourse(id) {
+      return request(`/api/courses/${id}`);
+    },
+
+    async createCourse(item) {
+      return request('/api/courses', {
+        method: 'POST',
+        body: JSON.stringify(item),
+      });
+    },
+
+    async updateCourse(id, patch) {
+      return request(`/api/courses/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(patch),
+      });
+    },
+
     async getMyRecruitmentLists() {
       const tabs = ['active', 'ended', 'draft'];
       const lists = {};
@@ -138,6 +161,49 @@
         method: 'POST',
         body: JSON.stringify({ reason: reason || '' }),
       });
+    },
+
+    async deleteApplication(id) {
+      return request(`/api/admin/applications/${id}`, { method: 'DELETE' });
+    },
+
+    async listAdminSignups(query) {
+      const qs = query ? `?${new URLSearchParams(query).toString()}` : '';
+      const data = await request(`/api/admin/signups${qs}`);
+      return data.items || [];
+    },
+
+    async getSignup(id) {
+      return request(`/api/admin/signups/${id}`);
+    },
+
+    async cancelSignup(id) {
+      return request(`/api/admin/signups/${id}/cancel`, { method: 'POST', body: '{}' });
+    },
+
+    async listAdminRecruitments(query) {
+      const qs = query ? `?${new URLSearchParams(query).toString()}` : '';
+      const data = await request(`/api/admin/recruitments${qs}`);
+      return data.items || [];
+    },
+
+    async getAdminRecruitment(id) {
+      return request(`/api/admin/recruitments/${id}`);
+    },
+
+    async listRecruitmentSignups(recruitId) {
+      const data = await request(`/api/admin/recruitments/${recruitId}/signups`);
+      return data.items || [];
+    },
+
+    async closeRecruitment(id) {
+      return request(`/api/admin/recruitments/${id}/close`, { method: 'POST', body: '{}' });
+    },
+
+    async listAdminHeroes(query) {
+      const qs = query ? `?${new URLSearchParams(query).toString()}` : '';
+      const data = await request(`/api/admin/heroes${qs}`);
+      return data.items || [];
     },
 
     async reset() {

@@ -5,6 +5,7 @@ Page({
   data: {
     item: null,
     courseId: '',
+    bannerImages: [],
   },
 
   onLoad(options) {
@@ -14,8 +15,11 @@ Page({
       wx.showToast({ title: '课程不存在', icon: 'none' });
       return;
     }
+    const banners = item.banner_images && item.banner_images.length
+      ? item.banner_images
+      : [item.cover_image ? `/assets/images/${item.cover_image}.jpg` : '/assets/images/course.jpg'];
     wx.setNavigationBarTitle({ title: item.title });
-    this.setData({ item, courseId: id });
+    this.setData({ item, courseId: id, bannerImages: banners });
   },
 
   onSignupTap() {

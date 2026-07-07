@@ -311,12 +311,38 @@ function addMySignup(entry) {
     const next = [
       {
         id: `s${Date.now()}`,
-        status: '待确认',
+        status: '已报名',
+        checked_in: false,
         time: new Date().toLocaleString('zh-CN'),
         ...entry,
       },
       ...(list || []),
     ];
+    return setAppState('my_signups', next);
+  });
+}
+
+function getMySignupByRecruitId(recruitId) {
+  return getAppState('my_signups', null).then((list) => {
+    const source = list && list.length ? list : DEFAULT_MY_SIGNUPS;
+    const raw = source.find((s) => s.recruit_id === recruitId);
+    return raw ? enrichSignup(raw) : null;
+  });
+}
+
+function checkinMySignup(recruitId) {
+  return getAppState('my_signups', null).then((list) => {
+    const source = list && list.length ? list : [...DEFAULT_MY_SIGNUPS];
+    const next = source.map((item) =>
+      item.recruit_id === recruitId
+        ? {
+            ...item,
+            checked_in: true,
+            checkin_at: new Date().toISOString(),
+            status: '已签到',
+          }
+        : item,
+    );
     return setAppState('my_signups', next);
   });
 }
@@ -331,8 +357,16 @@ function updateSignupStatus(signupId, status) {
 }
 
 const DEFAULT_MY_SIGNUPS = [
-  { id: 'mock-s1', recruit_id: 'r1', title: '企业家杯月赛', status: '已报名', payStatus: '待支付' },
-  { id: 'mock-s2', recruit_id: 'r2', title: '周末帆船体验营', status: '已报名', payStatus: '已支付' },
+  { id: 'mock-s1', recruit_id: 'r1', title: '企业家杯月赛', status: '已报名', payStatus: '待支付', checked_in: false },
+  {
+    id: 'mock-s2',
+    recruit_id: 'r2',
+    title: '周末帆船体验营',
+    status: '已报名',
+    payStatus: '已支付',
+    checked_in: true,
+    checkin_at: '2026-07-07T10:00:00',
+  },
   {
     id: 'mock-s3',
     recruit_id: 'r11',
@@ -654,6 +688,8 @@ module.exports = {
   withdrawHeroApply,
   addMySignup,
   updateSignupStatus,
+  getMySignupByRecruitId,
+  checkinMySignup,
   getMySignupLists,
   getMySignupSummary,
   getMyReviews,

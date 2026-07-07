@@ -133,7 +133,7 @@
     try {
       await db.submitHeroApply(application);
       if (window.PreviewNav?.navigateTo) {
-        window.PreviewNav.navigateTo('hero-apply-submitted.html');
+        window.PreviewNav.navigateTo('hero-apply-submitted.html', 'forward', { replace: true });
       } else {
         window.location.href = 'hero-apply-submitted.html';
       }

@@ -4,8 +4,16 @@
   if (!root) return;
 
   const DEFAULT_MY_SIGNUPS = [
-    { id: 'mock-s1', recruit_id: 'r1', title: '企业家杯月赛', status: '已报名', payStatus: '待支付' },
-    { id: 'mock-s2', recruit_id: 'r2', title: '周末帆船体验营', status: '已报名', payStatus: '已支付' },
+    { id: 'mock-s1', recruit_id: 'r1', title: '企业家杯月赛', status: '已报名', payStatus: '待支付', checked_in: false },
+    {
+      id: 'mock-s2',
+      recruit_id: 'r2',
+      title: '周末帆船体验营',
+      status: '已报名',
+      payStatus: '已支付',
+      checked_in: true,
+      checkin_at: '2026-07-07T10:00:00',
+    },
     {
       id: 'mock-s3',
       recruit_id: 'r11',
@@ -16,6 +24,8 @@
       end_at: '2026-04-18T16:30:00',
     },
   ];
+
+  window.getDefaultMySignups = () => DEFAULT_MY_SIGNUPS.map((item) => ({ ...item }));
 
   let lists = { active: [], ended: [] };
   let activeTab = 'active';

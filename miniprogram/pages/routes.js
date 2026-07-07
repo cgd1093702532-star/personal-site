@@ -15,7 +15,7 @@ module.exports = {
     { path: 'pages/course-detail/course-detail', doc: 'docs/miniprogram/pages/课程详情.md' },
     { path: 'pages/hero-apply/hero-apply', doc: 'docs/miniprogram/pages/申请成为英雄.md' },
     { path: 'pages/hero-apply-success/hero-apply-success', doc: 'docs/miniprogram/pages/认证成功.md' },
-    { path: 'pages/hero-apply-submitted/hero-apply-submitted', doc: 'docs/miniprogram/pages/申请成为英雄.md' },
+    { path: 'pages/hero-apply-submitted/hero-apply-submitted', doc: 'docs/miniprogram/pages/申请提交成功.md' },
     { path: 'pages/hero-profile/hero-profile', doc: 'docs/miniprogram/pages/我的英雄资料.md' },
     { path: 'pages/recruitment-create/recruitment-create', doc: 'docs/miniprogram/pages/发布招募.md' },
     { path: 'pages/course-create/course-create', doc: 'docs/miniprogram/pages/发布课程.md' },

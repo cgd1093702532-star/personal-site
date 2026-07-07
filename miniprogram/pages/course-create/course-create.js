@@ -4,13 +4,10 @@ Page({
   data: {
     form: {
       title: '',
-      location: '',
-      start_date: '',
+      price: '',
       headcount: '',
-      fee: '',
-      deadline: '',
-      desc: '',
     },
+    banners: [],
   },
 
   onInput(e) {
@@ -18,54 +15,46 @@ Page({
     this.setData({ [`form.${field}`]: e.detail.value });
   },
 
-  onDateChange(e) {
-    const { field } = e.currentTarget.dataset;
-    this.setData({ [`form.${field}`]: e.detail.value });
+  onAddBanner() {
+    wx.chooseMedia({
+      count: 1,
+      mediaType: ['image'],
+      success: (res) => {
+        const path = res.tempFiles[0]?.tempFilePath;
+        if (!path) return;
+        this.setData({ banners: [...this.data.banners, path] });
+      },
+    });
   },
 
   onSubmit() {
-    const { title, location, start_date, headcount, fee, deadline, desc } = this.data.form;
+    const { title, price, headcount } = this.data.form;
+    const { banners } = this.data;
     if (!title.trim() || title.length < 2) {
-      wx.showToast({ title: '请填写课程标题', icon: 'none' });
+      wx.showToast({ title: '请填写课程名称', icon: 'none' });
       return;
     }
-    if (!location.trim()) {
-      wx.showToast({ title: '请填写上课地点', icon: 'none' });
-      return;
-    }
-    if (!start_date) {
-      wx.showToast({ title: '请选择开课日期', icon: 'none' });
+    if (price === '' || Number(price) < 0) {
+      wx.showToast({ title: '请填写课程价格', icon: 'none' });
       return;
     }
     if (!headcount || Number(headcount) < 1) {
-      wx.showToast({ title: '请填写招生人数', icon: 'none' });
-      return;
-    }
-    if (fee === '') {
-      wx.showToast({ title: '请填写费用', icon: 'none' });
-      return;
-    }
-    if (!deadline) {
-      wx.showToast({ title: '请选择报名截止', icon: 'none' });
-      return;
-    }
-    if (!desc.trim() || desc.length < 10) {
-      wx.showToast({ title: '课程介绍至少10字', icon: 'none' });
+      wx.showToast({ title: '请填写课程人数', icon: 'none' });
       return;
     }
     data
       .addMyCourse({
         title: title.trim(),
-        location: location.trim(),
-        start_date,
+        price: Number(price),
+        total: Number(headcount),
         headcount: Number(headcount),
-        fee: Number(fee),
-        deadline,
-        description: desc.trim(),
+        banner_images: banners,
+        location: '待完善',
+        timeDisplay: '待排期',
       })
       .then(() => {
         wx.showToast({ title: '发布成功', icon: 'success' });
-        setTimeout(() => wx.redirectTo({ url: '/pages/my-recruitments/my-recruitments' }), 800);
+        setTimeout(() => wx.redirectTo({ url: '/pages/my-courses/my-courses' }), 800);
       })
       .catch(() => {
         wx.showToast({ title: '发布失败', icon: 'none' });

@@ -152,6 +152,18 @@
     return { ok: true };
   }
 
+  function resolvePublishedStatus(item, now = Date.now()) {
+    const startMs = item.start_at ? new Date(item.start_at).getTime() : NaN;
+    const endMs = item.end_at ? new Date(item.end_at).getTime() : NaN;
+    if (!Number.isNaN(endMs) && now > endMs) {
+      return { displayStatus: 'ended', listTab: 'ended', scope: 'mine_ended' };
+    }
+    if (!Number.isNaN(startMs) && now >= startMs) {
+      return { displayStatus: 'ongoing', listTab: 'active', scope: 'mine_active' };
+    }
+    return { displayStatus: 'recruiting', listTab: 'active', scope: 'mine_active' };
+  }
+
   async function persistRecruitment(form, options, mode) {
     const db = global.HeroPlazaDB;
     if (!db) throw new Error('db_unavailable');
@@ -167,18 +179,13 @@
       }
       return db.createRecruitment(item, 'mine_draft');
     }
-    if (options.isEdit && options.recruitId) {
-      const tab = existing.listTab || 'active';
-      item.displayStatus = existing.displayStatus || item.displayStatus || 'recruiting';
-      item.listTab = tab;
-      return db.updateRecruitment(options.recruitId, { ...item, scope: `mine_${tab}` });
-    }
-    item.displayStatus = 'recruiting';
-    item.listTab = 'active';
+    const status = resolvePublishedStatus(item);
+    item.displayStatus = status.displayStatus;
+    item.listTab = status.listTab;
     if (options.recruitId) {
-      return db.updateRecruitment(options.recruitId, { ...item, scope: 'mine_active' });
+      return db.updateRecruitment(options.recruitId, { ...item, scope: status.scope });
     }
-    return db.createRecruitment(item, 'mine_active');
+    return db.createRecruitment(item, status.scope);
   }
 
   function setButtonBusy(btn, busy, busyText, idleText) {
@@ -316,6 +323,22 @@
       window.alert('预览：上传封面图');
     });
 
+    async function goMyRecruitmentsTab(tab) {
+      sessionStorage.setItem('my-recruitments-tab', tab || 'active');
+      sessionStorage.setItem('my-recruitments-reload', String(Date.now()));
+      await new Promise((r) => setTimeout(r, 350));
+      const href = 'my-recruitments.html';
+      if (global.PreviewNav && global.PreviewNav.navigateTo) {
+        await global.PreviewNav.navigateTo(href);
+      } else {
+        window.location.href = href;
+      }
+    }
+
+    async function goMyRecruitmentsDraft() {
+      await goMyRecruitmentsTab('draft');
+    }
+
     root.querySelector('#rc-draft')?.addEventListener('click', async (e) => {
       e.stopPropagation();
       const draftBtn = e.currentTarget;
@@ -327,8 +350,11 @@
       }
       setButtonBusy(draftBtn, true, '保存中…', '保存草稿');
       try {
-        await persistRecruitment(form, opts, 'draft');
+        const saved = await persistRecruitment(form, opts, 'draft');
+        opts.recruitId = saved.recruit_id;
+        opts.sourceItem = saved;
         notify('草稿已保存', 'success');
+        await goMyRecruitmentsDraft();
       } catch (err) {
         const msg =
           err.message === 'db_unavailable' || err.message === 'db_offline'
@@ -353,16 +379,14 @@
       }
       setButtonBusy(publishBtn, true, '保存中…', publishLabel);
       try {
-        await persistRecruitment(form, opts, 'publish');
+        const saved = await persistRecruitment(form, opts, 'publish');
+        opts.recruitId = saved.recruit_id;
+        opts.sourceItem = saved;
         notify('保存成功', 'success');
-        sessionStorage.setItem('my-recruitments-reload', String(Date.now()));
-        await new Promise((r) => setTimeout(r, 350));
         if (opts.isEdit && global.PreviewNav && global.PreviewNav.goBack) {
           await global.PreviewNav.goBack(publishHref);
-        } else if (global.PreviewNav && global.PreviewNav.navigateTo) {
-          await global.PreviewNav.navigateTo(publishHref);
         } else {
-          window.location.href = publishHref;
+          await goMyRecruitmentsTab(saved.listTab || 'active');
         }
       } catch (err) {
         const msg =
@@ -386,5 +410,6 @@
     collectForm,
     formToRecruitment,
     validateForm,
+    resolvePublishedStatus,
   };
 })(typeof window !== 'undefined' ? window : globalThis);

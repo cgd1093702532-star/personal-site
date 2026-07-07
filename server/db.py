@@ -64,6 +64,15 @@ def init_schema(conn: sqlite3.Connection) -> None:
         );
         CREATE INDEX IF NOT EXISTS idx_hero_applications_user ON hero_applications(user_id);
         CREATE INDEX IF NOT EXISTS idx_hero_applications_status ON hero_applications(status);
+        CREATE TABLE IF NOT EXISTS signups (
+            signup_id TEXT PRIMARY KEY,
+            status TEXT NOT NULL DEFAULT 'confirmed',
+            pay_status TEXT NOT NULL DEFAULT 'unpaid',
+            payload TEXT NOT NULL,
+            updated_at REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_signups_status ON signups(status);
+        CREATE INDEX IF NOT EXISTS idx_signups_pay_status ON signups(pay_status);
         """
     )
     conn.commit()
@@ -125,6 +134,17 @@ def apply_seed(conn: sqlite3.Connection, seed: dict[str, Any]) -> None:
             (key, json.dumps(value, ensure_ascii=False), ts),
         )
 
+    conn.execute("DELETE FROM signups")
+    for item in seed.get("signups") or []:
+        sid = item.get("signup_id") or item.get("id")
+        status = item.get("status") or "confirmed"
+        pay_status = item.get("pay_status") or "unpaid"
+        payload = {k: v for k, v in item.items() if k not in ("signup_id", "id", "status", "pay_status")}
+        conn.execute(
+            "INSERT OR REPLACE INTO signups (signup_id, status, pay_status, payload, updated_at) VALUES (?, ?, ?, ?, ?)",
+            (sid, status, pay_status, json.dumps(payload, ensure_ascii=False), ts),
+        )
+
     conn.commit()
 
 
@@ -139,9 +159,9 @@ def list_heroes() -> list[dict[str, Any]]:
     conn = connect()
     init_schema(conn)
     seed_if_empty(conn)
-    rows = conn.execute("SELECT payload FROM heroes ORDER BY hero_id").fetchall()
+    rows = conn.execute("SELECT hero_id, payload FROM heroes ORDER BY hero_id").fetchall()
     conn.close()
-    return [json.loads(r["payload"]) for r in rows]
+    return [{**json.loads(r["payload"]), "hero_id": r["hero_id"]} for r in rows]
 
 
 def get_hero(hero_id: str) -> dict[str, Any] | None:
@@ -253,6 +273,20 @@ def list_courses() -> list[dict[str, Any]]:
     rows = conn.execute("SELECT payload FROM courses ORDER BY course_id").fetchall()
     conn.close()
     return [json.loads(r["payload"]) for r in rows]
+
+
+def upsert_course(course_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    ts = _now()
+    item = {**payload, "course_id": course_id}
+    conn = connect()
+    init_schema(conn)
+    conn.execute(
+        "INSERT OR REPLACE INTO courses (course_id, payload, updated_at) VALUES (?, ?, ?)",
+        (course_id, json.dumps(item, ensure_ascii=False), ts),
+    )
+    conn.commit()
+    conn.close()
+    return item
 
 
 def get_app_state(key: str) -> Any:
@@ -506,3 +540,219 @@ def withdraw_hero_application(user_id: str = DEFAULT_USER_ID) -> bool:
     set_app_state("mock_hero_role", "")
     set_app_state("hero_apply_form", None)
     return True
+
+
+def delete_hero_application(application_id: str) -> bool:
+    app = get_hero_application(application_id)
+    if not app:
+        return False
+
+    user_id = app.get("user_id") or DEFAULT_USER_ID
+    hero_id = app.get("hero_id")
+
+    conn = connect()
+    init_schema(conn)
+    if hero_id:
+        conn.execute("DELETE FROM heroes WHERE hero_id = ?", (hero_id,))
+    conn.execute("DELETE FROM hero_applications WHERE application_id = ?", (application_id,))
+    conn.commit()
+
+    latest = _latest_application(conn, user_id)
+    conn.close()
+
+    if latest:
+        st = latest["status"]
+        if st == "approved":
+            set_app_state("mock_hero_role", "approved")
+        elif st == "pending":
+            set_app_state("mock_hero_role", "pending")
+        else:
+            set_app_state("mock_hero_role", "none")
+    else:
+        set_app_state("mock_hero_role", "")
+        set_app_state("hero_apply_form", None)
+    return True
+
+
+SIGNUP_STATUS_LABELS = {
+    "pending": "待确认",
+    "confirmed": "已确认",
+    "cancelled": "已取消",
+    "refunded": "已退款",
+}
+
+PAY_STATUS_LABELS = {
+    "unpaid": "待支付",
+    "paid": "已支付",
+    "refunded": "已退款",
+}
+
+RECRUIT_STATUS_LABELS = {
+    "recruiting": "招募中",
+    "enrolling": "报名中",
+    "ongoing": "进行中",
+    "full": "已满员",
+    "ended": "已结束",
+    "cancelled": "已取消",
+}
+
+
+def _signup_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+    payload = json.loads(row["payload"])
+    status = row["status"]
+    pay_status = row["pay_status"]
+    return {
+        "signup_id": row["signup_id"],
+        "status": status,
+        "pay_status": pay_status,
+        "status_label": SIGNUP_STATUS_LABELS.get(status, status),
+        "pay_status_label": PAY_STATUS_LABELS.get(pay_status, pay_status),
+        **payload,
+    }
+
+
+def _resolve_recruit_admin_status(item: dict[str, Any]) -> str:
+    raw = item.get("displayStatus") or item.get("status") or "recruiting"
+    if raw in ("cancelled", "ended", "full", "draft"):
+        return raw
+    signed = int(item.get("signed") or 0)
+    total = int(item.get("total") or 0)
+    if total > 0 and signed >= total:
+        return "full"
+    now = _now()
+    end_at = item.get("end_at")
+    if end_at:
+        try:
+            if datetime.fromisoformat(end_at).timestamp() < now:
+                return "ended"
+        except (ValueError, TypeError):
+            pass
+    return raw
+
+
+def recruit_admin_view(item: dict[str, Any]) -> dict[str, Any]:
+    status = _resolve_recruit_admin_status(item)
+    signed = int(item.get("signed") or 0)
+    total = int(item.get("total") or 0)
+    return {
+        **item,
+        "admin_status": status,
+        "admin_status_label": RECRUIT_STATUS_LABELS.get(status, status),
+        "signup_summary": f"{signed}/{total} 人" if total else f"{signed} 人",
+    }
+
+
+def list_admin_signups(
+    *,
+    status: str | None = None,
+    pay_status: str | None = None,
+    q: str | None = None,
+) -> list[dict[str, Any]]:
+    conn = connect()
+    init_schema(conn)
+    seed_if_empty(conn)
+    sql = "SELECT * FROM signups WHERE 1=1"
+    params: list[Any] = []
+    if status:
+        sql += " AND status = ?"
+        params.append(status)
+    if pay_status:
+        sql += " AND pay_status = ?"
+        params.append(pay_status)
+    sql += " ORDER BY updated_at DESC"
+    rows = conn.execute(sql, params).fetchall()
+    conn.close()
+    items = [_signup_row_to_dict(r) for r in rows]
+    if q:
+        needle = q.strip().lower()
+        items = [
+            item
+            for item in items
+            if needle in (item.get("name") or "").lower() or needle in (item.get("phone") or "")
+        ]
+    return items
+
+
+def get_signup(signup_id: str) -> dict[str, Any] | None:
+    conn = connect()
+    init_schema(conn)
+    seed_if_empty(conn)
+    row = conn.execute("SELECT * FROM signups WHERE signup_id = ?", (signup_id,)).fetchone()
+    conn.close()
+    return _signup_row_to_dict(row) if row else None
+
+
+def cancel_signup(signup_id: str) -> dict[str, Any] | None:
+    item = get_signup(signup_id)
+    if not item:
+        return None
+    ts = _now()
+    payload = {k: v for k, v in item.items() if k not in ("signup_id", "status", "pay_status", "status_label", "pay_status_label")}
+    payload["signup_status"] = "已取消"
+    conn = connect()
+    conn.execute(
+        "UPDATE signups SET status = ?, payload = ?, updated_at = ? WHERE signup_id = ?",
+        ("cancelled", json.dumps(payload, ensure_ascii=False), ts, signup_id),
+    )
+    conn.commit()
+    conn.close()
+    return get_signup(signup_id)
+
+
+def list_admin_recruitments(*, status: str | None = None, q: str | None = None) -> list[dict[str, Any]]:
+    items = [recruit_admin_view(i) for i in list_recruitments(scope="public")]
+    if status:
+        items = [i for i in items if i["admin_status"] == status]
+    if q:
+        needle = q.strip().lower()
+        items = [i for i in items if needle in (i.get("title") or "").lower()]
+    return items
+
+
+def list_recruitment_signups(recruit_id: str) -> list[dict[str, Any]]:
+    items = list_admin_signups()
+    return [s for s in items if s.get("recruit_id") == recruit_id or s.get("course_id") == recruit_id]
+
+
+def close_recruitment(recruit_id: str) -> dict[str, Any] | None:
+    item = get_recruitment(recruit_id)
+    if not item:
+        return None
+    item["status"] = "cancelled"
+    item["displayStatus"] = "cancelled"
+    upsert_recruitment(item, scope="public")
+    conn = connect()
+    row = conn.execute(
+        "SELECT scope FROM recruitments WHERE recruit_id = ? AND scope != 'public'",
+        (recruit_id,),
+    ).fetchall()
+    conn.close()
+    for r in row:
+        mine = get_recruitment(recruit_id)
+        if mine:
+            mine["status"] = "cancelled"
+            mine["displayStatus"] = "cancelled"
+            upsert_recruitment(mine, scope=r["scope"])
+    return recruit_admin_view(item)
+
+
+def list_admin_heroes(*, q: str | None = None) -> list[dict[str, Any]]:
+    items = []
+    for hero in list_heroes():
+        hero_id = hero.get("hero_id") or hero.get("id")
+        entry = {
+            "hero_id": hero_id,
+            "name": hero.get("name"),
+            "avatar_img": hero.get("avatar_img"),
+            "rating": hero.get("rating"),
+            "years_exp": hero.get("years_exp"),
+            "student_count": hero.get("student_count"),
+            "project_types": hero.get("project_types") or [],
+            "project_types_display": "、".join(hero.get("project_types") or []),
+            "honor_titles": hero.get("honor_titles") or [],
+        }
+        items.append(entry)
+    if q:
+        needle = q.strip().lower()
+        items = [h for h in items if needle in (h.get("name") or "").lower()]
+    return items

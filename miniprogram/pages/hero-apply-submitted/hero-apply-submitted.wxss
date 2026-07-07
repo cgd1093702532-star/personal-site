@@ -58,11 +58,12 @@
   height: 88rpx;
   line-height: 88rpx;
   text-align: center;
-  background: var(--color-primary);
-  color: var(--color-text-inverse);
+  background: var(--color-accent);
+  color: var(--color-text-primary);
   border-radius: var(--radius-md);
   font-size: var(--text-card-title);
   font-weight: 600;
+  box-shadow: 0 4rpx 12rpx rgba(254, 207, 19, 0.35);
 }
 
 .apply-submitted__btn:active {

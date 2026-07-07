@@ -1,1 +1,77 @@
 @import "../recruitment-create/recruitment-create.wxss";
+
+.create-form--course {
+  padding-top: 0;
+}
+
+.course-create-banner {
+  position: relative;
+  background: var(--color-bg-gray);
+}
+
+.course-create-banner__swiper,
+.course-create-banner__img--single {
+  width: 100%;
+  height: 420rpx;
+  display: block;
+}
+
+.course-create-banner__img {
+  width: 100%;
+  height: 420rpx;
+}
+
+.course-create-banner__placeholder {
+  height: 420rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  color: var(--color-text-secondary);
+}
+
+.course-create-banner__placeholder-icon {
+  font-size: 48rpx;
+}
+
+.course-create-banner__placeholder-text {
+  font-size: var(--text-caption);
+}
+
+.course-create-banner__add {
+  padding: 20rpx;
+  text-align: center;
+  font-size: var(--text-caption);
+  color: var(--color-primary);
+  background: var(--color-bg-page);
+  border-top: 1rpx solid var(--color-divider);
+}
+
+.course-detail-admin-hint {
+  display: block;
+  margin-bottom: 16rpx;
+  font-size: var(--text-caption);
+  line-height: 40rpx;
+  color: var(--color-text-secondary);
+}
+
+.course-detail-admin-preview {
+  min-height: 160rpx;
+  padding: 24rpx;
+  background: var(--color-bg-gray);
+  border-radius: var(--radius-md);
+}
+
+.course-detail-admin-preview__placeholder {
+  font-size: var(--text-caption);
+  color: var(--color-text-placeholder);
+}
+
+.create-footer--single {
+  grid-template-columns: 1fr;
+}
+
+.create-footer--single .create-footer__publish {
+  width: 100%;
+}

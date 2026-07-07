@@ -1,4 +1,5 @@
 const data = require('../../utils/data.js');
+const signupAction = require('../../utils/signup-action.js');
 
 const NAV_BAR_HEIGHT = 44;
 const COVER_BODY_HEIGHT = 180;
@@ -7,11 +8,14 @@ Page({
   data: {
     item: null,
     recruitId: '',
+    signup: null,
     coverImages: [],
     showForm: false,
+    showCheckin: false,
     form: { name: '', phone: '', remark: '' },
-    canSignup: true,
-    disabledReason: '',
+    footerLabel: '立即报名',
+    footerDisabled: false,
+    footerAction: 'signup',
     statusBarHeight: 20,
     navBarHeight: NAV_BAR_HEIGHT,
     coverThreshold: COVER_BODY_HEIGHT,
@@ -25,7 +29,7 @@ Page({
       wx.showToast({ title: '活动不存在', icon: 'none' });
       return;
     }
-    data.getRecruitmentById(id).then((item) => {
+    Promise.all([data.getRecruitmentById(id), data.getMySignupByRecruitId(id)]).then(([item, signup]) => {
       if (!item) {
         wx.showToast({ title: '活动不存在', icon: 'none' });
         return;
@@ -35,19 +39,33 @@ Page({
       const chromeHeight = statusBarHeight + NAV_BAR_HEIGHT;
       const coverImages = item.cover_images || ['recruit-cover.jpg'];
       const progress = item.total ? Math.min(100, Math.round((item.signed / item.total) * 100)) : 0;
-      const canSignup = item.displayStatus !== 'closed' && item.displayStatus !== 'ended';
+      const footer = signupAction.resolveSignupFooter({ recruitment: item, signup });
       this.setData({
         item,
         recruitId: id,
+        signup,
         coverImages,
         progress,
-        canSignup,
-        disabledReason: canSignup ? '' : '报名已截止',
+        footerLabel: footer.label,
+        footerDisabled: footer.disabled,
+        footerAction: footer.action,
         statusBarHeight,
         coverThreshold: COVER_BODY_HEIGHT,
         coverStyle: `height: ${chromeHeight + COVER_BODY_HEIGHT}px`,
         navSolid: false,
       });
+    });
+  },
+
+  applyFooter() {
+    const footer = signupAction.resolveSignupFooter({
+      recruitment: this.data.item,
+      signup: this.data.signup,
+    });
+    this.setData({
+      footerLabel: footer.label,
+      footerDisabled: footer.disabled,
+      footerAction: footer.action,
     });
   },
 
@@ -63,16 +81,38 @@ Page({
     wx.navigateBack();
   },
 
-  onSignupTap() {
-    if (!this.data.canSignup) {
-      wx.showToast({ title: this.data.disabledReason || '暂不可报名', icon: 'none' });
+  onFooterTap() {
+    if (this.data.footerDisabled) return;
+    if (this.data.footerAction === 'checkin') {
+      this.setData({ showCheckin: true });
       return;
     }
-    this.setData({ showForm: true });
+    if (this.data.footerAction === 'signup') {
+      this.setData({ showForm: true });
+    }
   },
 
   onCloseForm() {
     this.setData({ showForm: false });
+  },
+
+  onCloseCheckin() {
+    this.setData({ showCheckin: false });
+  },
+
+  onConfirmCheckin() {
+    const { recruitId } = this.data;
+    data
+      .checkinMySignup(recruitId)
+      .then(() => data.getMySignupByRecruitId(recruitId))
+      .then((signup) => {
+        this.setData({ signup, showCheckin: false });
+        this.applyFooter();
+        wx.showToast({ title: '核销成功', icon: 'success' });
+      })
+      .catch(() => {
+        wx.showToast({ title: '核销失败', icon: 'none' });
+      });
   },
 
   onInput(e) {
@@ -98,19 +138,28 @@ Page({
       phone,
       remark: (remark || '').trim(),
       signed_at: new Date().toISOString(),
+      start_at: item.start_at,
+      end_at: item.end_at,
+      location: item.location,
+      fee: item.fee,
+      payStatus: '待支付',
+      checked_in: false,
     };
     const nextSigned = (item.signed || 0) + 1;
     Promise.all([
       data.addMySignup(entry),
       data.updateRecruitment(recruitId, { ...item, signed: nextSigned }),
     ])
-      .then(() => {
+      .then(() => data.getMySignupByRecruitId(recruitId))
+      .then((signup) => {
         this.setData({
           showForm: false,
           form: { name: '', phone: '', remark: '' },
           item: { ...item, signed: nextSigned },
+          signup,
           progress: item.total ? Math.min(100, Math.round((nextSigned / item.total) * 100)) : 0,
         });
+        this.applyFooter();
         wx.showToast({ title: '报名成功', icon: 'success' });
       })
       .catch(() => {

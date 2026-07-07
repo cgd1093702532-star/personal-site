@@ -63,12 +63,14 @@
 |------|----------|----------|------|-----|
 | 英雄详情 | [英雄详情.md](./miniprogram/pages/英雄详情.md) | `miniprogram/pages/hero-detail/` | `pages/hero-detail/hero-detail` | ✅ |
 | 招募详情 | [招募详情.md](./miniprogram/pages/招募详情.md) | `miniprogram/pages/recruitment-detail/` | `pages/recruitment-detail/recruitment-detail` | ✅ |
+| 课程详情 | [课程详情.md](./miniprogram/pages/课程详情.md) | `miniprogram/pages/course-detail/` | `pages/course-detail/course-detail` | ✅ |
 
 ### 子页 · 英雄认证
 
 | 页面 | 需求文档 | 源码目录 | 路由 | M1 |
 |------|----------|----------|------|-----|
 | 申请成为英雄 | [申请成为英雄.md](./miniprogram/pages/申请成为英雄.md) | `miniprogram/pages/hero-apply/` | `pages/hero-apply/hero-apply` | ✅ |
+| 申请提交成功 | [申请提交成功.md](./miniprogram/pages/申请提交成功.md) | `miniprogram/pages/hero-apply-submitted/` | `pages/hero-apply-submitted/hero-apply-submitted` | ✅ |
 | 认证成功 | [认证成功.md](./miniprogram/pages/认证成功.md) | `miniprogram/pages/hero-apply-success/` | `pages/hero-apply-success/hero-apply-success` | ✅ |
 
 ### 子页 · 英雄中心
@@ -77,7 +79,10 @@
 |------|----------|----------|------|-----|
 | 我的英雄资料 | [我的英雄资料.md](./miniprogram/pages/我的英雄资料.md) | `miniprogram/pages/hero-profile/` | `pages/hero-profile/hero-profile` | 骨架 |
 | 发布招募 | [发布招募.md](./miniprogram/pages/发布招募.md) | `miniprogram/pages/recruitment-create/` | `pages/recruitment-create/recruitment-create` | ✅ |
+| 发布课程 | [发布课程.md](./miniprogram/pages/发布课程.md) | `miniprogram/pages/course-create/` | `pages/course-create/course-create` | ✅ |
 | 我的招募 | [我的招募.md](./miniprogram/pages/我的招募.md) | `miniprogram/pages/my-recruitments/` | `pages/my-recruitments/my-recruitments` | ✅ |
+| 我的课程 | [我的课程.md](./miniprogram/pages/我的课程.md) | `miniprogram/pages/my-courses/` | `pages/my-courses/my-courses` | ✅ |
+| 我的学员 | [我的学员.md](./miniprogram/pages/我的学员.md) | `miniprogram/pages/my-students/` | `pages/my-students/my-students` | ✅ |
 | 招募编辑 | [招募编辑.md](./miniprogram/pages/招募编辑.md) | `miniprogram/pages/recruitment-edit/` | `pages/recruitment-edit/recruitment-edit` | 骨架 |
 | 报名人员列表 | [报名人员列表.md](./miniprogram/pages/报名人员列表.md) | `miniprogram/pages/signup-list/` | `pages/signup-list/signup-list` | 骨架 |
 | 证书编辑 | [证书编辑.md](./miniprogram/pages/证书编辑.md) | `miniprogram/pages/cert-edit/` | `pages/cert-edit/cert-edit` | M2 |
@@ -122,5 +127,7 @@
 
 | 日期 | 变更 |
 |------|------|
+| 2026-07-07 | 小程序全部页面需求文档重写：逐元素 UI 规格、字段校验矩阵、接口字段 |
+| 2026-07-07 | 小程序全部 24 页补全六大需求章节；新增申请提交成功、我的学员文档 |
 | 2026-07-07 | 补充 GitHub Pages 线上预览链接 |
 | 2026-07-03 | 建立页面总索引；补全商城需求；区分 miniprogram / admin 文档与源码 |

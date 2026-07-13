@@ -18,7 +18,6 @@ Page({
     hero: null,
     heroId: '',
     certLevel: '—',
-    certCount: 0,
     detailTags: [],
     stars: [],
     recruitments: [],
@@ -45,11 +44,6 @@ Page({
       hero,
       heroId,
       certLevel: hero.certification || hero.certification_level || '—',
-      certCount: Array.isArray(hero.certificates)
-        ? hero.certificates.length
-        : Array.isArray(hero.cert_badges)
-          ? hero.cert_badges.length
-          : 0,
       detailTags: buildDetailTags(hero),
       stars: buildStars(hero.rating),
       momentUrls: hero.moments || [],

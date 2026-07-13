@@ -734,7 +734,7 @@
       ],
       "cover_image": "course",
       "course_id": "c2",
-      "hero_id": "1",
+      "hero_id": "3",
       "listTab": "active"
     },
     {
@@ -755,7 +755,7 @@
       ],
       "cover_image": "course",
       "course_id": "c3",
-      "hero_id": "1",
+      "hero_id": "3",
       "listTab": "active"
     }
   ],

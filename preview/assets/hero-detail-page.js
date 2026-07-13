@@ -68,11 +68,6 @@
   }
 
   const certLevel = hero.certification || hero.certification_level || '—';
-  const certCount = Array.isArray(hero.certificates)
-    ? hero.certificates.length
-    : Array.isArray(hero.cert_badges)
-      ? hero.cert_badges.length
-      : 0;
   const titleEl = document.getElementById('navbar-hero-title');
   if (titleEl) titleEl.textContent = hero.name;
 
@@ -172,7 +167,7 @@
       <div class="hero-profile__tags">${tags.map((t) => `<span class="hero-profile__tag">${t}</span>`).join('')}</div>
       <div class="hero-profile__stats">
         <div class="hero-profile__stat"><span class="hero-profile__stat-num">${hero.student_count || 0}</span><span class="hero-profile__stat-label">学员</span></div>
-        <div class="hero-profile__stat"><span class="hero-profile__stat-num">${certCount}</span><span class="hero-profile__stat-label">资质等级</span></div>
+        <div class="hero-profile__stat"><span class="hero-profile__stat-num hero-profile__stat-num--text">${certLevel}</span><span class="hero-profile__stat-label">资质等级</span></div>
         <div class="hero-profile__stat"><span class="hero-profile__stat-num">${hero.honors_count || 0}</span><span class="hero-profile__stat-label">荣誉</span></div>
       </div>
     </div>

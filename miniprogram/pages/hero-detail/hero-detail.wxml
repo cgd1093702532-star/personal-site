@@ -28,7 +28,7 @@
           <text class="hero-profile__stat-label">学员</text>
         </view>
         <view class="hero-profile__stat">
-          <text class="hero-profile__stat-num">{{certCount}}</text>
+          <text class="hero-profile__stat-num hero-profile__stat-num--text">{{certLevel}}</text>
           <text class="hero-profile__stat-label">资质等级</text>
         </view>
         <view class="hero-profile__stat">

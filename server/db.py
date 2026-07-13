@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 import time
 from datetime import datetime
@@ -73,6 +74,40 @@ def init_schema(conn: sqlite3.Connection) -> None:
         );
         CREATE INDEX IF NOT EXISTS idx_signups_status ON signups(status);
         CREATE INDEX IF NOT EXISTS idx_signups_pay_status ON signups(pay_status);
+        CREATE TABLE IF NOT EXISTS reviews (
+            review_id TEXT PRIMARY KEY,
+            hero_id TEXT,
+            user_id TEXT,
+            status TEXT NOT NULL DEFAULT 'visible',
+            score REAL NOT NULL DEFAULT 5,
+            payload TEXT NOT NULL,
+            updated_at REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_reviews_hero ON reviews(hero_id);
+        CREATE INDEX IF NOT EXISTS idx_reviews_status ON reviews(status);
+        CREATE TABLE IF NOT EXISTS users (
+            user_id TEXT PRIMARY KEY,
+            status TEXT NOT NULL DEFAULT 'active',
+            payload TEXT NOT NULL,
+            updated_at REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
+        CREATE TABLE IF NOT EXISTS profile_change_requests (
+            change_id TEXT PRIMARY KEY,
+            hero_id TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            payload TEXT NOT NULL,
+            reject_reason TEXT,
+            submitted_at REAL NOT NULL,
+            reviewed_at REAL,
+            updated_at REAL NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_profile_changes_status ON profile_change_requests(status);
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            payload TEXT NOT NULL,
+            updated_at REAL NOT NULL
+        );
         """
     )
     conn.commit()
@@ -145,6 +180,59 @@ def apply_seed(conn: sqlite3.Connection, seed: dict[str, Any]) -> None:
             (sid, status, pay_status, json.dumps(payload, ensure_ascii=False), ts),
         )
 
+    conn.execute("DELETE FROM reviews")
+    for item in seed.get("reviews") or []:
+        rid = item.get("review_id") or item.get("id")
+        conn.execute(
+            "INSERT OR REPLACE INTO reviews (review_id, hero_id, user_id, status, score, payload, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (
+                rid,
+                item.get("hero_id"),
+                item.get("user_id"),
+                item.get("status") or "visible",
+                float(item.get("score") or 5),
+                json.dumps(item, ensure_ascii=False),
+                ts,
+            ),
+        )
+
+    conn.execute("DELETE FROM users")
+    for item in seed.get("users") or []:
+        uid = item.get("user_id") or item.get("id")
+        conn.execute(
+            "INSERT OR REPLACE INTO users (user_id, status, payload, updated_at) VALUES (?, ?, ?, ?)",
+            (uid, item.get("status") or "active", json.dumps(item, ensure_ascii=False), ts),
+        )
+
+    conn.execute("DELETE FROM profile_change_requests")
+    for item in seed.get("profile_change_requests") or []:
+        cid = item.get("change_id") or item.get("id")
+        submitted = _iso_ts(item.get("submitted_at"), ts)
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO profile_change_requests
+            (change_id, hero_id, status, payload, reject_reason, submitted_at, reviewed_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                cid,
+                item.get("hero_id"),
+                item.get("status") or "pending",
+                json.dumps(item, ensure_ascii=False),
+                item.get("reject_reason"),
+                submitted,
+                _iso_ts(item.get("reviewed_at"), 0) or None,
+                ts,
+            ),
+        )
+
+    conn.execute("DELETE FROM settings")
+    for key, value in (seed.get("settings") or {}).items():
+        conn.execute(
+            "INSERT OR REPLACE INTO settings (key, payload, updated_at) VALUES (?, ?, ?)",
+            (key, json.dumps(value, ensure_ascii=False), ts),
+        )
+
     conn.commit()
 
 
@@ -171,6 +259,66 @@ def get_hero(hero_id: str) -> dict[str, Any] | None:
     row = conn.execute("SELECT payload FROM heroes WHERE hero_id = ?", (hero_id,)).fetchone()
     conn.close()
     return json.loads(row["payload"]) if row else None
+
+
+def create_hero(payload: dict[str, Any]) -> dict[str, Any]:
+    """后台创建供方（英雄）。"""
+    ts = _now()
+    hero_id = str(payload.get("hero_id") or f"hero-{int(ts * 1000)}")
+    if get_hero(hero_id):
+        raise ValueError("hero_exists")
+
+    types = payload.get("project_types") or []
+    if isinstance(types, str):
+        types = [s.strip() for s in re.split(r"[、,，]", types) if s.strip()]
+
+    existing_ids = []
+    for h in list_heroes():
+        sid = str(h.get("supplier_id") or "")
+        if sid.isdigit():
+            existing_ids.append(int(sid))
+    supplier_id = str(payload.get("supplier_id") or (max(existing_ids, default=10238332) + 1))
+
+    now_iso = datetime.fromtimestamp(ts).isoformat(timespec="seconds")
+    hero = {
+        "hero_id": hero_id,
+        "supplier_id": supplier_id,
+        "name": (payload.get("name") or "").strip(),
+        "phone": (payload.get("phone") or "").strip(),
+        "city": (payload.get("city") or "").strip(),
+        "certification": (payload.get("certification") or "").strip(),
+        "years_exp": payload.get("years_exp") if payload.get("years_exp") is not None else "",
+        "project_types": types,
+        "avatar_img": payload.get("avatar_img") or "hero-1.jpg",
+        "bio": (payload.get("bio") or payload.get("about_me") or "").strip(),
+        "about_me": (payload.get("bio") or payload.get("about_me") or "").strip(),
+        "enabled": payload.get("enabled", True) is not False,
+        "audit_status": payload.get("audit_status") or "approved",
+        "reviewer": payload.get("reviewer") or "小李",
+        "reviewed_at": payload.get("reviewed_at") or now_iso,
+        "channel": payload.get("channel") or "后台创建",
+        "applied_at": payload.get("applied_at") or now_iso,
+        "rating": payload.get("rating", 5.0),
+        "student_count": payload.get("student_count", 0),
+        "honors_count": 0,
+        "honor_titles": payload.get("honor_titles") or [],
+        "cert_badges": [payload.get("certification")] if payload.get("certification") else [],
+        "past_honors": [],
+        "moments": [],
+        "certificates": [],
+    }
+    if not hero["name"]:
+        raise ValueError("name_required")
+
+    conn = connect()
+    init_schema(conn)
+    conn.execute(
+        "INSERT OR REPLACE INTO heroes (hero_id, payload, updated_at) VALUES (?, ?, ?)",
+        (hero_id, json.dumps(hero, ensure_ascii=False), ts),
+    )
+    conn.commit()
+    conn.close()
+    return hero
 
 
 def update_hero(hero_id: str, patch: dict[str, Any]) -> dict[str, Any] | None:
@@ -211,7 +359,7 @@ def list_recruitments(scope: str | None = None, hero_id: str | None = None) -> l
     conn = connect()
     init_schema(conn)
     seed_if_empty(conn)
-    sql = "SELECT payload FROM recruitments WHERE 1=1"
+    sql = "SELECT hero_id, payload FROM recruitments WHERE 1=1"
     params: list[Any] = []
     if scope:
         sql += " AND scope = ?"
@@ -222,7 +370,47 @@ def list_recruitments(scope: str | None = None, hero_id: str | None = None) -> l
     sql += " ORDER BY updated_at DESC"
     rows = conn.execute(sql, params).fetchall()
     conn.close()
-    return [json.loads(r["payload"]) for r in rows]
+    items = []
+    for r in rows:
+        item = json.loads(r["payload"])
+        if r["hero_id"] and not item.get("hero_id"):
+            item["hero_id"] = r["hero_id"]
+        items.append(item)
+    return items
+
+
+def resolve_user_hero_id(user_id: str = DEFAULT_USER_ID) -> str | None:
+    """当前用户对应的已认证英雄 ID；无认证则返回 None。"""
+    status = get_hero_apply_status(user_id)
+    if status.get("status") != "approved":
+        return None
+    app = status.get("application") or {}
+    hero_id = app.get("hero_id")
+    if hero_id:
+        return str(hero_id)
+    # 旧演示：仅 app_state 标记已认证、无申请单时，回落到种子英雄
+    return "1"
+
+
+def list_my_recruitments(tab: str, user_id: str = DEFAULT_USER_ID) -> list[dict[str, Any]]:
+    hero_id = resolve_user_hero_id(user_id)
+    if not hero_id:
+        return []
+    items = list_recruitments(scope=f"mine_{tab}", hero_id=hero_id)
+    # 兼容历史数据：scope 正确但 hero_id 列为空、payload 也无 hero_id 的种子项，仅归属演示英雄 "1"
+    if hero_id == "1":
+        orphans = [
+            i
+            for i in list_recruitments(scope=f"mine_{tab}")
+            if not i.get("hero_id")
+        ]
+        seen = {i.get("recruit_id") for i in items}
+        for item in orphans:
+            rid = item.get("recruit_id")
+            if rid and rid not in seen:
+                item = {**item, "hero_id": "1"}
+                items.append(item)
+    return sort_mine_recruitments(items, tab)
 
 
 def get_recruitment(recruit_id: str) -> dict[str, Any] | None:
@@ -379,13 +567,26 @@ def get_hero_apply_status(user_id: str = DEFAULT_USER_ID) -> dict[str, Any]:
             "status": app["status"],
             "application_id": app["application_id"],
             "reject_reason": app.get("reject_reason"),
+            "hero_id": app.get("hero_id"),
             "application": app,
         }
 
     role = get_app_state("mock_hero_role") or "none"
     if role in ("approved", "pending", "rejected"):
-        return {"status": role, "application_id": None, "reject_reason": None, "application": None}
-    return {"status": "none", "application_id": None, "reject_reason": None, "application": None}
+        return {
+            "status": role,
+            "application_id": None,
+            "reject_reason": None,
+            "hero_id": "1" if role == "approved" else None,
+            "application": None,
+        }
+    return {
+        "status": "none",
+        "application_id": None,
+        "reject_reason": None,
+        "hero_id": None,
+        "application": None,
+    }
 
 
 def list_hero_applications(
@@ -421,11 +622,18 @@ def list_hero_applications(
                 "phone": app.get("phone", ""),
                 "project_types": types,
                 "project_types_display": "、".join(types) if types else "—",
+                "city": app.get("city") or "",
+                "certification": app.get("certification") or "",
+                "years_exp": app.get("years_exp") or "",
+                "avatar_img": app.get("avatar_img") or "",
+                "channel": app.get("channel") or "自主申请",
+                "reviewer": app.get("reviewer") or "",
                 "status": app["status"],
-                "status_label": {"pending": "待审核", "approved": "已通过", "rejected": "已驳回"}.get(
+                "status_label": {"pending": "待审核", "approved": "通过", "rejected": "驳回"}.get(
                     app["status"], app["status"]
                 ),
                 "submitted_at": app.get("submitted_at"),
+                "reviewed_at": app.get("reviewed_at"),
                 "reject_reason": app.get("reject_reason"),
                 "hero_id": app.get("hero_id"),
             }
@@ -662,7 +870,7 @@ def list_admin_signups(
     sql += " ORDER BY updated_at DESC"
     rows = conn.execute(sql, params).fetchall()
     conn.close()
-    items = [_signup_row_to_dict(r) for r in rows]
+    items = [_enrich_signup_dict(_signup_row_to_dict(r)) for r in rows]
     if q:
         needle = q.strip().lower()
         items = [
@@ -679,7 +887,7 @@ def get_signup(signup_id: str) -> dict[str, Any] | None:
     seed_if_empty(conn)
     row = conn.execute("SELECT * FROM signups WHERE signup_id = ?", (signup_id,)).fetchone()
     conn.close()
-    return _signup_row_to_dict(row) if row else None
+    return _enrich_signup_dict(_signup_row_to_dict(row)) if row else None
 
 
 def cancel_signup(signup_id: str) -> dict[str, Any] | None:
@@ -740,8 +948,26 @@ def list_admin_heroes(*, q: str | None = None) -> list[dict[str, Any]]:
     items = []
     for hero in list_heroes():
         hero_id = hero.get("hero_id") or hero.get("id")
+        enabled = hero.get("enabled")
+        if enabled is None:
+            enabled = True
+        cert = (
+            hero.get("certification")
+            or hero.get("certification_level")
+            or ((hero.get("cert_badges") or [None])[0])
+            or ((hero.get("honor_titles") or [None])[0])
+            or ""
+        )
+        audit = hero.get("audit_status") or "approved"
+        channel = hero.get("channel")
+        if channel is None:
+            channel = "" if audit == "pending" else "后台创建"
+        reviewer = hero.get("reviewer")
+        if reviewer is None:
+            reviewer = "" if audit == "pending" else "小李"
         entry = {
             "hero_id": hero_id,
+            "supplier_id": hero.get("supplier_id") or "",
             "name": hero.get("name"),
             "avatar_img": hero.get("avatar_img"),
             "rating": hero.get("rating"),
@@ -750,9 +976,803 @@ def list_admin_heroes(*, q: str | None = None) -> list[dict[str, Any]]:
             "project_types": hero.get("project_types") or [],
             "project_types_display": "、".join(hero.get("project_types") or []),
             "honor_titles": hero.get("honor_titles") or [],
+            "city": hero.get("city") or hero.get("location") or "",
+            "certification": cert,
+            "bio": hero.get("bio") or hero.get("about_me") or "",
+            "phone": hero.get("phone") or "",
+            "enabled": bool(enabled),
+            "status_label": "启用" if enabled else "禁用",
+            "audit_status": audit,
+            "audit_status_label": {"pending": "待审核", "approved": "通过", "rejected": "驳回"}.get(
+                audit, "通过"
+            ),
+            "reviewer": reviewer if reviewer is not None else "",
+            "reviewed_at": hero.get("reviewed_at") or "",
+            "channel": channel,
+            "applied_at": hero.get("applied_at") or hero.get("created_at") or "",
+            "application_id": hero.get("application_id") or "",
         }
         items.append(entry)
     if q:
         needle = q.strip().lower()
-        items = [h for h in items if needle in (h.get("name") or "").lower()]
+        items = [
+            h
+            for h in items
+            if needle in (h.get("name") or "").lower()
+            or needle in (h.get("phone") or "").lower()
+            or needle in str(h.get("supplier_id") or h.get("hero_id") or "").lower()
+        ]
     return items
+
+
+def set_hero_enabled(hero_id: str, enabled: bool) -> dict[str, Any] | None:
+    hero = get_hero(hero_id)
+    if not hero:
+        return None
+    return update_hero(hero_id, {"enabled": bool(enabled)})
+
+
+def delete_hero(hero_id: str) -> bool:
+    conn = connect()
+    init_schema(conn)
+    row = conn.execute("SELECT hero_id FROM heroes WHERE hero_id = ?", (hero_id,)).fetchone()
+    if not row:
+        conn.close()
+        return False
+    conn.execute("DELETE FROM heroes WHERE hero_id = ?", (hero_id,))
+    conn.commit()
+    conn.close()
+    return True
+
+
+# ---------- Signups (frontend + admin) ----------
+
+FRONTEND_SIGNUP_STATUS = {
+    "pending": "待确认",
+    "confirmed": "已报名",
+    "cancelled": "已取消",
+    "refunded": "已退款",
+    "checked_in": "已签到",
+    "completed": "已完成",
+}
+
+FRONTEND_PAY_STATUS = {
+    "unpaid": "待支付",
+    "paid": "已支付",
+    "refunded": "已退款",
+}
+
+
+def _normalize_signup_status(raw: str | None) -> str:
+    if not raw:
+        return "confirmed"
+    mapping = {
+        "已报名": "confirmed",
+        "已确认": "confirmed",
+        "待确认": "pending",
+        "已取消": "cancelled",
+        "已退款": "refunded",
+        "已签到": "checked_in",
+        "已完成": "completed",
+        "pending": "pending",
+        "confirmed": "confirmed",
+        "cancelled": "cancelled",
+        "refunded": "refunded",
+        "checked_in": "checked_in",
+        "completed": "completed",
+    }
+    return mapping.get(raw, raw if raw in mapping.values() else "confirmed")
+
+
+def _normalize_pay_status(raw: str | None) -> str:
+    if not raw:
+        return "unpaid"
+    mapping = {
+        "待支付": "unpaid",
+        "已支付": "paid",
+        "已退款": "refunded",
+        "unpaid": "unpaid",
+        "paid": "paid",
+        "refunded": "refunded",
+    }
+    return mapping.get(raw, "unpaid")
+
+
+def _enrich_signup_dict(item: dict[str, Any]) -> dict[str, Any]:
+    status = item.get("status") or "confirmed"
+    pay_status = item.get("pay_status") or "unpaid"
+    signup_type = item.get("type") or ("course" if item.get("course_id") else "event")
+    type_label = item.get("type_label") or ("课程" if signup_type == "course" else "赛事")
+    return {
+        **item,
+        "id": item.get("signup_id") or item.get("id"),
+        "signup_id": item.get("signup_id") or item.get("id"),
+        "status": status,
+        "pay_status": pay_status,
+        "status_label": SIGNUP_STATUS_LABELS.get(status) or FRONTEND_SIGNUP_STATUS.get(status, status),
+        "pay_status_label": PAY_STATUS_LABELS.get(pay_status) or FRONTEND_PAY_STATUS.get(pay_status, pay_status),
+        "signup_status": FRONTEND_SIGNUP_STATUS.get(status, item.get("signup_status") or status),
+        "payStatus": FRONTEND_PAY_STATUS.get(pay_status, item.get("payStatus") or pay_status),
+        "type": signup_type,
+        "type_label": type_label,
+        "user_id": item.get("user_id") or DEFAULT_USER_ID,
+    }
+
+
+def create_signup(body: dict[str, Any]) -> dict[str, Any]:
+    ts = _now()
+    sid = body.get("signup_id") or body.get("id") or f"su-{int(ts * 1000)}"
+    status = _normalize_signup_status(body.get("status") or body.get("signup_status"))
+    pay_status = _normalize_pay_status(body.get("pay_status") or body.get("payStatus"))
+    signup_type = body.get("type") or ("course" if body.get("course_id") else "event")
+    payload = {
+        **body,
+        "signup_id": sid,
+        "user_id": body.get("user_id") or DEFAULT_USER_ID,
+        "type": signup_type,
+        "type_label": body.get("type_label") or ("课程" if signup_type == "course" else "赛事"),
+        "created_at": body.get("created_at") or datetime.fromtimestamp(ts).isoformat(timespec="seconds"),
+        "checked_in": bool(body.get("checked_in")),
+        "name": body.get("name") or "本地用户",
+        "phone": body.get("phone") or "",
+    }
+    # bump recruit/course signed count
+    recruit_id = payload.get("recruit_id")
+    course_id = payload.get("course_id")
+    if recruit_id:
+        rec = get_recruitment(recruit_id)
+        if rec:
+            rec["signed"] = int(rec.get("signed") or 0) + 1
+            # keep existing scope rows in sync via public + mine scopes
+            conn = connect()
+            rows = conn.execute(
+                "SELECT scope FROM recruitments WHERE recruit_id = ?", (recruit_id,)
+            ).fetchall()
+            conn.close()
+            scopes = [r["scope"] for r in rows] or ["public"]
+            for scope in scopes:
+                upsert_recruitment({**rec, "recruit_id": recruit_id}, scope=scope)
+            payload.setdefault("title", rec.get("title"))
+            payload.setdefault("location", rec.get("location"))
+            payload.setdefault("fee", rec.get("fee"))
+            payload.setdefault("start_at", rec.get("start_at"))
+            payload.setdefault("end_at", rec.get("end_at"))
+            payload.setdefault("hero_id", rec.get("hero_id"))
+    if course_id:
+        course = get_course(course_id)
+        if course:
+            course["signed"] = int(course.get("signed") or 0) + 1
+            upsert_course(course_id, course)
+            payload.setdefault("title", course.get("title"))
+            payload.setdefault("location", course.get("location"))
+            payload.setdefault("fee", course.get("price") or course.get("fee"))
+            payload.setdefault("start_at", course.get("start_at"))
+            payload.setdefault("end_at", course.get("end_at"))
+            payload.setdefault("hero_id", course.get("hero_id"))
+
+    conn = connect()
+    init_schema(conn)
+    conn.execute(
+        "INSERT OR REPLACE INTO signups (signup_id, status, pay_status, payload, updated_at) VALUES (?, ?, ?, ?, ?)",
+        (sid, status, pay_status, json.dumps(payload, ensure_ascii=False), ts),
+    )
+    conn.commit()
+    conn.close()
+    return _enrich_signup_dict({**payload, "status": status, "pay_status": pay_status})
+
+
+def update_signup(signup_id: str, patch: dict[str, Any]) -> dict[str, Any] | None:
+    item = get_signup(signup_id)
+    if not item:
+        return None
+    status = _normalize_signup_status(patch.get("status") or patch.get("signup_status") or item.get("status"))
+    pay_status = _normalize_pay_status(patch.get("pay_status") or patch.get("payStatus") or item.get("pay_status"))
+    payload = {
+        k: v
+        for k, v in {**item, **patch}.items()
+        if k not in ("status_label", "pay_status_label", "signup_status", "payStatus")
+    }
+    payload["signup_id"] = signup_id
+    if "checked_in" in patch:
+        payload["checked_in"] = bool(patch["checked_in"])
+        if payload["checked_in"]:
+            payload["checkin_at"] = patch.get("checkin_at") or datetime.now().isoformat(timespec="seconds")
+            status = "checked_in"
+    ts = _now()
+    conn = connect()
+    conn.execute(
+        "UPDATE signups SET status = ?, pay_status = ?, payload = ?, updated_at = ? WHERE signup_id = ?",
+        (status, pay_status, json.dumps(payload, ensure_ascii=False), ts, signup_id),
+    )
+    conn.commit()
+    conn.close()
+    return get_signup(signup_id)
+
+
+def checkin_signup(signup_id: str) -> dict[str, Any] | None:
+    return update_signup(signup_id, {"checked_in": True, "status": "checked_in"})
+
+
+def list_signups(
+    *,
+    user_id: str | None = None,
+    recruit_id: str | None = None,
+    course_id: str | None = None,
+    hero_id: str | None = None,
+) -> list[dict[str, Any]]:
+    items = [_enrich_signup_dict(s) for s in list_admin_signups()]
+    if user_id:
+        items = [i for i in items if (i.get("user_id") or DEFAULT_USER_ID) == user_id]
+    if recruit_id:
+        items = [i for i in items if i.get("recruit_id") == recruit_id]
+    if course_id:
+        items = [i for i in items if i.get("course_id") == course_id]
+    if hero_id:
+        items = [i for i in items if str(i.get("hero_id") or "") == str(hero_id)]
+    return items
+
+
+def list_my_signups(user_id: str = DEFAULT_USER_ID) -> list[dict[str, Any]]:
+    return list_signups(user_id=user_id)
+
+
+def list_courses_by_hero(hero_id: str | None = None) -> list[dict[str, Any]]:
+    items = list_courses()
+    if hero_id:
+        items = [c for c in items if str(c.get("hero_id") or "") == str(hero_id)]
+    return items
+
+
+def list_hero_students(hero_id: str) -> list[dict[str, Any]]:
+    """Aggregate students from signups for a hero's recruitments/courses."""
+    hero_recruit_ids = {
+        r.get("recruit_id") for r in list_recruitments() if str(r.get("hero_id") or "") == str(hero_id)
+    }
+    hero_course_ids = {
+        c.get("course_id") or c.get("id")
+        for c in list_courses()
+        if str(c.get("hero_id") or "") == str(hero_id)
+    }
+    buckets: dict[str, dict[str, Any]] = {}
+    for s in list_admin_signups():
+        if s.get("status") == "cancelled":
+            continue
+        rid = s.get("recruit_id")
+        cid = s.get("course_id")
+        if rid not in hero_recruit_ids and cid not in hero_course_ids and str(s.get("hero_id") or "") != str(hero_id):
+            continue
+        key = s.get("user_id") or s.get("phone") or s.get("name") or s.get("signup_id")
+        entry = buckets.get(key) or {
+            "id": key,
+            "nickname": s.get("name") or "学员",
+            "avatar": s.get("avatar") or "",
+            "phone": s.get("phone") or "",
+            "course_count": 0,
+            "last_active": s.get("created_at") or "",
+        }
+        entry["course_count"] += 1
+        if (s.get("created_at") or "") > (entry.get("last_active") or ""):
+            entry["last_active"] = s.get("created_at") or entry["last_active"]
+        buckets[key] = entry
+    return sorted(buckets.values(), key=lambda x: x.get("last_active") or "", reverse=True)
+
+
+# ---------- Reviews ----------
+
+REVIEW_STATUS_LABELS = {
+    "visible": "正常",
+    "hidden": "已隐藏",
+    "deleted": "已删除",
+}
+
+
+def _review_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+    payload = json.loads(row["payload"])
+    status = row["status"]
+    return {
+        **payload,
+        "review_id": row["review_id"],
+        "id": row["review_id"],
+        "hero_id": row["hero_id"],
+        "user_id": row["user_id"],
+        "status": status,
+        "status_label": REVIEW_STATUS_LABELS.get(status, status),
+        "score": float(row["score"]),
+    }
+
+
+def list_reviews(
+    *,
+    hero_id: str | None = None,
+    user_id: str | None = None,
+    status: str | None = None,
+    q: str | None = None,
+    include_hidden: bool = False,
+) -> list[dict[str, Any]]:
+    conn = connect()
+    init_schema(conn)
+    seed_if_empty(conn)
+    sql = "SELECT * FROM reviews WHERE 1=1"
+    params: list[Any] = []
+    if hero_id:
+        sql += " AND hero_id = ?"
+        params.append(hero_id)
+    if user_id:
+        sql += " AND user_id = ?"
+        params.append(user_id)
+    if status:
+        sql += " AND status = ?"
+        params.append(status)
+    elif not include_hidden:
+        sql += " AND status = 'visible'"
+    sql += " ORDER BY updated_at DESC"
+    rows = conn.execute(sql, params).fetchall()
+    conn.close()
+    items = [_review_row_to_dict(r) for r in rows]
+    if q:
+        needle = q.strip().lower()
+        items = [
+            i
+            for i in items
+            if needle in (i.get("content") or "").lower()
+            or needle in (i.get("reviewer_nickname") or "").lower()
+            or needle in (i.get("title") or "").lower()
+        ]
+    return items
+
+
+def create_review(body: dict[str, Any]) -> dict[str, Any]:
+    ts = _now()
+    rid = body.get("review_id") or body.get("id") or f"rv-{int(ts * 1000)}"
+    score = float(body.get("score") or 5)
+    payload = {
+        **body,
+        "review_id": rid,
+        "hero_id": body.get("hero_id"),
+        "user_id": body.get("user_id") or DEFAULT_USER_ID,
+        "score": score,
+        "status": body.get("status") or "visible",
+        "reviewed_at": body.get("reviewed_at") or datetime.fromtimestamp(ts).isoformat(timespec="seconds"),
+        "reviewer_nickname": body.get("reviewer_nickname") or body.get("nickname") or "本地用户",
+        "reviewer_avatar": body.get("reviewer_avatar") or "",
+        "content": body.get("content") or "",
+        "title": body.get("title") or "",
+        "scene": body.get("scene") or body.get("type") or "赛事",
+    }
+    conn = connect()
+    init_schema(conn)
+    conn.execute(
+        "INSERT OR REPLACE INTO reviews (review_id, hero_id, user_id, status, score, payload, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (
+            rid,
+            payload.get("hero_id"),
+            payload.get("user_id"),
+            payload["status"],
+            score,
+            json.dumps(payload, ensure_ascii=False),
+            ts,
+        ),
+    )
+    conn.commit()
+    conn.close()
+    return payload
+
+
+def set_review_status(review_id: str, status: str) -> dict[str, Any] | None:
+    conn = connect()
+    init_schema(conn)
+    row = conn.execute("SELECT * FROM reviews WHERE review_id = ?", (review_id,)).fetchone()
+    if not row:
+        conn.close()
+        return None
+    payload = json.loads(row["payload"])
+    payload["status"] = status
+    ts = _now()
+    conn.execute(
+        "UPDATE reviews SET status = ?, payload = ?, updated_at = ? WHERE review_id = ?",
+        (status, json.dumps(payload, ensure_ascii=False), ts, review_id),
+    )
+    conn.commit()
+    conn.close()
+    items = list_reviews(include_hidden=True)
+    for item in items:
+        if item["review_id"] == review_id:
+            return item
+    return None
+
+
+# ---------- Users ----------
+
+USER_STATUS_LABELS = {"active": "正常", "disabled": "已禁用"}
+
+
+def _user_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+    payload = json.loads(row["payload"])
+    status = row["status"]
+    return {
+        **payload,
+        "user_id": row["user_id"],
+        "status": status,
+        "status_label": USER_STATUS_LABELS.get(status, status),
+    }
+
+
+def list_users(*, q: str | None = None, status: str | None = None) -> list[dict[str, Any]]:
+    conn = connect()
+    init_schema(conn)
+    seed_if_empty(conn)
+    sql = "SELECT * FROM users WHERE 1=1"
+    params: list[Any] = []
+    if status:
+        sql += " AND status = ?"
+        params.append(status)
+    sql += " ORDER BY updated_at DESC"
+    rows = conn.execute(sql, params).fetchall()
+    conn.close()
+    items = [_user_row_to_dict(r) for r in rows]
+    # attach signup counts
+    all_signups = list_admin_signups()
+    for item in items:
+        uid = item["user_id"]
+        phone = item.get("phone") or ""
+        count = sum(
+            1
+            for s in all_signups
+            if s.get("user_id") == uid or (phone and s.get("phone") == phone)
+        )
+        item["signup_count"] = count
+    if q:
+        needle = q.strip().lower()
+        items = [
+            i
+            for i in items
+            if needle in (i.get("nickname") or "").lower()
+            or needle in (i.get("phone") or "")
+            or needle in (i.get("name") or "").lower()
+        ]
+    return items
+
+
+def set_user_status(user_id: str, status: str) -> dict[str, Any] | None:
+    conn = connect()
+    init_schema(conn)
+    row = conn.execute("SELECT * FROM users WHERE user_id = ?", (user_id,)).fetchone()
+    if not row:
+        conn.close()
+        return None
+    payload = json.loads(row["payload"])
+    payload["status"] = status
+    ts = _now()
+    conn.execute(
+        "UPDATE users SET status = ?, payload = ?, updated_at = ? WHERE user_id = ?",
+        (status, json.dumps(payload, ensure_ascii=False), ts, user_id),
+    )
+    conn.commit()
+    conn.close()
+    for item in list_users():
+        if item["user_id"] == user_id:
+            return item
+    return None
+
+
+def ensure_default_user() -> None:
+    conn = connect()
+    init_schema(conn)
+    seed_if_empty(conn)
+    row = conn.execute("SELECT user_id FROM users WHERE user_id = ?", (DEFAULT_USER_ID,)).fetchone()
+    if not row:
+        ts = _now()
+        payload = {
+            "user_id": DEFAULT_USER_ID,
+            "nickname": "本地用户",
+            "name": "本地用户",
+            "phone": "13800000000",
+            "status": "active",
+            "registered_at": datetime.fromtimestamp(ts).isoformat(timespec="seconds"),
+            "hero_id": None,
+        }
+        conn.execute(
+            "INSERT INTO users (user_id, status, payload, updated_at) VALUES (?, ?, ?, ?)",
+            (DEFAULT_USER_ID, "active", json.dumps(payload, ensure_ascii=False), ts),
+        )
+        conn.commit()
+    conn.close()
+
+
+# ---------- Profile change requests ----------
+
+PROFILE_CHANGE_STATUS_LABELS = {
+    "pending": "待审核",
+    "approved": "已通过",
+    "rejected": "已驳回",
+}
+
+
+def _profile_change_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
+    payload = json.loads(row["payload"])
+    status = row["status"]
+    return {
+        **payload,
+        "change_id": row["change_id"],
+        "hero_id": row["hero_id"],
+        "status": status,
+        "status_label": PROFILE_CHANGE_STATUS_LABELS.get(status, status),
+        "reject_reason": row["reject_reason"],
+        "submitted_at": row["submitted_at"],
+        "reviewed_at": row["reviewed_at"],
+    }
+
+
+def submit_profile_change(hero_id: str, patch: dict[str, Any], change_type: str = "profile") -> dict[str, Any]:
+    hero = get_hero(hero_id)
+    if not hero:
+        raise LookupError("hero_not_found")
+    ts = _now()
+    change_id = f"pc-{int(ts * 1000)}"
+    before = {k: hero.get(k) for k in patch.keys()}
+    payload = {
+        "change_id": change_id,
+        "hero_id": hero_id,
+        "hero_name": hero.get("name"),
+        "change_type": change_type,
+        "change_type_label": {"profile": "资料变更", "honors": "荣誉变更", "certs": "证书变更"}.get(
+            change_type, change_type
+        ),
+        "before": before,
+        "after": patch,
+        "submitted_at": datetime.fromtimestamp(ts).isoformat(timespec="seconds"),
+        "status": "pending",
+    }
+    conn = connect()
+    init_schema(conn)
+    conn.execute(
+        """
+        INSERT INTO profile_change_requests
+        (change_id, hero_id, status, payload, reject_reason, submitted_at, reviewed_at, updated_at)
+        VALUES (?, ?, 'pending', ?, NULL, ?, NULL, ?)
+        """,
+        (change_id, hero_id, json.dumps(payload, ensure_ascii=False), ts, ts),
+    )
+    conn.commit()
+    conn.close()
+    return get_profile_change(change_id) or payload
+
+
+def list_profile_changes(*, status: str | None = None) -> list[dict[str, Any]]:
+    conn = connect()
+    init_schema(conn)
+    seed_if_empty(conn)
+    sql = "SELECT * FROM profile_change_requests WHERE 1=1"
+    params: list[Any] = []
+    if status:
+        sql += " AND status = ?"
+        params.append(status)
+    sql += " ORDER BY submitted_at DESC"
+    rows = conn.execute(sql, params).fetchall()
+    conn.close()
+    return [_profile_change_row_to_dict(r) for r in rows]
+
+
+def get_profile_change(change_id: str) -> dict[str, Any] | None:
+    conn = connect()
+    init_schema(conn)
+    row = conn.execute(
+        "SELECT * FROM profile_change_requests WHERE change_id = ?", (change_id,)
+    ).fetchone()
+    conn.close()
+    return _profile_change_row_to_dict(row) if row else None
+
+
+def approve_profile_change(change_id: str) -> dict[str, Any]:
+    item = get_profile_change(change_id)
+    if not item:
+        raise LookupError("change_not_found")
+    if item["status"] != "pending":
+        raise ValueError("invalid_status")
+    after = item.get("after") or {}
+    update_hero(item["hero_id"], after)
+    ts = _now()
+    payload = {**item, "status": "approved"}
+    conn = connect()
+    conn.execute(
+        """
+        UPDATE profile_change_requests
+        SET status = 'approved', payload = ?, reviewed_at = ?, updated_at = ?
+        WHERE change_id = ?
+        """,
+        (json.dumps(payload, ensure_ascii=False), ts, ts, change_id),
+    )
+    conn.commit()
+    conn.close()
+    return get_profile_change(change_id) or payload
+
+
+def reject_profile_change(change_id: str, reason: str = "") -> dict[str, Any]:
+    item = get_profile_change(change_id)
+    if not item:
+        raise LookupError("change_not_found")
+    if item["status"] != "pending":
+        raise ValueError("invalid_status")
+    ts = _now()
+    payload = {**item, "status": "rejected", "reject_reason": reason or "未通过审核"}
+    conn = connect()
+    conn.execute(
+        """
+        UPDATE profile_change_requests
+        SET status = 'rejected', reject_reason = ?, payload = ?, reviewed_at = ?, updated_at = ?
+        WHERE change_id = ?
+        """,
+        (reason or "未通过审核", json.dumps(payload, ensure_ascii=False), ts, ts, change_id),
+    )
+    conn.commit()
+    conn.close()
+    return get_profile_change(change_id) or payload
+
+
+# ---------- Settings ----------
+
+DEFAULT_SETTINGS: dict[str, Any] = {
+    "scenarios": [
+        {"id": "water", "name": "水上运动", "code": "water", "status": "active"},
+        {"id": "hotel", "name": "酒店预订", "code": "hotel", "status": "active"},
+        {"id": "venue", "name": "场地预约", "code": "venue", "status": "disabled"},
+    ],
+    "copy": {"hero": "英雄", "recruitment": "招募", "signup": "报名"},
+    "features": {
+        "hero_apply": True,
+        "rating": True,
+        "certificates": True,
+        "online_pay": False,
+        "geolocation": False,
+    },
+}
+
+
+def get_settings() -> dict[str, Any]:
+    conn = connect()
+    init_schema(conn)
+    seed_if_empty(conn)
+    rows = conn.execute("SELECT key, payload FROM settings").fetchall()
+    conn.close()
+    if not rows:
+        return dict(DEFAULT_SETTINGS)
+    result = dict(DEFAULT_SETTINGS)
+    for row in rows:
+        result[row["key"]] = json.loads(row["payload"])
+    return result
+
+
+def update_settings(patch: dict[str, Any]) -> dict[str, Any]:
+    current = get_settings()
+    merged = {**current, **patch}
+    ts = _now()
+    conn = connect()
+    init_schema(conn)
+    for key, value in merged.items():
+        conn.execute(
+            "INSERT OR REPLACE INTO settings (key, payload, updated_at) VALUES (?, ?, ?)",
+            (key, json.dumps(value, ensure_ascii=False), ts),
+        )
+    conn.commit()
+    conn.close()
+    return get_settings()
+
+
+# ---------- Dashboard ----------
+
+def get_admin_dashboard() -> dict[str, Any]:
+    heroes = list_heroes()
+    recruitments = [recruit_admin_view(i) for i in list_recruitments(scope="public")]
+    active_recruits = [
+        r for r in recruitments if r.get("admin_status") in ("recruiting", "enrolling", "ongoing", "full")
+    ]
+    apps = list_hero_applications(status="pending")
+    signups = list_admin_signups()
+    now = datetime.now()
+    month_prefix = f"{now.year}-{now.month:02d}"
+    month_signups = [s for s in signups if str(s.get("created_at") or "").startswith(month_prefix)]
+    pending_signups = [s for s in signups if s.get("status") == "pending"]
+    reviews = list_reviews(include_hidden=True)
+    profile_pending = list_profile_changes(status="pending")
+
+    activities: list[dict[str, Any]] = []
+    for app in list_hero_applications()["items"][:20]:
+        if app["status"] in ("approved", "rejected"):
+            activities.append(
+                {
+                    "type": "hero_review",
+                    "text": f"英雄认证「{app.get('name') or '申请人'}」{app.get('status_label')}",
+                    "time": app.get("submitted_at"),
+                }
+            )
+    for r in recruitments[:10]:
+        activities.append(
+            {
+                "type": "recruitment",
+                "text": f"赛事「{r.get('title') or '未命名'}」状态：{r.get('admin_status_label')}",
+                "time": r.get("start_at") or r.get("created_at"),
+            }
+        )
+    for s in signups[:10]:
+        activities.append(
+            {
+                "type": "signup",
+                "text": f"{s.get('name') or '用户'} 报名「{s.get('title') or ''}」",
+                "time": s.get("created_at"),
+            }
+        )
+    for rv in reviews[:10]:
+        activities.append(
+            {
+                "type": "review",
+                "text": f"{rv.get('reviewer_nickname') or '用户'} 评价 {rv.get('score')} 星",
+                "time": rv.get("reviewed_at"),
+            }
+        )
+    activities.sort(key=lambda x: str(x.get("time") or ""), reverse=True)
+
+    return {
+        "stats": {
+            "heroes": len(heroes),
+            "active_recruitments": len(active_recruits),
+            "month_signups": len(month_signups),
+            "pending_applications": apps.get("total", 0),
+            "pending_signups": len(pending_signups),
+            "pending_profile_changes": len(profile_pending),
+            "reviews": len([r for r in reviews if r.get("status") == "visible"]),
+        },
+        "activities": activities[:20],
+    }
+
+
+def migrate_legacy_app_state() -> dict[str, int]:
+    """One-shot: move my_signups / my_courses / my_reviews from app_state into tables."""
+    migrated = {"signups": 0, "courses": 0, "reviews": 0}
+    legacy_signups = get_app_state("my_signups") or []
+    if isinstance(legacy_signups, list):
+        existing_ids = {s.get("signup_id") for s in list_admin_signups()}
+        for item in legacy_signups:
+            sid = item.get("signup_id") or item.get("id")
+            if sid and sid in existing_ids:
+                continue
+            create_signup(
+                {
+                    **item,
+                    "user_id": item.get("user_id") or DEFAULT_USER_ID,
+                    "status": item.get("status") or "confirmed",
+                    "pay_status": item.get("pay_status") or item.get("payStatus") or "unpaid",
+                }
+            )
+            migrated["signups"] += 1
+        if legacy_signups:
+            set_app_state("my_signups", [])
+
+    legacy_courses = get_app_state("my_courses") or []
+    if isinstance(legacy_courses, list):
+        existing = {c.get("course_id") for c in list_courses()}
+        for item in legacy_courses:
+            cid = item.get("course_id") or item.get("id")
+            if not cid or cid in existing:
+                continue
+            upsert_course(cid, item)
+            migrated["courses"] += 1
+        if legacy_courses:
+            set_app_state("my_courses", [])
+
+    for key, hero_id in (("my_reviews", None), ("hero_ratings", "1")):
+        legacy = get_app_state(key) or []
+        if not isinstance(legacy, list) or not legacy:
+            continue
+        for item in legacy:
+            create_review(
+                {
+                    **item,
+                    "hero_id": item.get("hero_id") or hero_id or "1",
+                    "user_id": item.get("user_id") or DEFAULT_USER_ID,
+                }
+            )
+            migrated["reviews"] += 1
+        set_app_state(key, [])
+
+    ensure_default_user()
+    return migrated

@@ -1,0 +1,25 @@
+---
+description: 重启本地开发服务后必须同时给出小程序与后台预览地址
+alwaysApply: true
+---
+
+# 本地预览地址
+
+重启、启动或确认本地开发服务（`scripts/start-dev.sh` / `start-preview.sh`）后，回复中**必须同时给出**两套预览地址，不要只给总入口。
+
+## 默认端口
+
+- 预览静态站：`8765`
+- 本地 API：`8787`
+
+若实际端口不同，以启动脚本输出为准。
+
+## 必给地址（模板）
+
+- **小程序预览**：`http://127.0.0.1:<PREVIEW_PORT>/miniprogram/index.html`
+- **后台管理系统**：`http://127.0.0.1:<PREVIEW_PORT>/admin/dashboard.html`
+
+可选补充：
+
+- 总入口：`http://127.0.0.1:<PREVIEW_PORT>/`
+- API 健康检查：`http://127.0.0.1:<API_PORT>/api/health`

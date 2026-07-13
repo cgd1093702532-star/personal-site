@@ -150,6 +150,17 @@
   color: var(--color-text-primary);
 }
 
+.hero-profile__stat-num--text {
+  font-size: 24rpx;
+  line-height: 1.25;
+  font-weight: 600;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-all;
+}
+
 .hero-profile__stat-label {
   font-size: var(--text-micro);
   color: var(--color-text-secondary);
@@ -194,8 +205,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32rpx;
   flex-shrink: 0;
+}
+
+.hero-detail__honor-icon-img {
+  width: 36rpx;
+  height: 36rpx;
 }
 
 .hero-detail__honor-body {

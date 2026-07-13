@@ -53,6 +53,57 @@
     return certCount > 0 || !!root.querySelector('#apply-cert-grid .apply-cert-item');
   }
 
+  async function loadDraftApplication() {
+    const db = window.HeroPlazaDB;
+    if (!db || !(await db.isAvailable())) return null;
+    try {
+      const status = await db.getHeroApplyStatus();
+      if (status?.status === 'rejected' && status.application) {
+        return status.application;
+      }
+      if (status?.status === 'rejected') {
+        const saved = await db.getAppState('hero_apply_form');
+        if (saved && typeof saved === 'object') return saved;
+      }
+    } catch (_) {
+      /* ignore */
+    }
+    return null;
+  }
+
+  function fillDraft(root, draft, helpers) {
+    if (!root || !draft) return;
+    const setVal = (field, value) => {
+      const el = root.querySelector(`[data-field="${field}"]`);
+      if (el && value != null) el.value = String(value);
+    };
+    setVal('name', draft.name || '');
+    setVal('phone', draft.phone || '');
+    setVal('city', draft.city || '');
+    setVal('honors', draft.honors || '');
+    setVal('bio', draft.bio || '');
+
+    const projects = Array.isArray(draft.project_types) ? draft.project_types : [];
+    root.querySelectorAll('#apply-project-tags .apply-tag').forEach((btn) => {
+      btn.classList.toggle('apply-tag--active', projects.includes(btn.dataset.project));
+    });
+
+    const certSelect = root.querySelector('#apply-cert');
+    if (certSelect && draft.certification) {
+      certSelect.value = draft.certification;
+    }
+
+    const years = draft.years_exp || '';
+    root.querySelectorAll('#apply-years-tags .apply-tag').forEach((btn) => {
+      btn.classList.toggle('apply-tag--active', btn.dataset.years === years);
+    });
+
+    const count = Math.min(5, Number(draft.cert_count) || (Array.isArray(draft.certFiles) ? draft.certFiles.filter((f) => f?.url).length : 0) || 0);
+    for (let i = 0; i < count; i += 1) helpers?.appendCertItem?.();
+
+    helpers?.updateSendBtn?.();
+  }
+
   async function handleSubmit(root, agree) {
     const name = root.querySelector('[data-field="name"]')?.value?.trim();
     const phone = root.querySelector('[data-field="phone"]')?.value?.trim();
@@ -132,6 +183,11 @@
 
     try {
       await db.submitHeroApply(application);
+      try {
+        localStorage.setItem('hero_plaza_applications_updated', String(Date.now()));
+      } catch (_) {
+        /* ignore */
+      }
       if (window.PreviewNav?.navigateTo) {
         window.PreviewNav.navigateTo('hero-apply-submitted.html', 'forward', { replace: true });
       } else {
@@ -247,7 +303,7 @@
         <div class="apply-field">
           <label class="apply-label">个人展示视频（选填）</label>
           <button type="button" class="apply-video" id="apply-video">
-            <span class="apply-video__icon">🎬</span>
+            <img class="apply-video__icon" src="../assets/icons/video.png" alt="">
             <span class="apply-video__hint">点击上传/拍摄视频介绍（建议30秒以内）</span>
           </button>
         </div>
@@ -369,6 +425,11 @@
 
     syncAgreeVisual();
     updateSendBtn();
+
+    loadDraftApplication().then((draft) => {
+      if (!draft || !getRoot()) return;
+      fillDraft(root, draft, { appendCertItem, updateSendBtn });
+    });
 
     cleanup = () => {
       clearInterval(countdownTimer);

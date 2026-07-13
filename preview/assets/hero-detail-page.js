@@ -67,6 +67,12 @@
     return;
   }
 
+  const certLevel = hero.certification || hero.certification_level || '—';
+  const certCount = Array.isArray(hero.certificates)
+    ? hero.certificates.length
+    : Array.isArray(hero.cert_badges)
+      ? hero.cert_badges.length
+      : 0;
   const titleEl = document.getElementById('navbar-hero-title');
   if (titleEl) titleEl.textContent = hero.name;
 
@@ -85,9 +91,7 @@
   const honors = (hero.past_honors || [])
     .map(
       (h) =>
-        `<div class="hero-detail__honor"><div class="hero-detail__honor-icon">${h.icon}</div>` +
-        `<div class="hero-detail__honor-body"><div class="hero-detail__honor-name">${h.name}</div>` +
-        `<div class="hero-detail__honor-summary">${h.summary}</div></div></div>`
+        `<div class="hero-detail__honor"><div class="hero-detail__honor-body"><div class="hero-detail__honor-name">${h.name}</div></div></div>`
     )
     .join('');
 
@@ -99,7 +103,7 @@
   });
 
   const moments = momentUrls
-    .map((url) => `<div class="hero-detail__gallery-item hero-detail__thumb" data-url="${url}" role="button" tabindex="0"><img src="${url}" alt="精彩瞬间"></div>`)
+    .map((url) => `<div class="hero-detail__gallery-item hero-detail__thumb" data-url="${url}" role="button" tabindex="0"><img src="${url}" alt="个人展示"></div>`)
     .join('');
 
   const certs = (hero.certificates || [])
@@ -168,15 +172,15 @@
       <div class="hero-profile__tags">${tags.map((t) => `<span class="hero-profile__tag">${t}</span>`).join('')}</div>
       <div class="hero-profile__stats">
         <div class="hero-profile__stat"><span class="hero-profile__stat-num">${hero.student_count || 0}</span><span class="hero-profile__stat-label">学员</span></div>
-        <div class="hero-profile__stat"><span class="hero-profile__stat-num">${rating}</span><span class="hero-profile__stat-label">评分</span></div>
+        <div class="hero-profile__stat"><span class="hero-profile__stat-num">${certCount}</span><span class="hero-profile__stat-label">资质等级</span></div>
         <div class="hero-profile__stat"><span class="hero-profile__stat-num">${hero.honors_count || 0}</span><span class="hero-profile__stat-label">荣誉</span></div>
       </div>
     </div>
   </div>
   <div class="hero-detail__block"><div class="hero-detail__label">关于我</div><div class="hero-detail__bio">${hero.about_me}</div></div>
   <div class="hero-detail__block"><div class="hero-detail__label">过往荣誉</div>${honors}</div>
-  <div class="hero-detail__block"><div class="hero-detail__label">精彩瞬间</div><div class="hero-detail__gallery">${moments}</div></div>
   <div class="hero-detail__block"><div class="hero-detail__label">资质证书</div><div class="hero-detail__cert-scroll">${certs}</div></div>
+  <div class="hero-detail__block"><div class="hero-detail__label">个人展示</div><div class="hero-detail__gallery">${moments}</div></div>
   ${recruitBlock}
   ${courseBlock}
   <div class="hero-detail__bottom-spacer"></div>

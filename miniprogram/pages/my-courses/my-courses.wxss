@@ -8,27 +8,36 @@
 
 .my-courses__tabs {
   display: flex;
-  background: var(--color-bg-page);
-  border-bottom: 1rpx solid var(--color-divider);
+  gap: 0;
+  margin: 24rpx var(--space-page-x) 0;
+  padding: 6rpx;
+  background: #f0f0f0;
+  border-radius: 20rpx;
+  border-bottom: none;
 }
 
 .my-courses__tab {
   flex: 1;
-  padding: 24rpx 8rpx;
+  padding: 16rpx 8rpx;
   text-align: center;
-  font-size: var(--text-caption);
-  color: var(--color-text-secondary);
+  font-size: 28rpx;
+  line-height: 1.2;
+  color: #666666;
   white-space: nowrap;
+  border-radius: 16rpx;
+  background: transparent;
 }
 
 .my-courses__tab--active {
-  color: var(--color-primary);
+  color: #333333;
   font-weight: 600;
-  border-bottom: 4rpx solid var(--color-primary);
+  background: #ffffff;
+  box-shadow: 0 2rpx 6rpx rgba(0, 0, 0, 0.08);
+  border-bottom: none;
 }
 
 .my-courses__list {
-  padding: 24rpx var(--space-page-x);
+  padding: 32rpx var(--space-page-x);
 }
 
 .my-courses__card {
@@ -106,8 +115,9 @@
 
 .my-courses__empty-icon {
   display: block;
-  font-size: 72rpx;
-  line-height: 1;
+  width: 72rpx;
+  height: 72rpx;
+  margin: 0 auto;
 }
 
 .my-courses__empty-title {

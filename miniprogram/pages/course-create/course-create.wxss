@@ -32,7 +32,8 @@
 }
 
 .course-create-banner__placeholder-icon {
-  font-size: 48rpx;
+  width: 48rpx;
+  height: 48rpx;
 }
 
 .course-create-banner__placeholder-text {

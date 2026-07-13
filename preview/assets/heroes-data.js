@@ -2,8 +2,18 @@ window.HEROES_DATA = {
   "1": {
     "name": "小哥",
     "avatar_img": "hero-1.jpg",
+    "phone": "13899999999",
+    "city": "海南/三亚",
+    "certification": "国家级教练",
+    "supplier_id": "10238333",
+    "enabled": true,
+    "audit_status": "approved",
+    "reviewer": "小李",
+    "reviewed_at": "2026-12-12T12:00:00",
+    "channel": "后台创建",
+    "applied_at": "2026-12-12T12:00:00",
     "rating": 4.9,
-    "years_exp": 15,
+    "years_exp": 10,
     "student_count": 128,
     "honors_count": 3,
     "project_types": [
@@ -22,17 +32,17 @@ window.HEROES_DATA = {
     "about_me": "从事水上运动教学十五年，深耕帆船与游艇领域，持有 ASA 多项认证与救生员资质。带领学员从入门到参赛，注重安全规范与技术细节。曾出任中欧航海协会秘书长，担任 ASA205 级资深签证官，擅长根据学员水平定制课程方案。教学风格耐心细致，累计服务学员逾百人，多次组织企业团建与青少年帆船夏令营，希望帮助更多人爱上航海运动，在风浪中找到自信与快乐。",
     "past_honors": [
       {
-        "icon": "🏆",
+        "icon": "../assets/icons/trophy.png",
         "name": "企业家杯冠军教练",
         "summary": "连续三年带队夺冠"
       },
       {
-        "icon": "👑",
+        "icon": "../assets/icons/crown.png",
         "name": "中欧航海协会秘书长",
         "summary": "负责协会赛事与培训"
       },
       {
-        "icon": "⛵",
+        "icon": "../assets/icons/boat.png",
         "name": "ASA205级资深签证官",
         "summary": "负责资质认证评审"
       }
@@ -104,8 +114,18 @@ window.HEROES_DATA = {
   "2": {
     "name": "熊猫",
     "avatar_img": "hero-2.jpg",
+    "phone": "13899999998",
+    "city": "海南/三亚",
+    "certification": "国家级教练",
+    "supplier_id": "10238334",
+    "enabled": false,
+    "audit_status": "rejected",
+    "reviewer": "小李",
+    "reviewed_at": "2026-12-13T12:00:00",
+    "channel": "自主申请",
+    "applied_at": "2026-12-13T12:00:00",
     "rating": 4.8,
-    "years_exp": 15,
+    "years_exp": 11,
     "student_count": 96,
     "honors_count": 2,
     "project_types": [
@@ -123,12 +143,12 @@ window.HEROES_DATA = {
     "about_me": "专注帆船与浆板入门教学十五年，擅长零基础学员引导与团队体验课设计。教学强调安全意识与基础动作规范，帮助学员快速建立水上运动信心。曾服务多家企业与亲子营地，课程反馈稳定。希望以轻松有趣的方式，让更多人接触帆船与浆板运动，享受湖畔与海风中的自由感。",
     "past_honors": [
       {
-        "icon": "🏅",
+        "icon": "../assets/icons/medal.png",
         "name": "ASA帆船认证教练",
         "summary": "持官方认证资质"
       },
       {
-        "icon": "⛵",
+        "icon": "../assets/icons/boat.png",
         "name": "浆板入门金牌讲师",
         "summary": "入门课好评率领先"
       }
@@ -194,8 +214,18 @@ window.HEROES_DATA = {
   "3": {
     "name": "Amy",
     "avatar_img": "hero-1.jpg",
+    "phone": "13899999997",
+    "city": "海南/三亚",
+    "certification": "国家级教练",
+    "supplier_id": "10238335",
+    "enabled": false,
+    "audit_status": "pending",
+    "reviewer": "",
+    "reviewed_at": "",
+    "channel": "",
+    "applied_at": "",
     "rating": 4.6,
-    "years_exp": 5,
+    "years_exp": 12,
     "student_count": 64,
     "honors_count": 1,
     "project_types": [
@@ -213,12 +243,12 @@ window.HEROES_DATA = {
     "about_me": "桨板与潜水双项教练，五年教学经验，擅长女性与青少年入门课程。注重呼吸节奏与核心力量训练，帮助学员克服恐水心理。持有 PADI 潜水教练与 ACA 桨板认证，可开展湖泊桨板与开放水域潜水体验。希望用温和耐心的方式，带领学员探索水下与水面世界。",
     "past_honors": [
       {
-        "icon": "🤿",
+        "icon": "../assets/icons/dive.png",
         "name": "PADI潜水教练",
         "summary": "开放水域教学资质"
       },
       {
-        "icon": "🏄",
+        "icon": "../assets/icons/surf.png",
         "name": "桨板体验课讲师",
         "summary": "亲子课口碑优秀"
       }
@@ -287,6 +317,16 @@ window.HEROES_DATA = {
   "4": {
     "name": "大伟",
     "avatar_img": "hero-2.jpg",
+    "phone": "13899999996",
+    "city": "山东/青岛",
+    "certification": "国家级帆船教练",
+    "supplier_id": "10238336",
+    "enabled": true,
+    "audit_status": "approved",
+    "reviewer": "小李",
+    "reviewed_at": "2026-11-20T10:00:00",
+    "channel": "自主申请",
+    "applied_at": "2026-11-18T09:30:00",
     "rating": 5.0,
     "years_exp": 20,
     "student_count": 210,
@@ -307,17 +347,17 @@ window.HEROES_DATA = {
     "about_me": "二十年帆船与冲浪执教经验，国家级帆船教练，多次带队参加国内外赛事并获奖。擅长竞技训练与高级技术提升，注重战术配合与体能储备。长期担任企业赛事顾问与青少年队教练，教学风格严谨高效。希望培养更多优秀水手，推动国内帆船运动发展。",
     "past_honors": [
       {
-        "icon": "🥇",
+        "icon": "../assets/icons/medal.png",
         "name": "国家级帆船教练",
         "summary": "国家级执业资质"
       },
       {
-        "icon": "🏆",
+        "icon": "../assets/icons/trophy.png",
         "name": "全国帆船联赛导师",
         "summary": "多次带队获奖"
       },
       {
-        "icon": "🌊",
+        "icon": "../assets/icons/wave.png",
         "name": "冲浪入门推广人",
         "summary": "推广冲浪安全教学"
       }

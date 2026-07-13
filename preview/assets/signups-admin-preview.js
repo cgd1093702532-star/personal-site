@@ -123,6 +123,9 @@
   }
 
   async function cancelSignup(id) {
+    // #region agent log
+    fetch('http://127.0.0.1:7447/ingest/69cf0779-133f-40c0-9884-95fcd1c2d840',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'628f41'},body:JSON.stringify({sessionId:'628f41',runId:'pre-fix',hypothesisId:'C',location:'signups-admin-preview.js:cancelSignup',message:'cancelSignup called',data:{id},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     const db = await getDb();
     if (!db) return;
     if (!window.confirm('确认取消该报名？')) return;

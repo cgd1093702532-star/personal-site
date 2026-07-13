@@ -50,7 +50,9 @@
     </view>
     <view class="honor-row" wx:for="{{honors}}" wx:key="id">
       <view class="hero-detail__honor honor-row__body">
-        <view class="hero-detail__honor-icon">{{item.icon}}</view>
+        <view class="hero-detail__honor-icon">
+          <image class="hero-detail__honor-icon-img" src="{{item.icon}}" mode="aspectFit" />
+        </view>
         <view class="hero-detail__honor-body">
           <text class="hero-detail__honor-name">{{item.name}}</text>
           <text class="hero-detail__honor-summary">{{item.summary}}</text>
@@ -129,8 +131,8 @@
   <view class="hero-profile-sheet__panel" catchtap="noop">
     <text class="hero-profile-sheet__title">{{honorForm.mode === 'add' ? '新增荣誉' : '编辑荣誉'}}</text>
     <view class="hero-profile-sheet__field">
-      <text class="hero-profile-sheet__label">图标（emoji）</text>
-      <input class="hero-profile-sheet__input" placeholder="如 🏆" value="{{honorForm.icon}}" data-field="icon" bindinput="onHonorFormInput" />
+      <text class="hero-profile-sheet__label">图标</text>
+      <input class="hero-profile-sheet__input" placeholder="图标路径，如 /assets/icons/trophy.png" value="{{honorForm.icon}}" data-field="icon" bindinput="onHonorFormInput" />
     </view>
     <view class="hero-profile-sheet__field">
       <text class="hero-profile-sheet__label">荣誉名称</text>

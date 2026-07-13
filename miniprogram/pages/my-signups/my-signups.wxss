@@ -82,8 +82,9 @@
 
 .my-signup__row-icon {
   flex-shrink: 0;
-  font-size: 24rpx;
-  line-height: 36rpx;
+  width: 28rpx;
+  height: 28rpx;
+  margin-top: 4rpx;
 }
 
 .my-signup__row-text {
@@ -107,8 +108,9 @@
 
 .my-signup__empty-icon {
   display: block;
-  font-size: 72rpx;
-  line-height: 1;
+  width: 72rpx;
+  height: 72rpx;
+  margin: 0 auto;
 }
 
 .my-signup__empty-title {

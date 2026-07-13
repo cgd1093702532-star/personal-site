@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>创建供方 · 英雄广场管理后台</title>
+  <link rel="stylesheet" href="../assets/preview.css">
+  <link rel="stylesheet" href="../assets/admin.css">
+</head>
+<body data-admin-page="heroes" data-admin-title="创建供方" data-admin-breadcrumb="供需管理 / 供方列表 / 创建供方">
+  <script>
+    (function () {
+      var id = new URLSearchParams(location.search).get('id');
+      if (!id) return;
+      document.title = '编辑供方 · 英雄广场管理后台';
+      document.body.dataset.adminTitle = '编辑供方';
+      document.body.dataset.adminBreadcrumb = '供需管理 / 供方列表 / 编辑供方';
+    })();
+  </script>
+  <div id="admin-page-root">
+    <div class="admin-card admin-form-page">
+      <div class="admin-card__body">
+        <form id="supplier-form" class="admin-form-stack" novalidate>
+          <div class="admin-form-item" data-field="name">
+            <label class="admin-form-item__label admin-form-item__label--required" for="field-name">供方昵称</label>
+            <input id="field-name" name="name" class="admin-input" type="text" maxlength="20" placeholder="请输入供方昵称，最多20个字" autocomplete="off" />
+          </div>
+
+          <div class="admin-form-item" data-field="phone">
+            <label class="admin-form-item__label admin-form-item__label--required" for="field-phone">手机号码</label>
+            <input id="field-phone" name="phone" class="admin-input" type="tel" maxlength="11" placeholder="请输入手机号码" autocomplete="off" />
+          </div>
+
+          <div class="admin-form-item" data-field="avatar">
+            <label class="admin-form-item__label admin-form-item__label--required">供方头像</label>
+            <label class="admin-upload" id="avatar-upload">
+              <span class="admin-upload__plus" id="avatar-plus">+</span>
+              <img class="admin-upload__preview" id="avatar-preview" alt="" hidden />
+              <input class="admin-upload__input" id="field-avatar" type="file" accept="image/*" />
+            </label>
+            <div class="admin-upload__hint">建议尺寸800*800px，最多可上传1张</div>
+          </div>
+
+          <div class="admin-form-item" data-field="project_types">
+            <label class="admin-form-item__label admin-form-item__label--required" for="field-project-types">项目类型</label>
+            <input id="field-project-types" name="project_types" class="admin-input" type="text" placeholder="输入后用顿号分隔，如：帆船、桨板" autocomplete="off" />
+          </div>
+
+          <div class="admin-form-item" data-field="city">
+            <label class="admin-form-item__label" for="field-city">常驻城市</label>
+            <input id="field-city" name="city" class="admin-input" type="text" placeholder="请输入常驻城市，如：海南/三亚" autocomplete="off" />
+          </div>
+
+          <div class="admin-form-item" data-field="certification">
+            <label class="admin-form-item__label admin-form-item__label--required" for="field-certification">资质等级</label>
+            <input id="field-certification" name="certification" class="admin-input" type="text" placeholder="请输入资质等级，如：国家级教练" autocomplete="off" />
+          </div>
+
+          <div class="admin-form-item" data-field="years_exp">
+            <label class="admin-form-item__label" for="field-years">从业年限</label>
+            <input id="field-years" name="years_exp" class="admin-input" type="text" placeholder="请输入从业年限，如：10" autocomplete="off" />
+          </div>
+
+          <div class="admin-form-item" data-field="bio">
+            <label class="admin-form-item__label" for="field-bio">备注</label>
+            <textarea id="field-bio" name="bio" class="admin-textarea" placeholder="可填写供方特殊说明"></textarea>
+          </div>
+
+          <div class="admin-form-footer">
+            <button type="button" class="admin-btn admin-btn--outline-primary" id="supplier-cancel">取消</button>
+            <button type="submit" class="admin-btn admin-btn--primary" id="supplier-submit">创建</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <script src="../assets/admin-layout.js"></script>
+  <script src="../assets/db-client.js"></script>
+  <script src="../assets/supplier-edit-preview.js"></script>
+</body>
+</html>

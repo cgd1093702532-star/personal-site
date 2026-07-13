@@ -1,4 +1,5 @@
 const mock = require('../../utils/mock.js');
+const data = require('../../utils/data.js');
 
 Page({
   data: {
@@ -17,6 +18,7 @@ Page({
   },
 
   _searchTimer: null,
+  _loadSeq: 0,
 
   onLoad() {
     this.loadHeroes();
@@ -31,8 +33,7 @@ Page({
   },
 
   onPullDownRefresh() {
-    this.loadHeroes();
-    wx.stopPullDownRefresh();
+    this.loadHeroes().finally(() => wx.stopPullDownRefresh());
   },
 
   updateFilterActive() {
@@ -45,14 +46,25 @@ Page({
   },
 
   loadHeroes() {
-    const list = mock.getHeroes({
-      keyword: this.data.keyword,
-      project_type: this.data.activeType,
-      sort_by: this.data.activeSort,
-      years_range: this.data.activeYears,
-    });
-    this.setData({ heroes: list });
-    this.updateFilterActive();
+    const seq = ++this._loadSeq;
+    this.setData({ loading: true });
+    return data
+      .getHeroes({
+        keyword: this.data.keyword,
+        project_type: this.data.activeType,
+        sort_by: this.data.activeSort,
+        years_range: this.data.activeYears,
+      })
+      .then((list) => {
+        if (seq !== this._loadSeq) return;
+        this.setData({ heroes: list || [], loading: false });
+        this.updateFilterActive();
+      })
+      .catch(() => {
+        if (seq !== this._loadSeq) return;
+        this.setData({ heroes: [], loading: false });
+        this.updateFilterActive();
+      });
   },
 
   onSearchInput(e) {

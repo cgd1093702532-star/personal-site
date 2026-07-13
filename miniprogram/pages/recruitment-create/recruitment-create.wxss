@@ -170,8 +170,8 @@
 }
 
 .create-cover__icon {
-  font-size: 48rpx;
-  line-height: 1;
+  width: 48rpx;
+  height: 48rpx;
 }
 
 .create-cover__hint {

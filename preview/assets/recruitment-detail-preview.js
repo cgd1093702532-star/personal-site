@@ -19,34 +19,25 @@
   }
 
   async function loadSignup(recruitId) {
-    let list = [];
     if (window.HeroPlazaDB && (await window.HeroPlazaDB.isAvailable())) {
       try {
-        list = (await window.HeroPlazaDB.getAppState('my_signups')) || [];
+        const list = await window.HeroPlazaDB.listSignups({ recruit_id: recruitId });
+        if (list && list.length) return list[0];
+        const mine = await window.HeroPlazaDB.listMySignups();
+        return mine.find((s) => s.recruit_id === recruitId) || null;
       } catch (_) {
-        list = [];
+        /* fall through */
       }
     }
-    if (!list.length && window.getDefaultMySignups) {
-      list = window.getDefaultMySignups();
-    }
-    return list.find((s) => s.recruit_id === recruitId) || null;
+    return null;
   }
 
   async function saveCheckin(recruitId) {
     if (!window.HeroPlazaDB || !(await window.HeroPlazaDB.isAvailable())) return false;
-    const list = (await window.HeroPlazaDB.getAppState('my_signups')) || [];
-    const next = list.map((item) =>
-      item.recruit_id === recruitId
-        ? {
-            ...item,
-            checked_in: true,
-            checkin_at: new Date().toISOString(),
-            status: '已签到',
-          }
-        : item,
-    );
-    await window.HeroPlazaDB.setAppState('my_signups', next);
+    const signup = await loadSignup(recruitId);
+    if (!signup) return false;
+    const sid = signup.signup_id || signup.id;
+    await window.HeroPlazaDB.checkinSignup(sid);
     return true;
   }
 
@@ -159,8 +150,8 @@
       `<div class="recruit-detail-preview__body">` +
       `<span class="tag" style="${tagStyle}">${item.typeLabel}</span>` +
       `<h2 class="recruit-detail-preview__title">${item.title}</h2>` +
-      `<div class="card__meta">🕐 ${item.timeDisplay || item.start_at || ''}</div>` +
-      `<div class="card__meta">📍 ${item.location}</div>` +
+      `<div class="card__meta"><img class="card__meta-icon" src="../assets/icons/time.png" alt=""> ${item.timeDisplay || item.start_at || ''}</div>` +
+      `<div class="card__meta"><img class="card__meta-icon" src="../assets/icons/location.png" alt=""> ${item.location}</div>` +
       `<div class="recruit-detail-preview__publisher">` +
       `<span class="recruit-detail-preview__publisher-label">发布</span>` +
       `<span class="recruit-detail-preview__publisher-name">${item.hero_name}</span>` +
@@ -212,27 +203,24 @@
         return;
       }
       try {
-        const entry = {
-          id: `s${Date.now()}`,
+        const created = await db.createSignup({
           recruit_id: id,
           title: item.title,
           name: name.trim(),
           phone,
-          signed_at: new Date().toISOString(),
           start_at: item.start_at,
           end_at: item.end_at,
           location: item.location,
           fee: item.fee,
+          hero_id: item.hero_id,
+          type: 'event',
           status: '已报名',
-          payStatus: '待支付',
+          pay_status: '待支付',
           checked_in: false,
-        };
-        const signups = (await db.getAppState('my_signups')) || [];
-        await db.setAppState('my_signups', [entry, ...signups]);
+        });
         const nextSigned = (item.signed || 0) + 1;
-        await db.updateRecruitment(id, { ...item, signed: nextSigned });
         item.signed = nextSigned;
-        signup = entry;
+        signup = created;
         footerAction = resolve({ recruitment: item, signup });
         updateFooterButton(footer, footerAction);
         const bar = root.querySelector('.recruit-detail-preview__bar-inner');

@@ -24,7 +24,6 @@
           </view>
         </view>
       </view>
-      <text wx:if="{{item.content}}" class="my-review__content">{{item.content}}</text>
       <text wx:if="{{item.timeDisplay}}" class="my-review__time">{{item.timeDisplay}}</text>
     </view>
     <view wx:if="{{list.length === 0}}" class="my-review__empty">暂无评分</view>

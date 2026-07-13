@@ -98,10 +98,18 @@
 }
 
 .recruit-detail__meta {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
   margin-top: 12rpx;
   font-size: var(--text-body);
   color: var(--color-text-secondary);
+}
+
+.recruit-detail__meta-icon {
+  width: 28rpx;
+  height: 28rpx;
+  flex-shrink: 0;
 }
 
 .recruit-detail__publisher {

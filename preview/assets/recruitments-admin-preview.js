@@ -146,6 +146,9 @@
   }
 
   async function closeRecruitment(id) {
+    // #region agent log
+    fetch('http://127.0.0.1:7447/ingest/69cf0779-133f-40c0-9884-95fcd1c2d840',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'628f41'},body:JSON.stringify({sessionId:'628f41',runId:'pre-fix',hypothesisId:'C',location:'recruitments-admin-preview.js:closeRecruitment',message:'closeRecruitment called',data:{id},timestamp:Date.now()})}).catch(()=>{});
+    // #endregion
     const db = await getDb();
     if (!db) return;
     if (!window.confirm('确认关闭该赛事？关闭后前台将不再接受新报名。')) return;

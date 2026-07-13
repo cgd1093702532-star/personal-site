@@ -61,8 +61,8 @@
       `<div class="course-detail-preview__body">` +
       `<span class="tag tag--course">课程</span>` +
       `<h2 class="course-detail-preview__title">${escapeHtml(item.title)}</h2>` +
-      (item.time ? `<div class="card__meta">🕐 ${escapeHtml(item.time || item.timeDisplay)}</div>` : '') +
-      (item.location ? `<div class="card__meta">📍 ${escapeHtml(item.location)}</div>` : '') +
+      (item.time ? `<div class="card__meta"><img class="card__meta-icon" src="../assets/icons/time.png" alt=""> ${escapeHtml(item.time || item.timeDisplay)}</div>` : '') +
+      (item.location ? `<div class="card__meta"><img class="card__meta-icon" src="../assets/icons/location.png" alt=""> ${escapeHtml(item.location)}</div>` : '') +
       (item.hero_name ? `<div class="card__meta">授课：${escapeHtml(item.hero_name)}</div>` : '') +
       (item.total ? `<div class="card__meta">名额：${item.signed || 0}/${item.total} 人</div>` : '') +
       `<div class="course-detail-preview__section">` +
@@ -81,9 +81,39 @@
       window.initCoverCarousel(carousel);
     }
 
-    root.querySelector('#course-signup-btn')?.addEventListener('click', () => {
-      if (window.PreviewToast) {
-        window.PreviewToast.show('报名成功（预览）', 'success');
+    root.querySelector('#course-signup-btn')?.addEventListener('click', async () => {
+      const db = window.HeroPlazaDB;
+      if (!db || !(await db.isAvailable())) {
+        window.alert('报名失败，请确认本地数据库服务已启动（:8787）');
+        return;
+      }
+      const name = window.prompt('联系人姓名', '本地用户');
+      if (!name || !name.trim()) return;
+      const phone = window.prompt('手机号', '13800000000');
+      if (!phone || !/^1\d{10}$/.test(phone)) {
+        window.alert('请填写有效手机号');
+        return;
+      }
+      try {
+        await db.createSignup({
+          course_id: item.course_id || courseId,
+          title: item.title,
+          name: name.trim(),
+          phone,
+          fee: item.price != null ? item.price : item.fee,
+          location: item.location,
+          hero_id: item.hero_id || '1',
+          type: 'course',
+          type_label: '课程',
+          status: '已报名',
+          pay_status: '待支付',
+        });
+        if (window.PreviewToast) window.PreviewToast.show('报名成功', 'success');
+        else window.alert('报名成功');
+        load();
+      } catch (err) {
+        window.alert('报名失败');
+        console.error(err);
       }
     });
   }

@@ -107,21 +107,8 @@
     const ok = await db.isAvailable();
     if (!ok) throw new Error('db_offline');
     const item = formToCourse(form);
-    await db.createCourse(item);
-    const list = (await db.getAppState('my_courses')) || [];
-    const mine = {
-      course_id: item.course_id,
-      title: item.title,
-      price: item.price,
-      total: item.total,
-      signed: 0,
-      listTab: 'active',
-      location: '待完善',
-      timeDisplay: '待排期',
-      progress: 0,
-    };
-    await db.setAppState('my_courses', [mine, ...list]);
-    return item;
+    const saved = await db.createCourse({ ...item, hero_id: item.hero_id || '1', listTab: 'active' });
+    return saved;
   }
 
   function pinFooterToShell(root) {

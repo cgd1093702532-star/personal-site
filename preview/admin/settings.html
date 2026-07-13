@@ -9,11 +9,40 @@
 </head>
 <body data-admin-page="settings" data-admin-title="系统配置" data-admin-breadcrumb="管理中心 / 系统配置">
   <div id="admin-page-root">
-
-    <div class="admin-card"><div class="admin-card__body"><p class="admin-page-tip">功能开发中，敬请期待。</p></div></div>
-
+    <p id="settings-admin-hint" class="admin-page-tip"></p>
+    <div class="admin-card">
+      <div class="admin-card__body">
+        <h3 class="admin-card__title">概念命名</h3>
+        <div class="admin-filter" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <div class="admin-form-item"><label class="admin-form-item__label">英雄</label><input id="settings-copy-hero" class="admin-input" /></div>
+          <div class="admin-form-item"><label class="admin-form-item__label">招募</label><input id="settings-copy-recruitment" class="admin-input" /></div>
+          <div class="admin-form-item"><label class="admin-form-item__label">报名</label><input id="settings-copy-signup" class="admin-input" /></div>
+        </div>
+      </div>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card__body">
+        <h3 class="admin-card__title">功能开关</h3>
+        <div id="settings-features" class="admin-filter" style="display:grid;gap:8px"></div>
+      </div>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card__body">
+        <h3 class="admin-card__title">业务场景</h3>
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>名称</th><th>编码</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody id="settings-scenarios-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div style="margin:16px 0">
+      <button type="button" class="admin-btn admin-btn--primary" id="settings-save-btn">保存配置</button>
+    </div>
   </div>
   <script src="../assets/admin-layout.js"></script>
-
+  <script src="../assets/db-client.js"></script>
+  <script src="../assets/settings-admin-preview.js"></script>
 </body>
 </html>

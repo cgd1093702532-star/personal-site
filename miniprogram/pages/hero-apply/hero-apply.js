@@ -49,7 +49,60 @@ Page({
         setTimeout(() => wx.navigateBack(), 1500);
         return;
       }
+      if (role === 'rejected' && res.application) {
+        this.fillFromApplication(res.application);
+        return;
+      }
       this.initMockForm();
+    });
+  },
+
+  fillFromApplication(app) {
+    const projects = Array.isArray(app.project_types) ? app.project_types : [];
+    const selectedMap = {};
+    projects.forEach((t) => {
+      selectedMap[t] = true;
+    });
+    const certification = app.certification || '';
+    const certIndex = certification ? CERT_OPTIONS.indexOf(certification) + 1 : 0;
+    const certCount = Math.min(5, Number(app.cert_count) || 0);
+    let certFiles = Array.isArray(app.certFiles)
+      ? app.certFiles.filter((f) => f && f.url).slice(0, 5)
+      : [];
+    if (!certFiles.length && certCount > 0) {
+      certFiles = Array.from({ length: certCount }, (_, i) => ({
+        id: `draft-${i + 1}`,
+        label: `证书${i + 1}`,
+        url: 'draft',
+      }));
+    }
+    if (!certFiles.length) {
+      certFiles = [
+        { id: '1', label: '证书①', url: '' },
+        { id: '2', label: '证书②', url: '' },
+      ];
+    }
+    this.setData({
+      form: {
+        name: app.name || '',
+        phone: app.phone || '',
+        sms_code: '',
+        project_types: projects,
+        city: app.city || '',
+        certification,
+        years_exp: app.years_exp || '',
+        honors: app.honors || '',
+        bio: app.bio || '',
+      },
+      certIndex: certIndex > 0 ? certIndex : 0,
+      selectedMap,
+      certFiles,
+      videoPath: app.videoPath || '',
+      showSmsField: false,
+      smsCanSend: !!(app.phone || '').trim(),
+      smsSentOnce: false,
+      smsCountdown: 0,
+      agreed: false,
     });
   },
 
@@ -233,9 +286,21 @@ Page({
         wx.setStorageSync('mock_hero_role', 'pending');
         wx.redirectTo({ url: '/pages/hero-apply-submitted/hero-apply-submitted' });
       })
-      .catch(() => {
-        wx.setStorageSync('mock_hero_role', 'pending');
-        wx.redirectTo({ url: '/pages/hero-apply-submitted/hero-apply-submitted' });
+      .catch((err) => {
+        const code = (err && err.message) || '';
+        if (code === 'application_pending') {
+          wx.showToast({ title: '申请审核中，请勿重复提交', icon: 'none' });
+          return;
+        }
+        if (code === 'already_approved') {
+          wx.showToast({ title: '您已是认证英雄，无需重复申请', icon: 'none' });
+          return;
+        }
+        if (code === 'api_unavailable') {
+          wx.showToast({ title: '提交失败，请确认本地服务已启动', icon: 'none' });
+          return;
+        }
+        wx.showToast({ title: `提交失败：${code || '请稍后重试'}`, icon: 'none' });
       });
   },
 });

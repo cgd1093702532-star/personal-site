@@ -28,7 +28,7 @@
     </block>
 
     <view wx:if="{{currentList.length === 0}}" class="my-courses__empty">
-      <text class="my-courses__empty-icon">{{emptyState.icon}}</text>
+      <image class="my-courses__empty-icon" src="{{emptyState.icon}}" mode="aspectFit" />
       <text class="my-courses__empty-title">{{emptyState.title}}</text>
       <text class="my-courses__empty-hint">{{emptyState.hint}}</text>
     </view>

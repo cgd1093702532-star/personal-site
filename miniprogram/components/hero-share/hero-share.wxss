@@ -62,7 +62,8 @@
 }
 
 .share-sheet__icon {
-  font-size: 40rpx;
+  width: 44rpx;
+  height: 44rpx;
 }
 
 .share-sheet__label {

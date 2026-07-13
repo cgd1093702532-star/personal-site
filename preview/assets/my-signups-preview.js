@@ -32,12 +32,12 @@
 
   const EMPTY_STATES = {
     active: {
-      icon: '📋',
+      icon: '../assets/icons/list.png',
       title: '暂无进行中的报名',
       hint: '去首页看看热门招募，报名参加精彩水上活动',
     },
     ended: {
-      icon: '✅',
+      icon: '../assets/icons/check.png',
       title: '暂无已结束的报名',
       hint: '已结束的活动会显示在这里，方便查看历史记录',
     },
@@ -95,7 +95,7 @@
     let source = null;
     if (window.HeroPlazaDB && (await window.HeroPlazaDB.isAvailable())) {
       try {
-        source = (await window.HeroPlazaDB.getAppState('my_signups')) || [];
+        source = (await window.HeroPlazaDB.listMySignups()) || [];
       } catch (err) {
         console.warn('[my-signups] 数据库加载失败，回退静态数据', err);
       }
@@ -123,7 +123,7 @@
     const state = EMPTY_STATES[tab] || EMPTY_STATES.active;
     return (
       `<div class="my-signup__empty">` +
-      `<div class="my-signup__empty-icon">${state.icon}</div>` +
+      `<div class="my-signup__empty-icon"><img src="${state.icon}" alt=""></div>` +
       `<div class="my-signup__empty-title">${state.title}</div>` +
       `<div class="my-signup__empty-hint">${state.hint}</div>` +
       `</div>`
@@ -133,7 +133,7 @@
   function card(item) {
     const badgeLabel = item.listTab === 'ended' ? '已结束' : '进行中';
     const locationRow = item.location
-      ? `<div class="my-signup__row"><span class="my-signup__row-icon">📍</span><span class="my-signup__row-text">${item.location}</span></div>`
+      ? `<div class="my-signup__row"><img class="my-signup__row-icon" src="../assets/icons/location.png" alt=""><span class="my-signup__row-text">${item.location}</span></div>`
       : '';
     return (
       `<a class="my-signup__card nav-forward" href="recruitment-detail.html?id=${item.recruit_id}">` +
@@ -141,7 +141,7 @@
       `<span class="my-signup__title">${item.title}</span>` +
       `<span class="my-signup__badge my-signup__badge--${item.listTab}">${badgeLabel}</span>` +
       `</div>` +
-      `<div class="my-signup__row"><span class="my-signup__row-icon">📅</span><span class="my-signup__row-text">${item.timeDisplay || '时间待定'}</span></div>` +
+      `<div class="my-signup__row"><img class="my-signup__row-icon" src="../assets/icons/calendar.png" alt=""><span class="my-signup__row-text">${item.timeDisplay || '时间待定'}</span></div>` +
       locationRow +
       `<span class="my-signup__meta">¥${item.fee != null ? item.fee : '—'} · ${item.status} · ${item.payStatus}</span>` +
       `</a>`

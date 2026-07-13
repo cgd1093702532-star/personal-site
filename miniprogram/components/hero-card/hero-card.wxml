@@ -10,7 +10,9 @@
       </view>
       <view class="hero-card__honors" wx:if="{{hero.honor_titles && hero.honor_titles.length}}">
         <view class="hero-card__honor hero-card__honor--primary" wx:if="{{hero.honor_titles[0]}}">
-          <view class="hero-card__honor-icon">👑</view>
+          <view class="hero-card__honor-icon">
+            <image class="hero-card__honor-icon-img" src="/assets/icons/crown.png" mode="aspectFit" />
+          </view>
           <text class="hero-card__honor-text">{{hero.honor_titles[0]}}</text>
         </view>
         <view class="hero-card__honor hero-card__honor--secondary" wx:if="{{hero.honor_titles[1]}}">

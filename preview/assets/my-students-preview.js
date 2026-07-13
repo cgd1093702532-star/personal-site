@@ -37,7 +37,7 @@
       avatar +
       `<div class="my-student__info">` +
       `<span class="my-student__name">${item.nickname}</span>` +
-      `<span class="my-student__meta">参与 ${item.course_count || 0} 门课程 · 最近活跃 ${item.last_active || '—'}</span>` +
+      `<span class="my-student__meta">参与 ${item.course_count || 0} 门课程</span>` +
       `</div>` +
       `</article>`
     );

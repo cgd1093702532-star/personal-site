@@ -2,12 +2,12 @@ const data = require('../../utils/data.js');
 
 const EMPTY_STATES = {
   active: {
-    icon: '📋',
+    icon: '/assets/icons/list.png',
     title: '暂无进行中的报名',
     hint: '去首页看看热门招募，报名参加精彩水上活动',
   },
   ended: {
-    icon: '✅',
+    icon: '/assets/icons/check.png',
     title: '暂无已结束的报名',
     hint: '已结束的活动会显示在这里，方便查看历史记录',
   },

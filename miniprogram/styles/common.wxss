@@ -63,3 +63,37 @@
 .cover-placeholder--gray {
   background: var(--color-bg-subtle);
 }
+
+/* 扁平化图标（iconfont 风格线框） */
+.icon {
+  display: inline-block;
+  width: 40rpx;
+  height: 40rpx;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.icon--sm {
+  width: 28rpx;
+  height: 28rpx;
+}
+
+.icon--md {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.icon--lg {
+  width: 64rpx;
+  height: 64rpx;
+}
+
+.icon--xl {
+  width: 96rpx;
+  height: 96rpx;
+}
+
+.icon--block {
+  display: block;
+  margin: 0 auto;
+}

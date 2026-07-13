@@ -51,12 +51,12 @@
 
   const EMPTY_STATES = {
     active: {
-      icon: '📚',
+      icon: '../assets/icons/book.png',
       title: '暂无进行中的课程',
       hint: '发布课程，开始招募学员',
     },
     ended: {
-      icon: '✅',
+      icon: '../assets/icons/check.png',
       title: '暂无已结束的课程',
       hint: '已结束的课程会显示在这里，方便查看历史记录',
     },
@@ -113,11 +113,14 @@
     defaults.forEach((item) => map.set(item.course_id, item));
     if (window.HeroPlazaDB && (await window.HeroPlazaDB.isAvailable())) {
       try {
-        const stored = (await window.HeroPlazaDB.getAppState('my_courses')) || [];
-        stored.forEach((item) => {
-          const id = item.course_id || item.id;
-          if (id) map.set(id, { ...map.get(id), ...item });
-        });
+        const stored = (await window.HeroPlazaDB.listCourses({ hero_id: '1' })) || [];
+        if (stored.length) {
+          map.clear();
+          stored.forEach((item) => {
+            const id = item.course_id || item.id;
+            if (id) map.set(id, item);
+          });
+        }
       } catch (err) {
         console.warn('[my-courses] 数据库加载失败，回退静态数据', err);
       }
@@ -129,7 +132,7 @@
     const state = EMPTY_STATES[tab] || EMPTY_STATES.active;
     return (
       `<div class="my-courses__empty">` +
-      `<div class="my-courses__empty-icon">${state.icon}</div>` +
+      `<div class="my-courses__empty-icon"><img src="${state.icon}" alt=""></div>` +
       `<div class="my-courses__empty-title">${state.title}</div>` +
       `<div class="my-courses__empty-hint">${state.hint}</div>` +
       `</div>`

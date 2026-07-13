@@ -136,7 +136,7 @@
     return (
       `<div class="honor-row" data-honor-wrap="${index}">` +
       `<div class="hero-detail__honor honor-row__body">` +
-      `<div class="hero-detail__honor-icon">${item.icon}</div>` +
+      `<div class="hero-detail__honor-icon"><img class="hero-detail__honor-icon-img" src="${item.icon}" alt=""></div>` +
       `<div class="hero-detail__honor-body"><div class="hero-detail__honor-name">${item.name}</div>` +
       `<div class="hero-detail__honor-summary">${item.summary}</div></div></div>` +
       `<div class="honor-row__actions">` +
@@ -196,7 +196,7 @@
       `<div class="hero-profile-sheet__mask" data-honor-close></div>` +
       `<div class="hero-profile-sheet__panel">` +
       `<div class="hero-profile-sheet__title">${f.mode === 'add' ? '新增荣誉' : '编辑荣誉'}</div>` +
-      `<label class="hero-profile-sheet__field"><span class="hero-profile-sheet__label">图标（emoji）</span>` +
+      `<label class="hero-profile-sheet__field"><span class="hero-profile-sheet__label">图标</span>` +
       `<input class="hero-profile-sheet__input" id="honor-icon" value="${f.icon || ''}"></label>` +
       `<label class="hero-profile-sheet__field"><span class="hero-profile-sheet__label">荣誉名称</span>` +
       `<input class="hero-profile-sheet__input" id="honor-name" value="${f.name || ''}"></label>` +
@@ -320,7 +320,7 @@
     });
 
     root.querySelector('#add-honor')?.addEventListener('click', () => {
-      state.honorForm = { mode: 'add', index: -1, icon: '🏆', name: '', summary: '' };
+      state.honorForm = { mode: 'add', index: -1, icon: '../assets/icons/trophy.png', name: '', summary: '' };
       render();
     });
 
@@ -344,7 +344,7 @@
     });
 
     root.querySelector('#honor-save')?.addEventListener('click', () => {
-      const icon = root.querySelector('#honor-icon')?.value || '🏆';
+      const icon = root.querySelector('#honor-icon')?.value || '../assets/icons/trophy.png';
       const name = root.querySelector('#honor-name')?.value?.trim();
       const summary = root.querySelector('#honor-summary')?.value?.trim() || '';
       if (!name) {

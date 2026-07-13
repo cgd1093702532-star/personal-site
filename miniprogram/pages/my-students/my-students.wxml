@@ -10,7 +10,7 @@
       <view wx:else class="my-student__avatar my-student__avatar--placeholder cover-placeholder"></view>
       <view class="my-student__info">
         <text class="my-student__name">{{item.nickname}}</text>
-        <text class="my-student__meta">参与 {{item.course_count}} 门课程 · 最近活跃 {{item.last_active}}</text>
+        <text class="my-student__meta">参与 {{item.course_count}} 门课程</text>
       </view>
     </view>
     <view wx:if="{{list.length === 0}}" class="my-student__empty">暂无学员</view>

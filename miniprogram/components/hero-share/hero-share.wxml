@@ -5,13 +5,13 @@
     <view class="share-sheet__options">
       <button class="share-sheet__option share-sheet__option--btn" open-type="share" bindtap="onClose">
         <view class="share-sheet__icon-wrap">
-          <text class="share-sheet__icon">💬</text>
+          <image class="share-sheet__icon" src="/assets/icons/chat.png" mode="aspectFit" />
         </view>
         <text class="share-sheet__label">分享给好友</text>
       </button>
       <view class="share-sheet__option" bindtap="onPosterTap">
         <view class="share-sheet__icon-wrap">
-          <text class="share-sheet__icon">🖼</text>
+          <image class="share-sheet__icon" src="/assets/icons/image.png" mode="aspectFit" />
         </view>
         <text class="share-sheet__label">分享海报</text>
       </view>

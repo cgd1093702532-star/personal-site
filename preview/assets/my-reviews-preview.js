@@ -52,7 +52,7 @@
     let source = null;
     if (window.HeroPlazaDB && (await window.HeroPlazaDB.isAvailable())) {
       try {
-        source = (await window.HeroPlazaDB.getAppState('my_reviews')) || [];
+        source = (await window.HeroPlazaDB.listMyReviews()) || [];
       } catch (err) {
         console.warn('[my-reviews] 数据库加载失败，回退静态数据', err);
       }

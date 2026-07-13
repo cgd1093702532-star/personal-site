@@ -111,6 +111,62 @@
   margin-bottom: 12rpx;
 }
 
+.profile-orders {
+  margin: 32rpx 32rpx 0;
+  background: #fff;
+  border-radius: 24rpx;
+  border: 1rpx solid var(--color-divider);
+  overflow: hidden;
+}
+
+.profile-orders__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 28rpx 32rpx;
+  border-bottom: 1rpx solid var(--color-divider);
+}
+
+.profile-orders__title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.profile-orders__more {
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+}
+
+.profile-orders__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 32rpx 16rpx 36rpx;
+  gap: 8rpx;
+}
+
+.profile-orders__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  min-width: 0;
+}
+
+.profile-orders__icon {
+  width: 56rpx;
+  height: 56rpx;
+  display: block;
+}
+
+.profile-orders__label {
+  font-size: 22rpx;
+  color: var(--color-text-primary);
+  text-align: center;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
 .profile-hero-shortcuts {
   display: flex;
   flex-direction: column;
@@ -145,8 +201,9 @@
 }
 
 .profile-hero-shortcuts__icon {
-  font-size: 40rpx;
-  line-height: 1;
+  width: 40rpx;
+  height: 40rpx;
+  display: block;
 }
 
 .profile-hero-shortcuts__label {
@@ -188,6 +245,12 @@
 .profile-hero-cta--pending {
   background: var(--color-bg-subtle);
   border-color: var(--color-divider);
+  box-shadow: none;
+}
+
+.profile-hero-cta--rejected {
+  background: #fff7f7;
+  border-color: #ffccc7;
   box-shadow: none;
 }
 
@@ -243,11 +306,11 @@
 .profile-menu__icon {
   width: 72rpx;
   height: 72rpx;
-  line-height: 72rpx;
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border-radius: var(--radius-md);
   background: var(--color-bg-subtle);
-  font-size: 32rpx;
   flex-shrink: 0;
 }
 

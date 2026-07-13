@@ -76,8 +76,14 @@
       return request(`/api/recruitments/${id}`, { method: 'DELETE' });
     },
 
-    async listCourses() {
-      const data = await request('/api/courses');
+    async listHeroes() {
+      const data = await request('/api/heroes');
+      return data.items || [];
+    },
+
+    async listCourses(query) {
+      const qs = query ? `?${new URLSearchParams(query).toString()}` : '';
+      const data = await request(`/api/courses${qs}`);
       return data.items || [];
     },
 
@@ -99,15 +105,155 @@
       });
     },
 
-    async getMyRecruitmentLists() {
+    async createSignup(item) {
+      return request('/api/signups', {
+        method: 'POST',
+        body: JSON.stringify(item),
+      });
+    },
+
+    async listMySignups(userId) {
+      const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+      const data = await request(`/api/signups/mine${qs}`);
+      return data.items || [];
+    },
+
+    async listSignups(query) {
+      const qs = query ? `?${new URLSearchParams(query).toString()}` : '';
+      const data = await request(`/api/signups${qs}`);
+      return data.items || [];
+    },
+
+    async checkinSignup(id) {
+      return request(`/api/signups/${id}/checkin`, { method: 'POST', body: '{}' });
+    },
+
+    async updateSignup(id, patch) {
+      return request(`/api/signups/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(patch),
+      });
+    },
+
+    async listReviews(query) {
+      const qs = query ? `?${new URLSearchParams(query).toString()}` : '';
+      const data = await request(`/api/reviews${qs}`);
+      return data.items || [];
+    },
+
+    async listMyReviews(userId) {
+      const qs = userId ? `?user_id=${encodeURIComponent(userId)}` : '';
+      const data = await request(`/api/reviews/mine${qs}`);
+      return data.items || [];
+    },
+
+    async createReview(item) {
+      return request('/api/reviews', {
+        method: 'POST',
+        body: JSON.stringify(item),
+      });
+    },
+
+    async listHeroStudents(heroId) {
+      const data = await request(`/api/heroes/${heroId}/students`);
+      return data.items || [];
+    },
+
+    async submitProfileChange(heroId, patch, changeType) {
+      return request(`/api/heroes/${heroId}/profile-changes`, {
+        method: 'POST',
+        body: JSON.stringify({ patch, change_type: changeType || 'profile' }),
+      });
+    },
+
+    async getDashboard() {
+      return request('/api/admin/dashboard');
+    },
+
+    async listAdminReviews(query) {
+      const qs = query ? `?${new URLSearchParams(query).toString()}` : '';
+      const data = await request(`/api/admin/reviews${qs}`);
+      return data.items || [];
+    },
+
+    async hideReview(id) {
+      return request(`/api/admin/reviews/${id}/hide`, { method: 'POST', body: '{}' });
+    },
+
+    async deleteReview(id) {
+      return request(`/api/admin/reviews/${id}/delete`, { method: 'POST', body: '{}' });
+    },
+
+    async listUsers(query) {
+      const qs = query ? `?${new URLSearchParams(query).toString()}` : '';
+      const data = await request(`/api/admin/users${qs}`);
+      return data.items || [];
+    },
+
+    async disableUser(id) {
+      return request(`/api/admin/users/${id}/disable`, { method: 'POST', body: '{}' });
+    },
+
+    async enableUser(id) {
+      return request(`/api/admin/users/${id}/enable`, { method: 'POST', body: '{}' });
+    },
+
+    async listProfileChanges(query) {
+      const qs = query ? `?${new URLSearchParams(query).toString()}` : '';
+      const data = await request(`/api/admin/profile-changes${qs}`);
+      return data.items || [];
+    },
+
+    async getProfileChange(id) {
+      return request(`/api/admin/profile-changes/${id}`);
+    },
+
+    async approveProfileChange(id) {
+      return request(`/api/admin/profile-changes/${id}/approve`, { method: 'POST', body: '{}' });
+    },
+
+    async rejectProfileChange(id, reason) {
+      return request(`/api/admin/profile-changes/${id}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason: reason || '' }),
+      });
+    },
+
+    async getSettings() {
+      return request('/api/admin/settings');
+    },
+
+    async updateSettings(patch) {
+      return request('/api/admin/settings', {
+        method: 'PUT',
+        body: JSON.stringify(patch),
+      });
+    },
+
+    async getMyRecruitmentLists(userId) {
       const tabs = ['active', 'ended', 'draft'];
       const lists = {};
+      const uid = userId || 'mock-user-1';
       for (let i = 0; i < tabs.length; i += 1) {
         const tab = tabs[i];
-        const data = await request(`/api/recruitments/mine/${tab}`);
+        const data = await request(
+          `/api/recruitments/mine/${tab}?user_id=${encodeURIComponent(uid)}`,
+        );
         lists[tab] = data.items || [];
       }
       return lists;
+    },
+
+    async resolveCurrentHero(userId) {
+      const res = await this.getHeroApplyStatus(userId);
+      if (res?.status === 'approved') {
+        const app = res.application || {};
+        return {
+          hero_id: res.hero_id || app.hero_id || '1',
+          hero_name: app.name || '英雄',
+        };
+      }
+      return null;
     },
 
     async getAppState(key) {
@@ -204,6 +350,25 @@
       const qs = query ? `?${new URLSearchParams(query).toString()}` : '';
       const data = await request(`/api/admin/heroes${qs}`);
       return data.items || [];
+    },
+
+    async createAdminHero(payload) {
+      return request('/api/admin/heroes', {
+        method: 'POST',
+        body: JSON.stringify(payload || {}),
+      });
+    },
+
+    async enableAdminHero(heroId) {
+      return request(`/api/admin/heroes/${heroId}/enable`, { method: 'POST', body: '{}' });
+    },
+
+    async disableAdminHero(heroId) {
+      return request(`/api/admin/heroes/${heroId}/disable`, { method: 'POST', body: '{}' });
+    },
+
+    async deleteAdminHero(heroId) {
+      return request(`/api/admin/heroes/${heroId}`, { method: 'DELETE' });
     },
 
     async reset() {

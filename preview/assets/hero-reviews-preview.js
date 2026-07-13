@@ -55,7 +55,9 @@
     let source = null;
     if (window.HeroPlazaDB && (await window.HeroPlazaDB.isAvailable())) {
       try {
-        source = (await window.HeroPlazaDB.getAppState('hero_ratings')) || [];
+        const params = new URLSearchParams(window.location.search);
+        const heroId = params.get('id') || params.get('hero_id') || '1';
+        source = (await window.HeroPlazaDB.listReviews({ hero_id: heroId })) || [];
       } catch (err) {
         console.warn('[hero-reviews] 数据库加载失败，回退静态数据', err);
       }
@@ -75,7 +77,6 @@
     const avatar = item.reviewer_avatar
       ? `<img class="my-review__avatar" src="${item.reviewer_avatar}" alt="">`
       : `<span class="my-review__avatar my-review__avatar--placeholder"></span>`;
-    const content = item.content ? `<p class="my-review__content">${item.content}</p>` : '';
     const time = item.timeDisplay ? `<span class="my-review__time">${item.timeDisplay}</span>` : '';
     return (
       `<article class="my-review__item">` +
@@ -89,7 +90,6 @@
       `</div>` +
       `</div>` +
       `</div>` +
-      content +
       time +
       `</article>`
     );

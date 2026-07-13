@@ -124,7 +124,7 @@ Page({
 
   onAddHonor() {
     this.setData({
-      honorForm: { visible: true, mode: 'add', index: -1, icon: '🏆', name: '', summary: '' },
+      honorForm: { visible: true, mode: 'add', index: -1, icon: '/assets/icons/trophy.png', name: '', summary: '' },
     });
   },
 
@@ -180,7 +180,7 @@ Page({
     }
     const item = {
       id: mode === 'edit' ? honors[index].id : `honor-${Date.now()}`,
-      icon: icon || '🏆',
+      icon: icon || '/assets/icons/trophy.png',
       name: name.trim(),
       summary: (summary || '').trim(),
     };

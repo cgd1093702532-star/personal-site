@@ -34,7 +34,7 @@
     />
 
     <view wx:if="{{heroes.length === 0 && keyword}}" class="heroes-empty">
-      <text class="heroes-empty__icon">🔍</text>
+      <image class="heroes-empty__icon" src="/assets/icons/search.png" mode="aspectFit" />
       <text class="heroes-empty__title">未找到相关教练和项目</text>
       <text class="heroes-empty__hint">试试调整关键词或筛选条件</text>
     </view>

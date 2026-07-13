@@ -28,8 +28,8 @@
           <text class="hero-profile__stat-label">学员</text>
         </view>
         <view class="hero-profile__stat">
-          <text class="hero-profile__stat-num">{{hero.rating}}</text>
-          <text class="hero-profile__stat-label">评分</text>
+          <text class="hero-profile__stat-num">{{certCount}}</text>
+          <text class="hero-profile__stat-label">资质等级</text>
         </view>
         <view class="hero-profile__stat">
           <text class="hero-profile__stat-num">{{hero.honors_count}}</text>
@@ -47,24 +47,9 @@
   <view class="hero-detail__block" wx:if="{{hero.past_honors.length}}">
     <text class="hero-detail__label">过往荣誉</text>
     <view class="hero-detail__honor" wx:for="{{hero.past_honors}}" wx:key="name">
-      <view class="hero-detail__honor-icon">{{item.icon}}</view>
       <view class="hero-detail__honor-body">
         <text class="hero-detail__honor-name">{{item.name}}</text>
-        <text class="hero-detail__honor-summary">{{item.summary}}</text>
       </view>
-    </view>
-  </view>
-
-  <view class="hero-detail__block" wx:if="{{hero.moments.length}}">
-    <text class="hero-detail__label">精彩瞬间</text>
-    <view class="hero-detail__gallery">
-      <view
-        class="hero-detail__gallery-item cover-placeholder"
-        wx:for="{{hero.moments}}"
-        wx:key="*this"
-        data-current="{{item}}"
-        bindtap="onPreviewMoment"
-      ></view>
     </view>
   </view>
 
@@ -82,6 +67,19 @@
         <text class="hero-detail__cert-name">{{item.name}}</text>
       </view>
     </scroll-view>
+  </view>
+
+  <view class="hero-detail__block" wx:if="{{hero.moments.length}}">
+    <text class="hero-detail__label">个人展示</text>
+    <view class="hero-detail__gallery">
+      <view
+        class="hero-detail__gallery-item cover-placeholder"
+        wx:for="{{hero.moments}}"
+        wx:key="*this"
+        data-current="{{item}}"
+        bindtap="onPreviewMoment"
+      ></view>
+    </view>
   </view>
 
   <view class="hero-detail__block" wx:if="{{recruitments.length}}">

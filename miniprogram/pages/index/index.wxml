@@ -19,7 +19,9 @@
   <!-- 金刚区 -->
   <view class="home-nav section">
     <view class="home-nav__item" wx:for="{{shortNav}}" wx:key="id">
-      <view class="home-nav__icon">{{item.icon}}</view>
+      <view class="home-nav__icon">
+        <image class="home-nav__icon-img" src="{{item.icon}}" mode="aspectFit" />
+      </view>
       <text class="home-nav__label">{{item.label}}</text>
     </view>
   </view>

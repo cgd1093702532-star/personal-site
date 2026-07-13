@@ -147,7 +147,7 @@
           <text class="apply-video__selected">已选择视频，点击重新上传</text>
         </block>
         <block wx:else>
-          <text class="apply-video__icon">🎬</text>
+          <image class="apply-video__icon" src="/assets/icons/video.png" mode="aspectFit" />
           <text class="apply-video__hint">点击上传/拍摄视频介绍（建议30秒以内）</text>
         </block>
       </view>

@@ -26,9 +26,15 @@ STATUS_DARK = f'''<div class="status-bar status-bar--dark">
     </div>'''
 
 def tabbar(active):
+    icons = {
+        "index.html": '<svg class="tabbar__svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
+        "heroes.html": '<svg class="tabbar__svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 19.5c1.2-3.2 3.5-4.8 6.5-4.8s5.3 1.6 6.5 4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.5 7.2l1.2-2.1 2.2.4-1.1 2.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        "mall.html": '<svg class="tabbar__svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 8h12l-1 11H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8a3 3 0 016 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+        "profile.html": '<svg class="tabbar__svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 19.5c1.2-3.2 3.5-4.8 6.5-4.8s5.3 1.6 6.5 4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    }
     tabs = [("index.html", "首页"), ("heroes.html", "英雄"), ("mall.html", "商城"), ("profile.html", "我的")]
     return "\n          ".join(
-        f'<a class="{"active" if h == active else ""}" href="{h}"><span class="tabbar__icon"></span>{l}</a>'
+        f'<a class="{"active" if h == active else ""}" href="{h}"><span class="tabbar__icon">{icons[h]}</span>{l}</a>'
         for h, l in tabs
     )
 

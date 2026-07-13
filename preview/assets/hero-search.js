@@ -193,19 +193,29 @@
     });
 
     const hasKeyword = keyword.length > 0;
+    const hasFilters = countActiveFilters() > 0;
     list.style.display = visible.length === 0 ? 'none' : '';
     if (empty) {
       empty.style.display = visible.length === 0 ? 'flex' : 'none';
       if (hasKeyword && visible.length === 0) {
-        empty.querySelector('.heroes-empty-state__title').textContent = '未找到相关教练和项目';
-        empty.querySelector('.heroes-empty-state__hint').textContent = '试试调整关键词或筛选条件';
-      } else if (!hasKeyword && visible.length === 0) {
-        empty.querySelector('.heroes-empty-state__title').textContent = '暂无符合条件的认证教练';
-        empty.querySelector('.heroes-empty-state__hint').textContent = '可尝试切换项目或年限筛选';
+        const title = empty.querySelector('.heroes-empty-state__title');
+        const hint = empty.querySelector('.heroes-empty-state__hint');
+        if (title) title.textContent = '未找到相关教练和项目';
+        if (hint) hint.textContent = '试试调整关键词或筛选条件';
+      } else if ((hasFilters || !all.length) && visible.length === 0) {
+        const title = empty.querySelector('.heroes-empty-state__title');
+        const hint = empty.querySelector('.heroes-empty-state__hint');
+        if (title) title.textContent = all.length ? '未找到相关教练和项目' : '暂无认证教练';
+        if (hint) {
+          hint.textContent = all.length
+            ? '试试调整关键词或筛选条件'
+            : '后台「英雄管理」开启后将显示在此';
+        }
       }
     }
-    updateSearchStatus(keyword, visible.length);
+
     updateClearButton();
+    updateSearchStatus(keyword, visible.length);
     updateFilterBtn();
   }
 
@@ -325,4 +335,7 @@
   }
 
   render();
+  document.addEventListener('heroes-list-updated', () => {
+    render();
+  });
 })();

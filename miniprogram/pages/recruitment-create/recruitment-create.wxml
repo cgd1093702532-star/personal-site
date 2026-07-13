@@ -116,7 +116,7 @@
           <text class="create-cover__hint">点击更换封面图</text>
         </block>
         <block wx:else>
-          <text class="create-cover__icon">🖼</text>
+          <image class="create-cover__icon" src="/assets/icons/image.png" mode="aspectFit" />
           <text class="create-cover__hint">点击上传封面图（建议比例 16:9）</text>
         </block>
       </view>

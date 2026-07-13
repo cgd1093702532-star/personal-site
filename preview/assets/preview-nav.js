@@ -328,4 +328,11 @@
   });
 
   window.PreviewNav = { navigateTo, goBack, getStack: () => readStack() };
+
+  // 全局注入 Toast，保证各页提示都在当前手机页内居中
+  if (!window.PreviewToast) {
+    const toastScript = document.createElement('script');
+    toastScript.src = new URL('../assets/preview-toast.js', window.location.href).href;
+    document.head.appendChild(toastScript);
+  }
 })();

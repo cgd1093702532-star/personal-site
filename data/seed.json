@@ -3,8 +3,18 @@
     "1": {
       "name": "小哥",
       "avatar_img": "hero-1.jpg",
+      "phone": "13899999999",
+      "city": "海南/三亚",
+      "certification": "国家级教练",
+      "supplier_id": "10238333",
+      "enabled": true,
+      "audit_status": "approved",
+      "reviewer": "小李",
+      "reviewed_at": "2026-12-12T12:00:00",
+      "channel": "后台创建",
+      "applied_at": "2026-12-12T12:00:00",
       "rating": 4.9,
-      "years_exp": 15,
+      "years_exp": 10,
       "student_count": 128,
       "honors_count": 3,
       "project_types": [
@@ -106,8 +116,18 @@
     "2": {
       "name": "熊猫",
       "avatar_img": "hero-2.jpg",
+      "phone": "13899999998",
+      "city": "海南/三亚",
+      "certification": "国家级教练",
+      "supplier_id": "10238334",
+      "enabled": false,
+      "audit_status": "rejected",
+      "reviewer": "小李",
+      "reviewed_at": "2026-12-13T12:00:00",
+      "channel": "自主申请",
+      "applied_at": "2026-12-13T12:00:00",
       "rating": 4.8,
-      "years_exp": 15,
+      "years_exp": 11,
       "student_count": 96,
       "honors_count": 2,
       "project_types": [
@@ -197,8 +217,18 @@
     "3": {
       "name": "Amy",
       "avatar_img": "hero-1.jpg",
+      "phone": "13899999997",
+      "city": "海南/三亚",
+      "certification": "国家级教练",
+      "supplier_id": "10238335",
+      "enabled": false,
+      "audit_status": "pending",
+      "reviewer": "",
+      "reviewed_at": "",
+      "channel": "",
+      "applied_at": "",
       "rating": 4.6,
-      "years_exp": 5,
+      "years_exp": 12,
       "student_count": 64,
       "honors_count": 1,
       "project_types": [
@@ -291,6 +321,16 @@
     "4": {
       "name": "大伟",
       "avatar_img": "hero-2.jpg",
+      "phone": "13899999996",
+      "city": "山东/青岛",
+      "certification": "国家级帆船教练",
+      "supplier_id": "10238336",
+      "enabled": true,
+      "audit_status": "approved",
+      "reviewer": "小李",
+      "reviewed_at": "2026-11-20T10:00:00",
+      "channel": "自主申请",
+      "applied_at": "2026-11-18T09:30:00",
       "rating": 5.0,
       "years_exp": 20,
       "student_count": 210,
@@ -667,9 +707,13 @@
       "time": "7月26日 09:00 - 16:30",
       "description": "ASA 101+103 组合课程，适合零基础学员，含理论讲解、岸上模拟与水上实操。",
       "detail_html": "<p>ASA 101+103 组合课程，适合<strong>零基础学员</strong>。</p><ul><li>理论讲解与岸上模拟</li><li>水上实操与结业评估</li></ul>",
-      "banner_images": ["course.jpg"],
+      "banner_images": [
+        "course.jpg"
+      ],
       "cover_image": "course",
-      "course_id": "c1"
+      "course_id": "c1",
+      "hero_id": "1",
+      "listTab": "active"
     },
     {
       "id": "c2",
@@ -684,9 +728,14 @@
       "time": "7月18日 10:00 - 12:00",
       "description": "桨板入门体验，含安全讲解、基础站姿与划行练习，适合亲子与新手参与。",
       "detail_html": "<p>桨板入门体验，含安全讲解与基础划行练习。</p>",
-      "banner_images": ["course.jpg", "event.jpg"],
+      "banner_images": [
+        "course.jpg",
+        "event.jpg"
+      ],
       "cover_image": "course",
-      "course_id": "c2"
+      "course_id": "c2",
+      "hero_id": "1",
+      "listTab": "active"
     },
     {
       "id": "c3",
@@ -701,9 +750,13 @@
       "time": "8月10日 09:00 - 17:00",
       "description": "潜水基础课程，含装备介绍、平静水域技巧与开放水域体验。",
       "detail_html": "<p>潜水基础课程，含装备介绍与开放水域体验。</p>",
-      "banner_images": ["course.jpg"],
+      "banner_images": [
+        "course.jpg"
+      ],
       "cover_image": "course",
-      "course_id": "c3"
+      "course_id": "c3",
+      "hero_id": "1",
+      "listTab": "active"
     }
   ],
   "signups": [
@@ -719,7 +772,9 @@
       "fee": 500,
       "status": "confirmed",
       "pay_status": "unpaid",
-      "created_at": "2026-07-01T10:00:00"
+      "created_at": "2026-07-01T10:00:00",
+      "user_id": "u-zhang",
+      "hero_id": "1"
     },
     {
       "signup_id": "su2",
@@ -733,7 +788,9 @@
       "fee": 500,
       "status": "confirmed",
       "pay_status": "paid",
-      "created_at": "2026-07-02T14:30:00"
+      "created_at": "2026-07-02T14:30:00",
+      "user_id": "u-li",
+      "hero_id": "1"
     },
     {
       "signup_id": "su3",
@@ -747,7 +804,9 @@
       "fee": 680,
       "status": "pending",
       "pay_status": "unpaid",
-      "created_at": "2026-07-05T09:15:00"
+      "created_at": "2026-07-05T09:15:00",
+      "user_id": "u-wang",
+      "hero_id": "1"
     },
     {
       "signup_id": "su4",
@@ -761,7 +820,9 @@
       "fee": 800,
       "status": "confirmed",
       "pay_status": "paid",
-      "created_at": "2026-06-28T16:00:00"
+      "created_at": "2026-06-28T16:00:00",
+      "user_id": "u-zhao",
+      "hero_id": "1"
     },
     {
       "signup_id": "su5",
@@ -775,10 +836,155 @@
       "fee": 1280,
       "status": "cancelled",
       "pay_status": "refunded",
-      "created_at": "2026-06-20T11:00:00"
+      "created_at": "2026-06-20T11:00:00",
+      "user_id": "u-chen",
+      "hero_id": "1"
     }
   ],
   "app_state": {
     "mock_hero_role": ""
+  },
+  "users": [
+    {
+      "user_id": "mock-user-1",
+      "nickname": "本地用户",
+      "name": "本地用户",
+      "phone": "13800000000",
+      "status": "active",
+      "registered_at": "2026-06-01T10:00:00",
+      "hero_id": null
+    },
+    {
+      "user_id": "u-zhang",
+      "nickname": "张三",
+      "name": "张三",
+      "phone": "13800138001",
+      "status": "active",
+      "registered_at": "2026-06-10T09:00:00",
+      "hero_id": null
+    },
+    {
+      "user_id": "u-li",
+      "nickname": "李四",
+      "name": "李四",
+      "phone": "13900139002",
+      "status": "active",
+      "registered_at": "2026-06-12T11:00:00",
+      "hero_id": null
+    },
+    {
+      "user_id": "u-wang",
+      "nickname": "王五",
+      "name": "王五",
+      "phone": "13700137003",
+      "status": "disabled",
+      "registered_at": "2026-05-20T16:00:00",
+      "hero_id": null
+    }
+  ],
+  "reviews": [
+    {
+      "review_id": "rv1",
+      "hero_id": "1",
+      "user_id": "u-zhang",
+      "reviewer_nickname": "学员小李",
+      "reviewer_avatar": "",
+      "score": 5,
+      "content": "组织很好，体验棒！",
+      "reviewed_at": "2026-06-15T14:30:00",
+      "title": "企业家杯月赛",
+      "scene": "赛事",
+      "status": "visible"
+    },
+    {
+      "review_id": "rv2",
+      "hero_id": "1",
+      "user_id": "u-li",
+      "reviewer_nickname": "航海爱好者",
+      "reviewer_avatar": "",
+      "score": 4.5,
+      "content": "教练很专业，场地设施也不错。",
+      "reviewed_at": "2026-06-08T10:00:00",
+      "title": "周末帆船体验营",
+      "scene": "活动",
+      "status": "visible"
+    },
+    {
+      "review_id": "rv3",
+      "hero_id": "2",
+      "user_id": "u-wang",
+      "reviewer_nickname": "张女士",
+      "reviewer_avatar": "",
+      "score": 2,
+      "content": "等待时间偏长，希望改进。",
+      "reviewed_at": "2026-05-28T16:20:00",
+      "title": "亲子帆船体验日",
+      "scene": "课程",
+      "status": "visible"
+    },
+    {
+      "review_id": "rv4",
+      "hero_id": "1",
+      "user_id": "mock-user-1",
+      "reviewer_nickname": "本地用户",
+      "reviewer_avatar": "",
+      "score": 5,
+      "content": "非常推荐，下次还来。",
+      "reviewed_at": "2026-07-01T12:00:00",
+      "title": "ASA101-103培训课",
+      "scene": "课程",
+      "status": "hidden"
+    }
+  ],
+  "profile_change_requests": [
+    {
+      "change_id": "pc1",
+      "hero_id": "1",
+      "hero_name": "船长老王",
+      "change_type": "profile",
+      "change_type_label": "资料变更",
+      "before": {
+        "about_me": "资深帆船教练"
+      },
+      "after": {
+        "about_me": "资深帆船教练，专注企业团建与亲子体验。"
+      },
+      "submitted_at": "2026-07-08T09:30:00",
+      "status": "pending"
+    }
+  ],
+  "settings": {
+    "scenarios": [
+      {
+        "id": "water",
+        "name": "水上运动",
+        "code": "water",
+        "status": "active"
+      },
+      {
+        "id": "hotel",
+        "name": "酒店预订",
+        "code": "hotel",
+        "status": "active"
+      },
+      {
+        "id": "venue",
+        "name": "场地预约",
+        "code": "venue",
+        "status": "disabled"
+      }
+    ],
+    "copy": {
+      "hero": "英雄",
+      "recruitment": "招募",
+      "signup": "报名"
+    },
+    "features": {
+      "hero_apply": true,
+      "rating": true,
+      "certificates": true,
+      "online_pay": false,
+      "geolocation": false
+    }
   }
 }

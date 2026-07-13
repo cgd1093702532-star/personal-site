@@ -269,8 +269,8 @@
 }
 
 .apply-video__icon {
-  font-size: 48rpx;
-  line-height: 1;
+  width: 48rpx;
+  height: 48rpx;
 }
 
 .apply-video__hint,

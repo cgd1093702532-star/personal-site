@@ -1,4 +1,5 @@
 const mock = require('../../utils/mock.js');
+const data = require('../../utils/data.js');
 
 Page({
   data: {
@@ -19,17 +20,32 @@ Page({
     this.loadData();
   },
 
+  onShow() {
+    this.loadHeroes();
+  },
+
+  loadHeroes() {
+    return data
+      .getHeroes({})
+      .then((heroes) => {
+        this.setData({ heroes: (heroes || []).slice(0, 6) });
+      })
+      .catch(() => {
+        this.setData({ heroes: mock.heroes });
+      });
+  },
+
   loadData() {
     this.setData({
       banner: mock.banner,
       shortNav: mock.shortNav,
       membership: mock.membership,
-      heroes: mock.heroes,
       events: mock.events,
       courses: mock.courses,
       products: mock.products,
       news: mock.news,
     });
+    this.loadHeroes();
   },
 
   onPullDownRefresh() {

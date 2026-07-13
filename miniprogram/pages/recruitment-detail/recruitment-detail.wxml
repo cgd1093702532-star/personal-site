@@ -28,8 +28,14 @@
   <view class="recruit-detail__body">
     <category-tag label="{{item.typeLabel}}" variant="{{item.type === 'event' ? 'event' : 'activity'}}" />
     <text class="recruit-detail__title">{{item.title}}</text>
-    <text class="recruit-detail__meta">🕐 {{item.timeDisplay}}</text>
-    <text class="recruit-detail__meta">📍 {{item.location}}</text>
+    <view class="recruit-detail__meta">
+      <image class="recruit-detail__meta-icon" src="/assets/icons/time.png" mode="aspectFit" />
+      <text>{{item.timeDisplay}}</text>
+    </view>
+    <view class="recruit-detail__meta">
+      <image class="recruit-detail__meta-icon" src="/assets/icons/location.png" mode="aspectFit" />
+      <text>{{item.location}}</text>
+    </view>
     <view class="recruit-detail__publisher">
       <text class="recruit-detail__publisher-label">发布</text>
       <text class="recruit-detail__publisher-name">{{item.hero_name}}</text>

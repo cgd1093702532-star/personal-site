@@ -17,11 +17,11 @@
           <div class="share-sheet__title">分享到</div>
           <div class="share-sheet__options">
             <button type="button" class="share-sheet__option" data-action="card">
-              <span class="share-sheet__icon-wrap"><span class="share-sheet__icon">💬</span></span>
+              <span class="share-sheet__icon-wrap"><img class="share-sheet__icon" src="../assets/icons/chat.png" alt=""></span>
               <span class="share-sheet__label">分享给好友</span>
             </button>
             <button type="button" class="share-sheet__option" data-action="poster">
-              <span class="share-sheet__icon-wrap"><span class="share-sheet__icon">🖼</span></span>
+              <span class="share-sheet__icon-wrap"><img class="share-sheet__icon" src="../assets/icons/image.png" alt=""></span>
               <span class="share-sheet__label">分享海报</span>
             </button>
           </div>

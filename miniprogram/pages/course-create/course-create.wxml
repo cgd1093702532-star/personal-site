@@ -21,7 +21,7 @@
       mode="aspectFill"
     />
     <view wx:else class="course-create-banner__placeholder" bindtap="onAddBanner">
-      <text class="course-create-banner__placeholder-icon">🖼</text>
+      <image class="course-create-banner__placeholder-icon" src="/assets/icons/image.png" mode="aspectFit" />
       <text class="course-create-banner__placeholder-text">点击上传 Banner 图片</text>
     </view>
     <view wx:if="{{banners.length}}" class="course-create-banner__add" bindtap="onAddBanner">+ 添加 Banner 图片</view>

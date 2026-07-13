@@ -171,6 +171,18 @@
     if (!ok) throw new Error('db_offline');
     const existing = options.sourceItem || {};
     const item = formToRecruitment(form, existing);
+    if (!existing.hero_id || existing.hero_id === '1') {
+      try {
+        const hero = await db.resolveCurrentHero();
+        if (hero?.hero_id) {
+          item.hero_id = hero.hero_id;
+          item.hero_name = hero.hero_name || item.hero_name;
+        }
+      } catch (_) {
+        /* keep defaults */
+      }
+    }
+    item.user_id = item.user_id || 'mock-user-1';
     if (mode === 'draft') {
       item.displayStatus = 'draft';
       item.listTab = 'draft';

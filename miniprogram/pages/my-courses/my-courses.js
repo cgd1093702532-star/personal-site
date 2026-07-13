@@ -2,12 +2,12 @@ const data = require('../../utils/data.js');
 
 const EMPTY_STATES = {
   active: {
-    icon: '📚',
+    icon: '/assets/icons/book.png',
     title: '暂无进行中的课程',
     hint: '发布课程，开始招募学员',
   },
   ended: {
-    icon: '✅',
+    icon: '/assets/icons/check.png',
     title: '暂无已结束的课程',
     hint: '已结束的课程会显示在这里，方便查看历史记录',
   },

@@ -2,19 +2,19 @@ const data = require('../../utils/data.js');
 
 const EMPTY_STATES = {
   draft: {
-    icon: '📝',
+    icon: '/assets/icons/edit.png',
     title: '暂无草稿',
     hint: '创建赛事招募后可保存为草稿，方便稍后继续编辑',
     actionText: '发布赛事招募',
   },
   active: {
-    icon: '📢',
+    icon: '/assets/icons/announce.png',
     title: '暂无进行中的招募',
     hint: '发布赛事招募，开始招募学员与参赛选手',
     actionText: '发布赛事招募',
   },
   ended: {
-    icon: '📋',
+    icon: '/assets/icons/list.png',
     title: '暂无已结束的招募',
     hint: '已结束的活动会显示在这里，方便查看历史数据',
     actionText: '',
@@ -40,6 +40,12 @@ function enrichItem(item) {
   if (item.listTab === 'draft') actionType = 'draft';
   else if (item.displayStatus === 'closed' || item.displayStatus === 'ended') actionType = 'closed';
 
+  const cover = (item.cover_images && item.cover_images[0]) || 'recruit-cover.jpg';
+  const desc = String(item.description || item.highlights || item.location || '').trim();
+  const coverSrc = cover.startsWith('http') || cover.startsWith('/')
+    ? cover
+    : `/assets/images/${cover}`;
+
   return {
     ...item,
     badgeLabel: badge.label,
@@ -47,6 +53,9 @@ function enrichItem(item) {
     progress,
     timeDisplay: item.timeDisplay || data.formatRecruitmentTimeRange(item.start_at, item.end_at),
     actionType,
+    typeLabel: item.typeLabel || (item.type === 'course' ? '课程' : '赛事'),
+    coverSrc,
+    descSnippet: desc.length > 36 ? `${desc.slice(0, 36)}…` : desc,
   };
 }
 
@@ -63,22 +72,22 @@ function formatTabDisplay(label, count) {
 }
 
 function applyLists(page, lists) {
+  const activeTab = page.data.activeTab === 'draft' ? 'active' : page.data.activeTab;
   page.setData({
     lists,
+    activeTab,
     tabs: [
-      { key: 'draft', label: '草稿', count: lists.draft.length, display: formatTabDisplay('草稿', lists.draft.length) },
       { key: 'active', label: '进行中', count: lists.active.length, display: formatTabDisplay('进行中', lists.active.length) },
       { key: 'ended', label: '已结束', count: lists.ended.length, display: formatTabDisplay('已结束', lists.ended.length) },
     ],
-    currentList: lists[page.data.activeTab] || lists.active,
-    emptyState: getEmptyState(page.data.activeTab),
+    currentList: lists[activeTab] || lists.active,
+    emptyState: getEmptyState(activeTab),
   });
 }
 
 Page({
   data: {
     tabs: [
-      { key: 'draft', label: '草稿', count: 0, display: '草稿' },
       { key: 'active', label: '进行中', count: 0, display: '进行中' },
       { key: 'ended', label: '已结束', count: 0, display: '已结束' },
     ],
@@ -86,11 +95,10 @@ Page({
     lists: { active: [], ended: [], draft: [] },
     currentList: [],
     emptyState: getEmptyState('active'),
-    monthStats: { signups: 28, income: '8,520' },
   },
 
   onLoad(options) {
-    if (options.tab === 'draft' || options.tab === 'active' || options.tab === 'ended') {
+    if (options.tab === 'active' || options.tab === 'ended') {
       this.setData({ activeTab: options.tab, emptyState: getEmptyState(options.tab) });
     }
     data.getMyRecruitmentLists().then((source) => {
@@ -126,38 +134,6 @@ Page({
     const { title } = e.currentTarget.dataset;
     wx.navigateTo({
       url: `/pages/signup-list/signup-list?title=${encodeURIComponent(title || '招募报名')}`,
-    });
-  },
-
-  onEdit(e) {
-    const { id } = e.currentTarget.dataset;
-    wx.navigateTo({ url: `/pages/recruitment-edit/recruitment-edit?id=${id}` });
-  },
-
-  onUnpublish(e) {
-    const { id, title } = e.currentTarget.dataset;
-    wx.showModal({
-      title: '下架招募',
-      content: `确定下架「${title}」？下架后用户将无法报名。`,
-      confirmColor: '#1b579c',
-      success: (res) => {
-        if (!res.confirm) return;
-        data.getRecruitmentById(id).then((item) => {
-          if (!item) return;
-          return data.updateRecruitment(id, {
-            ...item,
-            displayStatus: 'closed',
-            listTab: 'ended',
-          });
-        }).then(() => {
-          wx.showToast({ title: '已下架', icon: 'success' });
-          return data.getMyRecruitmentLists();
-        }).then((source) => {
-          applyLists(this, buildLists(source));
-        }).catch(() => {
-          wx.showToast({ title: '下架失败', icon: 'none' });
-        });
-      },
     });
   },
 

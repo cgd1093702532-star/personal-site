@@ -53,7 +53,7 @@
     active: {
       icon: '../assets/icons/book.png',
       title: '暂无进行中的课程',
-      hint: '发布课程，开始招募学员',
+      hint: '可从个人中心「申请课程」发布',
     },
     ended: {
       icon: '../assets/icons/check.png',
@@ -140,6 +140,8 @@
   }
 
   function card(item) {
+    const id = encodeURIComponent(item.course_id || '');
+    const title = encodeURIComponent(item.title || '课程报名');
     const badge = item.listTab === 'ended' ? `<span class="my-courses__badge">已结束</span>` : '';
     const progress =
       item.listTab !== 'ended'
@@ -149,7 +151,7 @@
           `</div>`
         : '';
     return (
-      `<article class="my-courses__card">` +
+      `<article class="my-courses__card" data-href="course-detail.html?id=${id}" role="link" tabindex="0">` +
       `<div class="my-courses__card-head">` +
       `<span class="my-courses__title">${item.title}</span>` +
       badge +
@@ -157,6 +159,9 @@
       `<span class="my-courses__meta">${item.timeDisplay} · ${item.location}</span>` +
       `<span class="my-courses__price">¥${item.price}/人</span>` +
       progress +
+      `<div class="my-courses__actions">` +
+      `<a class="my-courses__btn nav-forward" href="signup-list.html?course_id=${id}&title=${title}">已报名成员</a>` +
+      `</div>` +
       `</article>`
     );
   }
@@ -164,8 +169,8 @@
   function render() {
     const current = lists[activeTab] || [];
     const tabs = [
-      { key: 'active', label: '进行中', count: lists.active.length },
-      { key: 'ended', label: '已结束', count: lists.ended.length },
+      { key: 'active', label: '招生进行中', count: lists.active.length },
+      { key: 'ended', label: '招生已结束', count: lists.ended.length },
     ];
     root.innerHTML =
       `<div class="my-courses">` +

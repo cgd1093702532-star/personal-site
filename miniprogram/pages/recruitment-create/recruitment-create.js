@@ -1,172 +1,174 @@
-const data = require('../../utils/data.js');
-const formUtil = require('../../utils/recruitment-form.js');
+const mock = require('../../utils/mock.js');
 
-const DRAFT_KEY = 'recruitment-event-draft';
+const TAB_KEY = 'recruitment_create_tab';
+
+function mapCard(e) {
+  return {
+    ...e,
+    time: e.time || e.timeDisplay || '',
+    feeDisplay:
+      e.feeDisplay ||
+      (e.fee != null ? String(e.fee).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''),
+    typeLabel: e.typeLabel || (e.type === 'activity' ? '活动' : '赛事'),
+    is_mine: e.is_mine !== false,
+  };
+}
+
+function withAction(item, tab) {
+  if (tab === 'ended') {
+    return {
+      ...item,
+      actionText: '活动已结束',
+      actionDisabled: true,
+      actionKind: 'none',
+    };
+  }
+  return {
+    ...item,
+    actionText: '发起招募',
+    actionDisabled: false,
+    actionKind: 'initiate',
+  };
+}
+
+function tabLabel(label, count) {
+  return count > 0 ? `${label}(${count})` : label;
+}
+
+function normalizeTab(tab) {
+  return tab === 'ended' ? 'ended' : 'active';
+}
 
 Page({
   data: {
-    audienceOptions: formUtil.AUDIENCE_OPTIONS,
-    audienceMap: {},
-    form: { ...formUtil.EMPTY_FORM },
-    draftRecruitId: '',
-    draftItem: null,
+    activeTab: 'active',
+    lists: { active: [], ended: [] },
+    list: [],
+    activeTabLabel: '招募进行中',
+    endedTabLabel: '招募已结束',
+    emptyText: '暂无赛事招募',
+    showInitiateConfirm: false,
+    pendingRecruitId: '',
+    statusBarHeight: 20,
+    navBarHeight: 44,
   },
 
   onLoad(options) {
-    if (options.type === 'event') {
-      this.setData({ 'form.type': 'event' });
+    const sys = wx.getSystemInfoSync();
+    let lists = { active: [], ended: [] };
+    if (typeof mock.getMyRecruitmentLists === 'function') {
+      const raw = mock.getMyRecruitmentLists() || {};
+      lists = {
+        active: (raw.active || []).map(mapCard),
+        ended: (raw.ended || []).map(mapCard),
+      };
+    } else {
+      lists = {
+        active: (mock.events || [])
+          .filter((e) => e && e.status !== 'ended')
+          .slice(0, 10)
+          .map(mapCard),
+        ended: (mock.events || [])
+          .filter((e) => e && e.status === 'ended')
+          .map(mapCard),
+      };
     }
-    if (options.draft) {
-      data.getRecruitmentById(options.draft).then((item) => {
-        if (!item) {
-          this.loadDraft();
-          return;
-        }
-        const form = formUtil.itemToForm(item);
-        this.setData({
-          form,
-          audienceMap: formUtil.buildAudienceMap(form.audience),
-          draftRecruitId: item.recruit_id || '',
-          draftItem: item,
-        });
-      });
-      return;
-    }
-    this.loadDraft();
-  },
-
-  loadDraft() {
+    this._restoreTabOnShow = false;
     try {
-      const draft = wx.getStorageSync(DRAFT_KEY);
-      if (!draft) return;
-      const audience = draft.audience || [];
-      this.setData({
-        form: { ...this.data.form, ...draft, audience },
-        audienceMap: formUtil.buildAudienceMap(audience),
-      });
-    } catch (e) {
+      wx.setStorageSync(TAB_KEY, 'active');
+    } catch (_) {
       /* ignore */
     }
+    this.setData(
+      {
+        lists,
+        statusBarHeight: sys.statusBarHeight || 20,
+        navBarHeight: 44,
+      },
+      () => this.applyTab('active'),
+    );
   },
 
-  onInput(e) {
-    const { field } = e.currentTarget.dataset;
-    this.setData({ [`form.${field}`]: e.detail.value });
-  },
-
-  onDateChange(e) {
-    const { field } = e.currentTarget.dataset;
-    this.setData({ [`form.${field}`]: e.detail.value });
-  },
-
-  onTimeChange(e) {
-    const { field } = e.currentTarget.dataset;
-    this.setData({ [`form.${field}`]: e.detail.value });
-  },
-
-  onAudienceToggle(e) {
-    const { audience } = e.currentTarget.dataset;
-    const map = { ...this.data.audienceMap };
-    const list = [...this.data.form.audience];
-    if (map[audience]) {
-      delete map[audience];
-      const idx = list.indexOf(audience);
-      if (idx >= 0) list.splice(idx, 1);
-    } else {
-      map[audience] = true;
-      list.push(audience);
+  onShow() {
+    if (!this._restoreTabOnShow) return;
+    this._restoreTabOnShow = false;
+    let saved = 'active';
+    try {
+      const v = wx.getStorageSync(TAB_KEY);
+      if (v === 'active' || v === 'ended') saved = v;
+    } catch (_) {
+      /* ignore */
     }
-    this.setData({ audienceMap: map, 'form.audience': list });
-  },
-
-  onChooseLocation() {
-    wx.chooseLocation({
-      success: (res) => {
-        this.setData({ 'form.location': res.name || res.address || '' });
-      },
-      fail: () => {
-        wx.showToast({ title: '未选择地点', icon: 'none' });
-      },
-    });
-  },
-
-  onChooseCover() {
-    wx.chooseMedia({
-      count: 1,
-      mediaType: ['image'],
-      success: (res) => {
-        const file = res.tempFiles && res.tempFiles[0];
-        if (file && file.tempFilePath) {
-          this.setData({ 'form.cover': file.tempFilePath });
-        }
-      },
-    });
-  },
-
-  validate(forPublish) {
-    const result = formUtil.validateForm(this.data.form, forPublish);
-    if (!result.ok) {
-      wx.showToast({ title: result.message, icon: 'none' });
-      return false;
+    if (saved !== this.data.activeTab) {
+      this.applyTab(saved);
     }
+  },
+
+  onBack() {
+    try {
+      wx.setStorageSync(TAB_KEY, 'active');
+    } catch (_) {
+      /* ignore */
+    }
+    wx.switchTab({ url: '/pages/profile/profile' });
+  },
+
+  onBackPress() {
+    this.onBack();
     return true;
   },
 
-  onSaveDraft() {
-    if (!this.validate(false)) return;
-    const item = formUtil.formToRecruitment(this.data.form, this.data.draftItem);
-    item.displayStatus = 'draft';
-    item.listTab = 'draft';
-    const save = this.data.draftRecruitId
-      ? data.updateRecruitment(this.data.draftRecruitId, { ...item, scope: 'mine_draft' })
-      : data.createRecruitment(item, 'draft');
-    save
-      .then((saved) => {
-        const recruitId = (saved && saved.recruit_id) || item.recruit_id;
-        this.setData({ draftRecruitId: recruitId, draftItem: saved || item });
-        try {
-          wx.setStorageSync(DRAFT_KEY, this.data.form);
-        } catch (e) {
-          /* ignore */
-        }
-        wx.showToast({ title: '草稿已保存', icon: 'success' });
-        setTimeout(
-          () => wx.redirectTo({ url: '/pages/my-recruitments/my-recruitments?tab=draft' }),
-          800,
-        );
-      })
-      .catch(() => {
-        wx.showToast({ title: '保存失败', icon: 'none' });
-      });
-  },
-
-  onSubmit() {
-    if (!this.validate(true)) return;
+  applyTab(tab) {
+    const next = normalizeTab(tab);
+    const lists = this.data.lists;
+    const list = (lists[next] || []).map((item) => withAction(item, next));
     try {
-      wx.removeStorageSync(DRAFT_KEY);
-    } catch (e) {
+      wx.setStorageSync(TAB_KEY, next);
+    } catch (_) {
       /* ignore */
     }
-    const item = formUtil.formToRecruitment(this.data.form, this.data.draftItem);
-    const status = formUtil.resolvePublishedStatus(item);
-    item.displayStatus = status.displayStatus;
-    item.listTab = status.listTab;
-    const save = this.data.draftRecruitId
-      ? data.updateRecruitment(this.data.draftRecruitId, { ...item, scope: status.scope })
-      : data.createRecruitment(item, status.listTab);
-    save
-      .then(() => {
-        wx.showToast({ title: '发布成功', icon: 'success' });
-        setTimeout(
-          () =>
-            wx.redirectTo({
-              url: `/pages/my-recruitments/my-recruitments?tab=${status.listTab}`,
-            }),
-          800,
-        );
-      })
-      .catch(() => {
-        wx.showToast({ title: '发布失败', icon: 'none' });
-      });
+    this.setData({
+      activeTab: next,
+      list,
+      activeTabLabel: tabLabel('招募进行中', lists.active.length),
+      endedTabLabel: tabLabel('招募已结束', lists.ended.length),
+      emptyText: next === 'ended' ? '暂无已结束的赛事招募' : '暂无赛事招募',
+    });
   },
+
+  onTabTap(e) {
+    const tab = e.currentTarget.dataset.tab;
+    if (!tab || tab === this.data.activeTab) return;
+    this.applyTab(tab);
+  },
+
+  onItemTap(e) {
+    const id = e.detail?.recruit_id;
+    if (!id) return;
+    this._restoreTabOnShow = true;
+    try {
+      wx.setStorageSync(TAB_KEY, this.data.activeTab);
+    } catch (_) {
+      /* ignore */
+    }
+    wx.navigateTo({ url: `/pages/recruitment-detail/recruitment-detail?id=${id}` });
+  },
+
+  onItemAction(e) {
+    const type = e.detail?.type;
+    const id = e.detail?.recruit_id;
+    if (type !== 'initiate' || !id) return;
+    this.setData({ showInitiateConfirm: true, pendingRecruitId: id });
+  },
+
+  onCloseInitiateConfirm() {
+    this.setData({ showInitiateConfirm: false, pendingRecruitId: '' });
+  },
+
+  onConfirmInitiate() {
+    this.setData({ showInitiateConfirm: false, pendingRecruitId: '' });
+    wx.navigateTo({ url: '/pages/my-recruitments/my-recruitments' });
+  },
+
+  noop() {},
 });

@@ -1,32 +1,7 @@
-/** 我的评价 · 预览页 */
+/** 我的评价 · 预览页 · 数据与后台评价列表同源，仅当前账号相关 */
 (function () {
   const imgBase = '../assets/images/';
-  const DEFAULT_MY_REVIEWS = [
-    {
-      id: 'rv1',
-      reviewer_nickname: '学员小李',
-      reviewer_avatar: `${imgBase}avatar-user.jpg`,
-      score: 5,
-      content: '组织很好，体验棒！',
-      reviewed_at: '2026-06-15T14:30:00',
-    },
-    {
-      id: 'rv2',
-      reviewer_nickname: '航海爱好者',
-      reviewer_avatar: `${imgBase}avatar-user.jpg`,
-      score: 4.5,
-      content: '教练很专业，场地设施也不错。',
-      reviewed_at: '2026-06-08T10:00:00',
-    },
-    {
-      id: 'rv3',
-      reviewer_nickname: '张女士',
-      reviewer_avatar: `${imgBase}avatar-user.jpg`,
-      score: 5,
-      content: '孩子很喜欢，下次还来。',
-      reviewed_at: '2026-05-28T16:20:00',
-    },
-  ];
+  const CURRENT_USER_ID = 'mock-user-1';
 
   function buildStars(score) {
     const rating = Number(score) || 0;
@@ -48,24 +23,53 @@
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
 
-  async function loadList() {
-    let source = null;
-    if (window.HeroPlazaDB && (await window.HeroPlazaDB.isAvailable())) {
-      try {
-        source = (await window.HeroPlazaDB.listMyReviews()) || [];
-      } catch (err) {
-        console.warn('[my-reviews] 数据库加载失败，回退静态数据', err);
-      }
+  function avatarSrc(avatar) {
+    if (!avatar) return '';
+    if (
+      avatar.startsWith('http') ||
+      avatar.startsWith('data:') ||
+      avatar.startsWith('../') ||
+      avatar.startsWith('/')
+    ) {
+      return avatar;
     }
-    if (!source || !source.length) source = DEFAULT_MY_REVIEWS;
-    const sorted = window.sortReviewsByTimeDesc ? window.sortReviewsByTimeDesc(source) : source;
-    return sorted.map((item) => ({
-      ...item,
-      reviewer_nickname: item.reviewer_nickname || '匿名用户',
-      reviewer_avatar: item.reviewer_avatar || `${imgBase}avatar-user.jpg`,
-      score: Number(item.score) || 0,
-      timeDisplay: item.timeDisplay || formatReviewTime(item.reviewed_at || item.time),
-    }));
+    return `${imgBase}${avatar}`;
+  }
+
+  function isAccountRelated(row, userId, heroId) {
+    if (String(row.user_id || '') === String(userId)) return true;
+    if (heroId && String(row.hero_id || '') === String(heroId)) return true;
+    return false;
+  }
+
+  async function loadList() {
+    if (!window.HeroPlazaDB || !(await window.HeroPlazaDB.isAvailable())) {
+      return [];
+    }
+    try {
+      const [adminRows, hero] = await Promise.all([
+        window.HeroPlazaDB.listAdminReviews(),
+        window.HeroPlazaDB.resolveCurrentHero(CURRENT_USER_ID),
+      ]);
+      const heroId = hero && hero.hero_id ? String(hero.hero_id) : '';
+      const source = (adminRows || []).filter((row) => {
+        const status = row.status || 'visible';
+        if (status === 'deleted' || status === 'hidden') return false;
+        return isAccountRelated(row, CURRENT_USER_ID, heroId);
+      });
+      const sorted = window.sortReviewsByTimeDesc ? window.sortReviewsByTimeDesc(source) : source;
+      return sorted.map((item) => ({
+        ...item,
+        id: item.review_id || item.id,
+        reviewer_nickname: item.reviewer_nickname || '匿名用户',
+        reviewer_avatar: avatarSrc(item.reviewer_avatar),
+        score: Number(item.score) || 0,
+        timeDisplay: item.timeDisplay || formatReviewTime(item.reviewed_at || item.time),
+      }));
+    } catch (err) {
+      console.warn('[my-reviews] 加载失败', err);
+      return [];
+    }
   }
 
   function card(item) {

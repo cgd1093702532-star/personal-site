@@ -18,47 +18,59 @@ const YEARS_OPTIONS = [
   { id: '10+', label: '10年以上', min: 10, max: 999 },
 ];
 
+/** 英雄广场 mock · 与首页英雄区一致，共 5 条 */
 const heroes = [
   {
     hero_id: '1',
     name: '小哥',
-    avatar: '',
+    nickname: '小哥',
+    avatar: 'hero-1.jpg',
+    avatar_img: 'hero-1.jpg',
+    enabled: true,
     rating: 4.9,
-    project_types: ['帆船', '游艇'],
+    project_types: ['浆板', '帆船'],
     certification_level: 'ASA帆船认证教练',
-    honor_titles: ['中欧航海协会秘书长', 'ASA205级资深签证官'],
+    honor_titles: ['ASA帆船认证教练'],
     cert_badges: ['ASA认证', 'ACA认证', '救生员证'],
     years_exp: 15,
     student_count: 128,
     bio: 'ASA帆船认证教练，15年水上运动教学经验。',
     honors_count: 3,
     recruitments: [
-      { type: 'event', status: '招募中', title: '企业家杯帆船赛系列赛7月站', target_id: 'r1' },
-      { type: 'course', status: '报名中', title: 'ASA101-103培训课', target_id: 'c1' },
+      { type: 'event', status: '招募中', title: '企业家杯月赛', target_id: 'r1', quota_text: '招募8人' },
+      { type: 'activity', status: '报名中', title: '亲子帆船体验日', target_id: 'r2' },
+      { type: 'course', status: '报名中', title: 'ASA 101+ASA 103 组合课程', target_id: 'c1' },
     ],
   },
   {
     hero_id: '2',
     name: '熊猫',
-    avatar: '',
+    nickname: '熊猫',
+    avatar: 'hero-2.jpg',
+    avatar_img: 'hero-2.jpg',
+    enabled: true,
     rating: 4.8,
     project_types: ['帆船', '浆板'],
     certification_level: 'ASA帆船认证教练',
-    honor_titles: ['ASA帆船认证教练', '15年执教经验'],
+    honor_titles: ['ASA帆船认证教练'],
     cert_badges: ['ASA认证', '救生员证'],
     years_exp: 15,
     student_count: 96,
     bio: '专注帆船与浆板入门教学。',
     honors_count: 2,
     recruitments: [
-      { type: 'event', status: '招募中', title: '企业家杯帆船赛系列赛7月站', target_id: 'r1' },
-      { type: 'course', status: '报名中', title: 'ASA101-103培训课', target_id: 'c1' },
+      { type: 'event', status: '招募中', title: '金鸡湖浆板周末联赛', target_id: 'r3', quota_text: '招募8人' },
+      { type: 'activity', status: '报名中', title: '桨板周末体验', target_id: 'r4' },
+      { type: 'course', status: '报名中', title: '帆船入门周末班', target_id: 'c5' },
     ],
   },
   {
     hero_id: '3',
     name: 'Amy',
-    avatar: '',
+    nickname: 'Amy',
+    avatar: 'hero-1.jpg',
+    avatar_img: 'hero-1.jpg',
+    enabled: true,
     rating: 4.6,
     project_types: ['桨板', '潜水'],
     certification_level: 'PADI潜水教练',
@@ -69,14 +81,18 @@ const heroes = [
     bio: '桨板与潜水入门教学，5年教学经验。',
     honors_count: 1,
     recruitments: [
+      { type: 'event', status: '招募中', title: '开放水域潜水体验营', target_id: 'r13', quota_text: '招募8人' },
+      { type: 'activity', status: '报名中', title: '桨板入门体验', target_id: 'r5' },
       { type: 'course', status: '报名中', title: '桨板入门体验课', target_id: 'c2' },
-      { type: 'course', status: '报名中', title: '潜水基础课程', target_id: 'c3' },
     ],
   },
   {
     hero_id: '4',
     name: '大伟',
-    avatar: '',
+    nickname: '大伟',
+    avatar: 'hero-2.jpg',
+    avatar_img: 'hero-2.jpg',
+    enabled: true,
     rating: 5.0,
     project_types: ['帆船', '冲浪'],
     certification_level: '国家级帆船教练',
@@ -88,7 +104,30 @@ const heroes = [
     honors_count: 5,
     recruitments: [
       { type: 'event', status: '招募中', title: '城市帆船精英赛', target_id: 'r7' },
-      { type: 'course', status: '报名中', title: 'ASA101-103培训课', target_id: 'c1' },
+      { type: 'activity', status: '报名中', title: '周末帆船体验', target_id: 'r7a' },
+      { type: 'course', status: '报名中', title: 'ASA进阶航行课', target_id: 'c6' },
+    ],
+  },
+  {
+    hero_id: '5',
+    name: '阿海',
+    nickname: '阿海',
+    avatar: 'hero-1.jpg',
+    avatar_img: 'hero-1.jpg',
+    enabled: true,
+    rating: 4.7,
+    project_types: ['皮划艇', '桨板'],
+    certification_level: '省级教练',
+    honor_titles: ['省级皮划艇教练', '8年执教经验'],
+    cert_badges: ['省级教练', 'ACA认证', '救生员证'],
+    years_exp: 8,
+    student_count: 86,
+    bio: '专注皮划艇与桨板教学八年，擅长零基础体验课。',
+    honors_count: 2,
+    recruitments: [
+      { type: 'event', status: '招募中', title: '周末皮划艇体验营', target_id: 'r8' },
+      { type: 'activity', status: '报名中', title: '皮划艇亲子体验', target_id: 'r8a' },
+      { type: 'course', status: '报名中', title: '皮划艇入门体验课', target_id: 'c4' },
     ],
   },
 ];
@@ -109,6 +148,46 @@ const HERO_EXTRA = {
       { name: 'ACA证', image: 'cert.jpg' },
       { name: 'ASA认证', image: 'cert.jpg' },
     ],
+    teaching_philosophy: {
+      intro:
+        '小哥教练秉承“细心专业、耐心同频、快乐自信、安全至上”的教学理念，致力于将专业的航海知识与愉悦的航海体验完美结合。',
+      belief_lead: '他相信：',
+      points: [
+        { title: '细心专业', desc: '每一个细节都关乎航行安全与效率' },
+        { title: '耐心同频', desc: '根据学员节奏调整教学，确保理解掌握' },
+        { title: '快乐自信', desc: '在快乐中学习，在航海中建立自信' },
+        { title: '安全至上', desc: '安全是航海的第一原则和最终底线' },
+      ],
+    },
+    race_showcase: {
+      intro: '小哥教练拥有丰富的国内外赛事经验，曾参加多项知名帆船赛事：',
+      items: [
+        { title: 'CCOR国际帆船赛', image: 'event.jpg' },
+        { title: '上海帆船公开赛', image: 'banner.jpg' },
+        { title: '厦门俱乐部杯帆船赛', image: 'recruit-cover.jpg' },
+        { title: '青岛市长杯帆船赛', image: 'hero-1.jpg' },
+        { title: '青岛新年杯帆船赛', image: 'course.jpg' },
+      ],
+    },
+    voyage_leadership: {
+      intro: '作为经验丰富的长航领队，小哥教练曾多次组织并带队完成具有挑战性的长距离航行：',
+      items: [
+        { title: '跨越渤海海峡长途航行', image: 'event.jpg' },
+        { title: '青岛跳岛长航训练', image: 'banner.jpg' },
+        { title: '舟山群岛长航探险', image: 'recruit-cover.jpg' },
+        { title: '梦回西沙长航远航', image: 'hero-2.jpg' },
+      ],
+    },
+    social_showcase: {
+      intro:
+        '作为中国海洋发展研究会常务理事和中欧校友航海协会秘书长，小哥教练积极推动中国航海运动的发展：',
+      points: [
+        '促进国际航海文化交流',
+        '推动航海教育普及',
+        '培养新一代航海人才',
+        '倡导海洋环境保护理念',
+      ],
+    },
   },
   '2': {
     about_me:
@@ -153,6 +232,20 @@ const HERO_EXTRA = {
       { name: 'ASA认证', image: 'cert.jpg' },
     ],
   },
+  '5': {
+    about_me:
+      '专注皮划艇与桨板教学八年，擅长零基础成人与亲子体验课。注重水域安全与团队协作，曾多次组织城市皮划艇巡游与企业团建。持有省级教练与救生员资质，教学风格轻松友好，希望带更多人感受桨叶划开水面的节奏与乐趣。',
+    past_honors: [
+      { icon: '/assets/icons/medal.png', name: '省级皮划艇教练', summary: '省级执业资质' },
+      { icon: '/assets/icons/trophy.png', name: '城市巡游活动主理人', summary: '多次组织百人级巡游' },
+    ],
+    moments: ['hero-1.jpg', 'event.jpg', 'course.jpg'],
+    certificates: [
+      { name: '省级教练证', image: 'cert.jpg' },
+      { name: '救生员证', image: 'cert.jpg' },
+      { name: 'ACA证', image: 'cert.jpg' },
+    ],
+  },
 };
 
 heroes.forEach((h) => {
@@ -166,24 +259,24 @@ heroes.forEach((h) => {
 });
 
 const banner = {
-  season: '2026 夏季航季',
+  season: '2023.06 前往',
   title: '企业家杯月赛',
   subtitle: '06.20',
-  desc: '一站式高端水上运动体验平台',
+  desc: '定制式高端水上潮流体育',
   cta: '查看活动',
 };
 
 const shortNav = [
-  { id: 'boat', label: '船艇预约', icon: '/assets/icons/boat.png' },
+  { id: 'venue', label: '预约场地', icon: '/assets/icons/boat.png' },
   { id: 'event', label: '活动赛事', icon: '/assets/icons/trophy.png' },
-  { id: 'course', label: '精选课程', icon: '/assets/icons/book.png' },
-  { id: 'goods', label: '好物推荐', icon: '/assets/icons/shopping.png' },
+  { id: 'voyage', label: '精致航程', icon: '/assets/icons/wave.png' },
+  { id: 'gear', label: '时尚装备', icon: '/assets/icons/shopping.png' },
 ];
 
 const membership = {
   title: '航海家权益卡',
   price: 300,
-  benefits: ['课程体验', '课程折扣', '商城折扣'],
+  benefits: ['优惠购船', '课程折扣', '活动优先'],
 };
 
 const events = [
@@ -194,38 +287,50 @@ const events = [
     type: 'event',
     typeLabel: '赛事',
     title: '企业家杯月赛',
-    start_at: '2026-07-20T08:00:00',
-    end_at: '2026-07-20T17:00:00',
+    start_at: '2026-06-08T09:00:00',
+    end_at: '2026-06-08T16:00:00',
     location: '滴水湖二号码头',
     fee: 500,
+    feeDisplay: '500',
     signed: 12,
     total: 20,
     status: 'recruiting',
-    cover_images: ['recruit-cover.jpg', 'event.jpg', 'hero-1.jpg'],
+    statusLabel: '招募中',
+    time: '06/08 (周六) 09:00-16:00',
+    timeDisplay: '06/08 (周六) 09:00-16:00',
+    cover_images: ['recruit-cover.jpg'],
   },
   {
     recruit_id: 'r2',
     hero_id: '1',
     hero_name: '小哥',
-    type: 'course',
+    type: 'activity',
     typeLabel: '活动',
-    title: '周末帆船体验营',
-    start_at: '2026-07-12T09:30:00',
-    end_at: '2026-07-12T16:00:00',
-    location: '滴水湖帆船基地',
-    fee: 680,
+    title: '亲子帆船体验日',
+    start_at: '2026-06-08T09:00:00',
+    end_at: '2026-06-08T16:00:00',
+    location: '滴水湖二号码头',
+    fee: 1280,
+    feeDisplay: '1,280',
     signed: 8,
     total: 16,
     status: 'recruiting',
-    cover_images: ['recruit-cover.jpg'],
+    statusLabel: '报名中',
+    time: '06/08 (周六) 09:00-16:00',
+    timeDisplay: '06/08 (周六) 09:00-16:00',
+    cover_images: ['banner.jpg'],
+    tags: ['亲子友好', '含装备', '小班教学'],
+    description:
+      '亲子帆船体验日：家长与孩子一同登船，含岸上安全讲解、基础操帆与短途体验航段。适合 6 岁以上儿童在家长陪同下参与。',
+    remark: '请穿着防滑运动鞋；儿童需家长全程陪同；建议自备防晒与换洗衣物。',
   },
   {
     recruit_id: 'r3',
     hero_id: '2',
     hero_name: '熊猫',
-    type: 'course',
-    typeLabel: '活动',
-    title: '浆板初体验',
+    type: 'event',
+    typeLabel: '赛事',
+    title: '金鸡湖浆板周末联赛',
     start_at: '2026-08-03T14:00:00',
     end_at: '2026-08-03T17:00:00',
     location: '金鸡湖桨板码头',
@@ -233,29 +338,38 @@ const events = [
     signed: 5,
     total: 12,
     status: 'recruiting',
+    statusLabel: '招募中',
+    time: '08/03 (周日) 14:00-17:00',
+    timeDisplay: '08/03 (周日) 14:00-17:00',
+    cover_images: ['event.jpg'],
   },
   {
     recruit_id: 'r4',
     hero_id: '2',
     hero_name: '熊猫',
-    type: 'course',
-    typeLabel: '课程',
-    title: 'ASA101-103培训课',
-    start_at: '2026-07-26T09:00:00',
-    end_at: '2026-07-26T16:30:00',
+    type: 'activity',
+    typeLabel: '活动',
+    title: '浆板初体验',
+    start_at: '2026-06-08T09:00:00',
+    end_at: '2026-06-08T16:00:00',
     location: '滴水湖二号码头',
     fee: 1280,
-    signed: 10,
-    total: 10,
-    status: 'enrolling',
+    feeDisplay: '1,280',
+    signed: 5,
+    total: 12,
+    status: 'recruiting',
+    statusLabel: '招募中',
+    time: '06/08 (周六) 09:00-16:00',
+    timeDisplay: '06/08 (周六) 09:00-16:00',
+    cover_images: ['event.jpg'],
   },
   {
     recruit_id: 'r5',
     hero_id: '3',
     hero_name: 'Amy',
-    type: 'course',
-    typeLabel: '课程',
-    title: '桨板入门体验课',
+    type: 'activity',
+    typeLabel: '活动',
+    title: '桨板湖区体验日',
     start_at: '2026-07-18T10:00:00',
     end_at: '2026-07-18T12:00:00',
     location: '太湖桨板营地',
@@ -265,19 +379,20 @@ const events = [
     status: 'recruiting',
   },
   {
-    recruit_id: 'r6',
+    recruit_id: 'r13',
     hero_id: '3',
     hero_name: 'Amy',
-    type: 'course',
-    typeLabel: '课程',
-    title: '潜水基础课程',
+    type: 'event',
+    typeLabel: '赛事',
+    title: '开放水域潜水体验营',
     start_at: '2026-08-10T09:00:00',
     end_at: '2026-08-10T17:00:00',
     location: '三亚开放水域基地',
-    fee: 2680,
-    signed: 2,
-    total: 6,
-    status: 'enrolling',
+    fee: 680,
+    signed: 4,
+    total: 10,
+    status: 'recruiting',
+    cover_images: ['event.jpg'],
   },
   {
     recruit_id: 'r7',
@@ -293,6 +408,83 @@ const events = [
     signed: 15,
     total: 24,
     status: 'recruiting',
+    cover_images: ['event.jpg'],
+  },
+  {
+    recruit_id: 'r8',
+    hero_id: '5',
+    hero_name: '阿海',
+    type: 'event',
+    typeLabel: '赛事',
+    title: '周末皮划艇体验营',
+    start_at: '2026-07-26T09:00:00',
+    end_at: '2026-07-26T12:00:00',
+    location: '千岛湖皮划艇营地',
+    fee: 268,
+    signed: 6,
+    total: 12,
+    status: 'recruiting',
+    cover_images: ['event.jpg'],
+  },
+  {
+    recruit_id: 'r9',
+    hero_id: '1',
+    hero_name: '小哥',
+    type: 'activity',
+    typeLabel: '活动',
+    title: '周末帆船体验营',
+    start_at: '2026-06-14T09:00:00',
+    end_at: '2026-06-14T16:00:00',
+    location: '滴水湖二号码头',
+    fee: 680,
+    feeDisplay: '680',
+    signed: 9,
+    total: 16,
+    status: 'recruiting',
+    statusLabel: '招募中',
+    time: '06/14 (周日) 09:00-16:00',
+    timeDisplay: '06/14 (周日) 09:00-16:00',
+    cover_images: ['recruit-cover.jpg'],
+  },
+  {
+    recruit_id: 'r10',
+    hero_id: '1',
+    hero_name: '小哥',
+    type: 'event',
+    typeLabel: '赛事',
+    title: '城市帆船联赛选拔赛',
+    start_at: '2026-06-21T08:00:00',
+    end_at: '2026-06-21T17:00:00',
+    location: '滴水湖一号码头',
+    fee: 800,
+    feeDisplay: '800',
+    signed: 10,
+    total: 20,
+    status: 'recruiting',
+    statusLabel: '招募中',
+    time: '06/21 (周日) 08:00-17:00',
+    timeDisplay: '06/21 (周日) 08:00-17:00',
+    cover_images: ['event.jpg'],
+  },
+  {
+    recruit_id: 'r11',
+    hero_id: '1',
+    hero_name: '小哥',
+    type: 'activity',
+    typeLabel: '活动',
+    title: '游艇驾驶体验日',
+    start_at: '2026-06-28T10:00:00',
+    end_at: '2026-06-28T15:00:00',
+    location: '滴水湖游艇会',
+    fee: 1680,
+    feeDisplay: '1,680',
+    signed: 4,
+    total: 8,
+    status: 'recruiting',
+    statusLabel: '招募中',
+    time: '06/28 (周日) 10:00-15:00',
+    timeDisplay: '06/28 (周日) 10:00-15:00',
+    cover_images: ['course.jpg'],
   },
 ];
 
@@ -323,41 +515,71 @@ const ORGANIZER_PROFILES = {
 const MY_RECRUITMENT_LISTS = {
   active: [
     {
-      recruit_id: 'r2',
+      recruit_id: 'mine-a1',
+      hero_id: '1',
       hero_name: '小哥',
       type: 'event',
       typeLabel: '赛事',
-      title: '周末帆船体验营',
-      start_at: '2026-07-08T09:00:00',
-      end_at: '2026-07-08T17:00:00',
-      location: '三亚帆船港',
-      fee: 299,
-      signed: 4,
-      total: 6,
-      displayStatus: 'recruiting',
-      listTab: 'active',
-      cover_images: ['recruit-cover.jpg', 'event.jpg'],
-      description: '适合零基础学员参与，含安全讲解与实操体验。请穿着运动服，注意防晒。',
-    },
-    {
-      recruit_id: 'r1',
-      hero_name: '小哥',
-      type: 'event',
-      typeLabel: '赛事',
-      title: '企业家杯月赛',
+      title: '企业家杯帆船赛系列赛7月站',
       start_at: '2026-07-20T08:00:00',
       end_at: '2026-07-20T17:00:00',
       location: '滴水湖二号码头',
       fee: 500,
       signed: 12,
       total: 20,
-      displayStatus: 'ongoing',
+      displayStatus: 'recruiting',
       listTab: 'active',
-      cover_images: ['recruit-cover.jpg', 'event.jpg', 'hero-1.jpg'],
+      cover_images: ['event.jpg'],
+      project_types: ['帆船', '游艇'],
+      phone: '13800138000',
+      highlights: '专业裁判全程执裁\n含午餐与保险\n赛后颁奖典礼',
       description: '企业家杯帆船系列赛分站，适合有一定基础的学员组队参赛。含赛前说明会与赛后颁奖。',
     },
     {
-      recruit_id: 'r10',
+      recruit_id: 'mine-a2',
+      hero_id: '1',
+      hero_name: '小哥',
+      type: 'event',
+      typeLabel: '赛事',
+      title: '周末帆船体验营',
+      start_at: '2026-07-26T09:00:00',
+      end_at: '2026-07-26T17:00:00',
+      location: '三亚帆船港',
+      fee: 299,
+      signed: 4,
+      total: 6,
+      displayStatus: 'recruiting',
+      listTab: 'active',
+      cover_images: ['recruit-cover.jpg'],
+      project_types: ['帆船'],
+      phone: '13800138000',
+      highlights: '零基础友好\n配备全套装备\n教练全程陪同',
+      description: '适合零基础学员参与，含安全讲解与实操体验。请穿着运动服，注意防晒。',
+    },
+    {
+      recruit_id: 'mine-a3',
+      hero_id: '1',
+      hero_name: '小哥',
+      type: 'event',
+      typeLabel: '赛事',
+      title: '金鸡湖浆板周末联赛',
+      start_at: '2026-08-03T14:00:00',
+      end_at: '2026-08-03T17:00:00',
+      location: '金鸡湖桨板码头',
+      fee: 198,
+      signed: 9,
+      total: 12,
+      displayStatus: 'ongoing',
+      listTab: 'active',
+      cover_images: ['event.jpg'],
+      project_types: ['桨板', '浆板'],
+      phone: '13800138000',
+      highlights: '亲子友好赛道\n含装备租赁\n完赛奖牌',
+      description: '金鸡湖桨板周末联赛，设体验组与竞技组，适合周末休闲与轻度竞技选手。',
+    },
+    {
+      recruit_id: 'mine-a4',
+      hero_id: '1',
       hero_name: '小哥',
       type: 'event',
       typeLabel: '赛事',
@@ -371,67 +593,85 @@ const MY_RECRUITMENT_LISTS = {
       displayStatus: 'closed',
       listTab: 'active',
       cover_images: ['recruit-cover.jpg'],
-      description: '暑期帆船入门营，三天集训含岸上理论与水上实操，适合青少年及成人初学者。',
+      project_types: ['帆船'],
+      phone: '13800138000',
+      highlights: '三天集训\n岸上理论+水上实操',
+      description: '暑期帆船入门营，三天集训含岸上理论与水上实操，适合青少年及成人初学者。报名已截止。',
     },
   ],
   ended: [
     {
-      recruit_id: 'r9',
+      recruit_id: 'mine-e1',
+      hero_id: '1',
       hero_name: '小哥',
       type: 'event',
       typeLabel: '赛事',
       title: '冬季帆船训练营',
-      timeDisplay: '2025/12/01 09:00 - 17:00',
+      start_at: '2025-12-01T09:00:00',
+      end_at: '2025-12-01T17:00:00',
       location: '滴水湖',
       fee: 880,
       signed: 20,
       total: 20,
       displayStatus: 'ended',
       listTab: 'ended',
+      is_mine: true,
       cover_images: ['recruit-cover.jpg'],
+      project_types: ['帆船'],
+      phone: '13800138000',
       description: '冬季帆船强化训练营，已完成全部课程与结营考核。',
     },
     {
-      recruit_id: 'r11',
+      recruit_id: 'mine-e2',
+      hero_id: '1',
       hero_name: '小哥',
       type: 'event',
       typeLabel: '赛事',
       title: '春季企业团建帆船赛',
-      timeDisplay: '2026/04/18 08:30 - 16:30',
+      start_at: '2026-04-18T08:30:00',
+      end_at: '2026-04-18T16:30:00',
       location: '滴水湖二号码头',
       fee: 680,
       signed: 16,
       total: 16,
       displayStatus: 'ended',
       listTab: 'ended',
+      is_mine: true,
       cover_images: ['event.jpg'],
+      project_types: ['帆船', '游艇'],
+      phone: '13800138000',
       description: '企业团建帆船赛专场，含团队配合训练与友谊赛。',
     },
     {
-      recruit_id: 'r12',
-      hero_name: '小哥',
+      recruit_id: 'mine-e3',
+      hero_id: '2',
+      hero_name: '熊猫',
       type: 'event',
       typeLabel: '赛事',
       title: '五一桨板体验日',
-      timeDisplay: '2026/05/01 10:00 - 15:00',
+      start_at: '2026-05-01T10:00:00',
+      end_at: '2026-05-01T15:00:00',
       location: '太湖桨板营地',
       fee: 198,
       signed: 8,
       total: 10,
       displayStatus: 'ended',
       listTab: 'ended',
+      is_mine: false,
       cover_images: ['event.jpg'],
+      project_types: ['桨板'],
+      phone: '13800138000',
       description: '五一桨板体验日活动，含基础教学与湖面体验滑行。',
     },
   ],
   draft: [
     {
-      recruit_id: 'd1',
+      recruit_id: 'mine-d1',
+      hero_id: '1',
       hero_name: '小哥',
       type: 'event',
       typeLabel: '赛事',
       title: '国庆帆船挑战赛',
-      timeDisplay: '待定',
       location: '三亚帆船港',
       fee: 520,
       signed: 0,
@@ -439,15 +679,17 @@ const MY_RECRUITMENT_LISTS = {
       displayStatus: 'draft',
       listTab: 'draft',
       cover_images: ['recruit-cover.jpg'],
+      project_types: ['帆船'],
+      phone: '13800138000',
       description: '草稿：国庆帆船挑战赛方案待完善。',
     },
     {
-      recruit_id: 'd2',
+      recruit_id: 'mine-d2',
+      hero_id: '1',
       hero_name: '小哥',
       type: 'event',
       typeLabel: '赛事',
       title: '亲子帆船周末营',
-      timeDisplay: '待定',
       location: '滴水湖帆船基地',
       fee: 360,
       signed: 0,
@@ -455,6 +697,8 @@ const MY_RECRUITMENT_LISTS = {
       displayStatus: 'draft',
       listTab: 'draft',
       cover_images: ['recruit-cover.jpg'],
+      project_types: ['帆船'],
+      phone: '13800138000',
       description: '草稿：亲子帆船周末营，待确认档期与名额。',
     },
   ],
@@ -475,10 +719,15 @@ function normalizeRecruitmentDetail(item) {
     cover_images:
       item.cover_images && item.cover_images.length
         ? item.cover_images
-        : ['recruit-cover.jpg', 'event.jpg', 'hero-1.jpg'],
+        : ['recruit-cover.jpg'],
     description:
       item.description ||
       '适合零基础学员参与，含安全讲解与实操体验。请穿着运动服，注意防晒。',
+    remark: item.remark || '请穿着运动服，注意防晒。自备防晒用品。',
+    tags: (Array.isArray(item.tags) ? item.tags : ['零基础友好', '含装备', '小班教学'])
+      .map((t) => String(t || '').trim())
+      .filter(Boolean)
+      .slice(0, 3),
     organizer_profile:
       item.organizer_profile ||
       ORGANIZER_PROFILES[item.hero_name] ||
@@ -516,18 +765,18 @@ function formatRecruitmentTimeRange(startAt, endAt) {
   const start = parseRecruitmentDate(startAt);
   const end = parseRecruitmentDate(endAt);
   if (!start) return startAt || '';
-  if (!end) return formatRecruitmentTime(startAt);
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
   const pad = (n) => String(n).padStart(2, '0');
-  const startStr = `${start.getMonth() + 1}月${start.getDate()}日 ${pad(start.getHours())}:${pad(start.getMinutes())}`;
+  const startPart = `${pad(start.getMonth() + 1)}/${pad(start.getDate())} (${weekdays[start.getDay()]}) ${pad(start.getHours())}:${pad(start.getMinutes())}`;
+  if (!end) return startPart;
   const sameDay =
     start.getFullYear() === end.getFullYear() &&
     start.getMonth() === end.getMonth() &&
     start.getDate() === end.getDate();
   if (sameDay) {
-    return `${startStr} - ${pad(end.getHours())}:${pad(end.getMinutes())}`;
+    return `${startPart}-${pad(end.getHours())}:${pad(end.getMinutes())}`;
   }
-  const endStr = `${end.getMonth() + 1}月${end.getDate()}日 ${pad(end.getHours())}:${pad(end.getMinutes())}`;
-  return `${startStr} - ${endStr}`;
+  return `${startPart}-${pad(end.getMonth() + 1)}/${pad(end.getDate())} ${pad(end.getHours())}:${pad(end.getMinutes())}`;
 }
 
 function formatRecruitmentSignup(signed, total) {
@@ -537,22 +786,79 @@ function formatRecruitmentSignup(signed, total) {
   return `共招募 ${total} 名，已报 ${signed} 名`;
 }
 
+function coverImageSrc(path, prefix = '/assets/images/') {
+  const img = path || 'event.jpg';
+  if (String(img).startsWith('http') || String(img).startsWith('/') || String(img).startsWith('../')) {
+    return img;
+  }
+  return `${prefix}${img}`;
+}
+
+function enrichActivitySupplier(item, heroMap, imgPrefix) {
+  const row = item || {};
+  const hero = (heroMap && heroMap[String(row.hero_id || '')]) || {};
+  const coverRaw =
+    (row.cover_images && row.cover_images[0]) ||
+    row.cover_image ||
+    'event.jpg';
+  const project_types = Array.isArray(row.project_types)
+    ? row.project_types
+    : Array.isArray(hero.project_types)
+      ? hero.project_types
+      : [];
+  return {
+    ...row,
+    coverSrc: coverImageSrc(coverRaw, imgPrefix),
+    project_types,
+    projectTypesDisplay: project_types.join('、'),
+    timeDisplay:
+      row.timeDisplay ||
+      formatRecruitmentTimeRange(row.start_at, row.end_at) ||
+      '',
+    startLabel: formatRecruitmentTime(row.start_at) || '—',
+    endLabel: formatRecruitmentTime(row.end_at) || '—',
+    location: row.location || '',
+    title: row.title || '未命名赛事',
+  };
+}
+
+function listActivitySuppliersFromMock(imgPrefix = '/assets/images/') {
+  const heroMap = Object.fromEntries(
+    (heroes || []).map((h) => [String(h.hero_id || h.id), h]),
+  );
+  return (events || [])
+    .filter((e) => e && (e.type === 'event' || e.type === 'activity' || !e.type))
+    .map((e) => enrichActivitySupplier(e, heroMap, imgPrefix));
+}
+
 function getRecruitmentsByHeroId(heroId) {
   return events
     .filter((e) => e.hero_id === heroId && e.status !== 'ended')
-    .map((e) => ({
-      ...e,
-      timeDisplay: formatRecruitmentTimeRange(e.start_at, e.end_at),
-      signupDisplay: formatRecruitmentSignup(e.signed, e.total),
-      cover_image:
-        e.cover_image ||
-        (e.cover_images && e.cover_images.length ? e.cover_images[0] : 'recruit-cover.jpg'),
-    }));
+    .map((e) => {
+      const timeDisplay =
+        e.time || e.timeDisplay || formatRecruitmentTimeRange(e.start_at, e.end_at);
+      const feeDisplay =
+        e.feeDisplay ||
+        (e.fee != null ? String(e.fee).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '');
+      return {
+        ...e,
+        typeLabel: e.typeLabel || (e.type === 'activity' ? '活动' : '赛事'),
+        time: timeDisplay,
+        timeDisplay,
+        feeDisplay,
+        signupDisplay: formatRecruitmentSignup(e.signed, e.total),
+        cover_image:
+          e.cover_image ||
+          (e.cover_images && e.cover_images.length ? e.cover_images[0] : 'recruit-cover.jpg'),
+      };
+    });
 }
 
 const courses = [
   {
     id: 'c1',
+    course_id: 'c1',
+    hero_id: '1',
     title: 'ASA101-103培训课',
     price: 1280,
     priceLabel: '1280.00',
@@ -568,6 +874,8 @@ const courses = [
   },
   {
     id: 'c2',
+    course_id: 'c2',
+    hero_id: '3',
     title: '桨板入门体验课',
     price: 198,
     priceLabel: '198.00',
@@ -583,6 +891,8 @@ const courses = [
   },
   {
     id: 'c3',
+    course_id: 'c3',
+    hero_id: '3',
     title: '潜水基础课程',
     price: 2680,
     priceLabel: '2680.00',
@@ -593,6 +903,57 @@ const courses = [
     time: '8月10日 09:00 - 17:00',
     description: '潜水基础课程，含装备介绍、平静水域技巧与开放水域体验。',
     detail_html: '<p>潜水基础课程，含装备介绍与开放水域体验。</p>',
+    banner_images: ['/assets/images/course.jpg'],
+    cover_image: 'course',
+  },
+  {
+    id: 'c4',
+    course_id: 'c4',
+    hero_id: '5',
+    title: '皮划艇入门体验课',
+    price: 268,
+    priceLabel: '268.00',
+    total: 10,
+    signed: 4,
+    location: '淀山湖皮划艇基地',
+    hero_name: '阿海',
+    time: '7月19日 09:30 - 11:30',
+    description: '皮划艇入门体验，含安全须知、登艇平衡与基础划行。',
+    detail_html: '<p>皮划艇入门体验，适合零基础学员。</p>',
+    banner_images: ['/assets/images/course.jpg'],
+    cover_image: 'course',
+  },
+  {
+    id: 'c5',
+    course_id: 'c5',
+    hero_id: '2',
+    title: '帆船入门周末班',
+    price: 880,
+    priceLabel: '880.00',
+    total: 12,
+    signed: 7,
+    location: '金鸡湖帆船码头',
+    hero_name: '熊猫',
+    time: '8月2日 09:00 - 16:00',
+    description: '帆船入门周末班，含绳结、启航与靠泊基础练习。',
+    detail_html: '<p>帆船入门周末班，适合周末体验学员。</p>',
+    banner_images: ['/assets/images/course.jpg'],
+    cover_image: 'course',
+  },
+  {
+    id: 'c6',
+    course_id: 'c6',
+    hero_id: '4',
+    title: 'ASA进阶航行课',
+    price: 1680,
+    priceLabel: '1680.00',
+    total: 8,
+    signed: 5,
+    location: '青岛奥帆中心',
+    hero_name: '大伟',
+    time: '8月15日 08:30 - 17:00',
+    description: 'ASA 进阶航行课，侧重航线规划、帆型调整与竞赛技术。',
+    detail_html: '<p>ASA 进阶航行课，适合有基础学员提升。</p>',
     banner_images: ['/assets/images/course.jpg'],
     cover_image: 'course',
   },
@@ -631,19 +992,19 @@ const news = [
   {
     id: 'n1',
     title: '城市亲子帆船体验日开启，孩子们在风里完成第一次掌舵',
-    category: '帆船',
+    category: '资讯',
     cover: 'news1',
   },
   {
     id: 'n2',
     title: 'ASA航海课程报名升温，城市白领成为主力学员',
-    category: '浆板',
+    category: '资讯',
     cover: 'news2',
   },
   {
     id: 'n3',
     title: '企业团建新选择：帆船团队赛成为高端团建热门项目',
-    category: '亲子活动',
+    category: '资讯',
     cover: 'news3',
   },
 ];
@@ -656,19 +1017,30 @@ function matchYearsRange(yearsExp, rangeId) {
   return yearsExp >= opt.min && yearsExp <= max;
 }
 
+function heroPlazaContentScore(hero) {
+  const rows = Array.isArray(hero && hero.recruitments) ? hero.recruitments : [];
+  const hasEvent = rows.some((r) => r.type === 'event' || r.type === 'activity');
+  const hasCourse = rows.some((r) => r.type === 'course');
+  return (hasEvent ? 1 : 0) + (hasCourse ? 1 : 0);
+}
+
 function sortHeroes(list, sortBy) {
   const arr = [...list];
-  if (sortBy === 'rating_desc') {
-    return arr.sort((a, b) => b.rating - a.rating || b.years_exp - a.years_exp);
-  }
-  if (sortBy === 'rating_asc') {
-    return arr.sort((a, b) => a.rating - b.rating || a.years_exp - b.years_exp);
-  }
-  return arr;
+  return arr.sort((a, b) => {
+    const contentDiff = heroPlazaContentScore(b) - heroPlazaContentScore(a);
+    if (contentDiff !== 0) return contentDiff;
+    if (sortBy === 'rating_desc') {
+      return b.rating - a.rating || b.years_exp - a.years_exp;
+    }
+    if (sortBy === 'rating_asc') {
+      return a.rating - b.rating || a.years_exp - b.years_exp;
+    }
+    return 0;
+  });
 }
 
 function getHeroes(filter = {}) {
-  let list = [...heroes];
+  let list = [...heroes].filter((h) => h && h.enabled !== false);
   const {
     keyword = '',
     project_type = '全部',
@@ -686,7 +1058,10 @@ function getHeroes(filter = {}) {
 
   if (keyword) {
     list = fuzzyFilter(list, keyword, (h) => [
+      h.nickname,
       h.name,
+      ...(h.project_types || []),
+      (h.project_types || []).join(''),
       h.certification_level,
       h.bio,
       String(h.years_exp),
@@ -694,8 +1069,6 @@ function getHeroes(filter = {}) {
       String(h.rating),
       ...(h.cert_badges || []),
       ...(h.honor_titles || []),
-      ...h.project_types,
-      h.project_types.join(''),
       ...(h.recruitments || []).map((r) => `${r.status} ${r.title}`),
     ]);
   }
@@ -734,6 +1107,8 @@ module.exports = {
   formatRecruitmentTime,
   formatRecruitmentTimeRange,
   formatRecruitmentSignup,
+  enrichActivitySupplier,
+  listActivitySuppliersFromMock,
   SORT_OPTIONS,
   YEARS_OPTIONS,
 };

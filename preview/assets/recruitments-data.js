@@ -6,6 +6,28 @@
     active: [
       {
         recruit_id: 'r2',
+        hero_id: '1',
+        hero_name: '小哥',
+        type: 'activity',
+        typeLabel: '活动',
+        title: '亲子帆船体验日',
+        start_at: '2026-06-08T09:00:00',
+        end_at: '2026-06-08T16:00:00',
+        location: '滴水湖二号码头',
+        fee: 1280,
+        signed: 8,
+        total: 16,
+        displayStatus: 'recruiting',
+        listTab: 'active',
+        cover_images: ['banner.jpg'],
+        tags: ['亲子友好', '含装备', '小班教学'],
+        description:
+          '亲子帆船体验日：家长与孩子一同登船，含岸上安全讲解、基础操帆与短途体验航段。适合 6 岁以上儿童在家长陪同下参与。',
+        remark: '请穿着防滑运动鞋；儿童需家长全程陪同；建议自备防晒与换洗衣物。',
+      },
+      {
+        recruit_id: 'r15',
+        hero_id: '1',
         hero_name: '小哥',
         type: 'event',
         typeLabel: '赛事',
@@ -18,7 +40,7 @@
         total: 6,
         displayStatus: 'recruiting',
         listTab: 'active',
-        cover_images: ['recruit-cover.jpg', 'event.jpg'],
+        cover_images: ['recruit-cover.jpg'],
         description: '适合零基础学员参与，含安全讲解与实操体验。请穿着运动服，注意防晒。',
       },
       {
@@ -35,7 +57,7 @@
         total: 20,
         displayStatus: 'ongoing',
         listTab: 'active',
-        cover_images: ['recruit-cover.jpg', 'event.jpg', 'hero-1.jpg'],
+        cover_images: ['recruit-cover.jpg'],
         description: '企业家杯帆船系列赛分站，适合有一定基础的学员组队参赛。含赛前说明会与赛后颁奖。',
       },
       {
@@ -70,6 +92,7 @@
         total: 20,
         displayStatus: 'ended',
         listTab: 'ended',
+        is_mine: true,
         cover_images: ['recruit-cover.jpg'],
         description: '冬季帆船强化训练营，已完成全部课程与结营考核。',
       },
@@ -86,12 +109,13 @@
         total: 16,
         displayStatus: 'ended',
         listTab: 'ended',
+        is_mine: true,
         cover_images: ['event.jpg'],
         description: '企业团建帆船赛专场，含团队配合训练与友谊赛。',
       },
       {
         recruit_id: 'r12',
-        hero_name: '小哥',
+        hero_name: '熊猫',
         type: 'event',
         typeLabel: '赛事',
         title: '五一桨板体验日',
@@ -102,6 +126,7 @@
         total: 10,
         displayStatus: 'ended',
         listTab: 'ended',
+        is_mine: false,
         cover_images: ['event.jpg'],
         description: '五一桨板体验日活动，含基础教学与湖面体验滑行。',
       },
@@ -179,7 +204,7 @@
       fee: 800,
       signed: 15,
       total: 24,
-      cover_images: ['recruit-cover.jpg', 'event.jpg'],
+      cover_images: ['recruit-cover.jpg'],
       description: '城市帆船精英赛，面向有一定基础的帆船爱好者，含多日赛程与技术讲评。',
     },
   ];
@@ -219,10 +244,15 @@
       cover_images:
         item.cover_images && item.cover_images.length
           ? item.cover_images
-          : ['recruit-cover.jpg', 'event.jpg', 'hero-1.jpg'],
+          : ['recruit-cover.jpg'],
       description:
         item.description ||
         '适合零基础学员参与，含安全讲解与实操体验。请穿着运动服，注意防晒。',
+      remark: item.remark || '请穿着运动服，注意防晒。自备防晒用品。',
+      tags: (Array.isArray(item.tags) ? item.tags : ['零基础友好', '含装备', '小班教学'])
+        .map((t) => String(t || '').trim())
+        .filter(Boolean)
+        .slice(0, 3),
       organizer_profile:
         item.organizer_profile ||
         ORGANIZER_PROFILES[item.hero_name] ||
@@ -237,7 +267,28 @@
       if (found) return normalize(found);
     }
     const pub = (window.PUBLIC_RECRUITMENTS || []).find((r) => r.recruit_id === id);
-    return pub ? normalize(pub) : null;
+    if (pub) return normalize(pub);
+
+    /* 英雄卡片嵌套招募兜底（避免列表 id 与招募库短暂不一致） */
+    const heroes = window.HEROES_DATA || {};
+    const heroIds = Object.keys(heroes);
+    for (let i = 0; i < heroIds.length; i += 1) {
+      const hero = heroes[heroIds[i]] || {};
+      const nested = (hero.recruitments || []).find(
+        (r) => String(r.recruit_id || r.id || r.target_id) === String(id),
+      );
+      if (nested) {
+        return normalize({
+          ...nested,
+          recruit_id: nested.recruit_id || nested.id || nested.target_id || id,
+          hero_id: heroIds[i],
+          hero_name: hero.name || hero.nickname || nested.hero_name,
+          cover_images: nested.cover_images || (nested.cover_image ? [nested.cover_image] : undefined),
+          typeLabel: nested.typeLabel || (nested.type === 'activity' ? '活动' : '赛事'),
+        });
+      }
+    }
+    return null;
   };
 
   window.getMyRecruitmentLists = function getMyRecruitmentLists() {

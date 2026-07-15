@@ -1,12 +1,16 @@
-/** 统一数据层：本地 API 优先，wx.storage 镜像兜底 */
+/** 统一数据层：业务走 store/mock；仅认证相关走本地 API */
 
 const mock = require('./mock.js');
 const api = require('./api.js');
 const store = require('./store.js');
-const { sortMyRecruitmentLists } = require('./recruitment-sort.js');
 const { sortMySignupLists } = require('./signup-sort.js');
 const { sortReviewsByTimeDesc } = require('./review-sort.js');
 const { sortMyCourseLists } = require('./course-sort.js');
+
+const MOCK_USER_ID = 'mock-user-1';
+
+/** 可与服务端同步的认证相关 app_state 键 */
+const AUTH_APP_STATE_KEYS = new Set(['mock_hero_role']);
 
 let apiReady = null;
 
@@ -17,67 +21,34 @@ function ensureApi() {
   return apiReady;
 }
 
-function mirrorHero(id, patch) {
-  store.updateHero(id, patch);
-}
-
 function mirrorRecruitment(item, scope) {
   store.upsertRecruitment(item, scope);
 }
 
 function getHeroById(id) {
-  return ensureApi().then((ok) => {
-    if (ok) {
-      return api
-        .request(`/api/heroes/${id}`)
-        .then((hero) => {
-          store.updateHero(id, hero);
-          return hero;
-        })
-        .catch(() => store.getHero(id) || mock.getHeroById(id));
-    }
-    return store.getHero(id) || mock.getHeroById(id);
-  });
+  return Promise.resolve(store.getHero(id) || mock.getHeroById(id));
 }
 
 function updateHero(id, patch) {
-  return ensureApi().then((ok) => {
-    const local = () => {
-      const hero = store.updateHero(id, patch);
-      if (!hero) return Promise.reject(new Error('hero_not_found'));
-      return hero;
-    };
-    if (!ok) return local();
-    return api
-      .request(`/api/heroes/${id}`, 'PUT', patch)
-      .then((hero) => {
-        store.updateHero(id, hero);
-        return hero;
-      })
-      .catch(local);
-  });
+  const hero = store.updateHero(id, patch);
+  if (!hero) return Promise.reject(new Error('hero_not_found'));
+  return Promise.resolve(hero);
 }
 
-function getHeroes(filter) {
-  return ensureApi().then((ok) => {
-    if (!ok) return mock.getHeroes(filter);
-    return Promise.all([
-      api.request('/api/heroes'),
-      api.request('/api/recruitments?scope=public').catch(() => ({ items: [] })),
-      api.request('/api/courses').catch(() => ({ items: [] })),
-    ])
-      .then(([heroesRes, recRes, courseRes]) => {
-        const recruitments = recRes.items || [];
-        const courses = courseRes.items || [];
-        const list = (heroesRes.items || []).map((h) => {
-          const card = normalizeHeroForList(h, recruitments, courses);
-          store.updateHero(card.hero_id, card);
-          return card;
-        });
-        return applyHeroFilters(list, filter);
-      })
-      .catch(() => mock.getHeroes(filter));
-  });
+function getHeroes(filter, options = {}) {
+  // 业务数据已全部走 mock；emptyOnFail 仅历史兼容，不再短路为空
+  void options;
+  let publicRecs = [];
+  try {
+    publicRecs = store.listRecruitments('public') || [];
+  } catch (_) {
+    publicRecs = [];
+  }
+  const recruitments = publicRecs.length ? publicRecs : mock.events || [];
+  const courses = mock.courses || [];
+  const base = (mock.heroes || []).map((h) => mock.getHeroById(h.hero_id) || h);
+  const list = base.map((h) => normalizeHeroForList(h, recruitments, courses));
+  return Promise.resolve(applyHeroFilters(list, filter));
 }
 
 function parseYearsExp(value) {
@@ -87,25 +58,71 @@ function parseYearsExp(value) {
 
 function normalizeHeroForList(hero, recruitments, courses) {
   const hid = String(hero.hero_id || hero.id || '');
-  const events = (recruitments || []).filter((r) => String(r.hero_id || '') === hid).slice(0, 1);
-  const heroCourses = (courses || []).filter((c) => String(c.hero_id || '') === hid).slice(0, 1);
+  const nested = Array.isArray(hero.recruitments) ? hero.recruitments : [];
+  const apiEvent = (recruitments || []).find(
+    (r) => String(r.hero_id || '') === hid && (r.type === 'event' || (!r.type && r.typeLabel === '赛事')),
+  );
+  const apiActivity = (recruitments || []).find(
+    (r) => String(r.hero_id || '') === hid && (r.type === 'activity' || r.typeLabel === '活动'),
+  );
+  const apiCourse = (courses || []).find((c) => String(c.hero_id || '') === hid);
+  const nestedEvent = nested.find((r) => r.type === 'event');
+  const nestedActivity = nested.find((r) => r.type === 'activity');
+  const nestedCourse = nested.find((r) => r.type === 'course');
+
   const rows = [];
-  events.forEach((e) => {
-    rows.push({
-      type: 'event',
-      status: e.status_label || e.status || '招募中',
-      title: e.title || '',
-      target_id: e.recruit_id || e.id,
-    });
-  });
-  heroCourses.forEach((c) => {
-    rows.push({
-      type: 'course',
-      status: '报名中',
-      title: c.title || '',
-      target_id: c.course_id || c.id,
-    });
-  });
+  const eventRow = apiEvent
+    ? {
+        type: 'event',
+        status: apiEvent.status_label || apiEvent.status || '招募中',
+        title: apiEvent.title || '',
+        target_id: apiEvent.recruit_id || apiEvent.id,
+        quota_text: apiEvent.quota_text || '',
+      }
+    : nestedEvent
+      ? {
+          type: 'event',
+          status: nestedEvent.status || '招募中',
+          title: nestedEvent.title || '',
+          target_id: nestedEvent.target_id || nestedEvent.recruit_id,
+          quota_text: nestedEvent.quota_text || '',
+        }
+      : null;
+  const activityRow = apiActivity
+    ? {
+        type: 'activity',
+        status: apiActivity.status_label || apiActivity.status || '报名中',
+        title: apiActivity.title || '',
+        target_id: apiActivity.recruit_id || apiActivity.id,
+      }
+    : nestedActivity
+      ? {
+          type: 'activity',
+          status: nestedActivity.status || '报名中',
+          title: nestedActivity.title || '',
+          target_id: nestedActivity.target_id || nestedActivity.recruit_id,
+        }
+      : null;
+  const courseRow = apiCourse
+    ? {
+        type: 'course',
+        status: '报名中',
+        title: apiCourse.title || '',
+        target_id: apiCourse.course_id || apiCourse.id,
+      }
+    : nestedCourse
+      ? {
+          type: 'course',
+          status: nestedCourse.status || '报名中',
+          title: nestedCourse.title || '',
+          target_id: nestedCourse.target_id || nestedCourse.course_id,
+        }
+      : null;
+
+  if (eventRow) rows.push(eventRow);
+  if (activityRow) rows.push(activityRow);
+  if (courseRow) rows.push(courseRow);
+
   let honor_titles = Array.isArray(hero.honor_titles) ? [...hero.honor_titles] : [];
   if (!honor_titles.length) {
     const cert = hero.certification || hero.certification_level || '';
@@ -123,8 +140,46 @@ function normalizeHeroForList(hero, recruitments, courses) {
   };
 }
 
+function heroPlazaContentScore(hero) {
+  const h = hero || {};
+  const rows = Array.isArray(h.recruitments) ? h.recruitments : [];
+  const events = Array.isArray(h.events) ? h.events : [];
+  const courses = Array.isArray(h.courses) ? h.courses : [];
+  const hasEvent =
+    events.some((e) => (e.type || 'event') !== 'course') ||
+    rows.some((r) => r.type === 'event' || r.type === 'activity');
+  const hasCourse =
+    courses.length > 0 || rows.some((r) => r.type === 'course');
+  return (hasEvent ? 1 : 0) + (hasCourse ? 1 : 0);
+}
+
+/** 无赛事且无课程的英雄沉底；其余保持相对顺序 / 既有评分排序 */
+function sortHeroesByPlazaContent(list, sortBy) {
+  const result = Array.isArray(list) ? [...list] : [];
+  result.sort((a, b) => {
+    const contentDiff = heroPlazaContentScore(b) - heroPlazaContentScore(a);
+    if (contentDiff !== 0) return contentDiff;
+    if (sortBy === 'rating_desc') {
+      return (
+        (Number(b.rating) || 0) - (Number(a.rating) || 0) ||
+        parseYearsExp(b.years_exp) - parseYearsExp(a.years_exp)
+      );
+    }
+    if (sortBy === 'rating_asc') {
+      return (
+        (Number(a.rating) || 0) - (Number(b.rating) || 0) ||
+        parseYearsExp(a.years_exp) - parseYearsExp(b.years_exp)
+      );
+    }
+    return 0;
+  });
+  return result;
+}
+
 function applyHeroFilters(list, filter) {
   let result = Array.isArray(list) ? [...list] : [];
+  // 广场仅展示已认证且启用的教练
+  result = result.filter((h) => h && h.enabled !== false);
   const f = filter || {};
   const keyword = f.keyword || '';
   const projectType = f.project_type || '全部';
@@ -151,7 +206,10 @@ function applyHeroFilters(list, filter) {
   if (keyword) {
     const { fuzzyFilter } = require('./fuzzy.js');
     result = fuzzyFilter(result, keyword, (h) => [
+      h.nickname,
       h.name,
+      ...(h.project_types || []),
+      (h.project_types || []).join(''),
       h.certification_level,
       h.certification,
       h.bio,
@@ -166,63 +224,15 @@ function applyHeroFilters(list, filter) {
     ]);
   }
 
-  if (sortBy === 'rating_desc') {
-    result.sort(
-      (a, b) =>
-        (Number(b.rating) || 0) - (Number(a.rating) || 0) ||
-        parseYearsExp(b.years_exp) - parseYearsExp(a.years_exp),
-    );
-  } else if (sortBy === 'rating_asc') {
-    result.sort(
-      (a, b) =>
-        (Number(a.rating) || 0) - (Number(b.rating) || 0) ||
-        parseYearsExp(a.years_exp) - parseYearsExp(b.years_exp),
-    );
-  }
-
-  return result;
+  return sortHeroesByPlazaContent(result, sortBy);
 }
 
 function getRecruitmentById(id) {
-  return ensureApi().then((ok) => {
-    if (ok) {
-      return api
-        .request(`/api/recruitments/${id}`)
-        .then((item) => {
-          const scope = item.listTab ? `mine_${item.listTab}` : 'public';
-          mirrorRecruitment(item, scope);
-          return mock.getRecruitmentById(id) || item;
-        })
-        .catch(() => store.getRecruitment(id) || mock.getRecruitmentById(id));
-    }
-    return store.getRecruitment(id) || mock.getRecruitmentById(id);
-  });
+  return Promise.resolve(store.getRecruitment(id) || mock.getRecruitmentById(id));
 }
 
 function getMyRecruitmentLists() {
-  return ensureApi().then((ok) => {
-    if (ok) {
-      const qs = `?user_id=${encodeURIComponent(MOCK_USER_ID)}`;
-      return Promise.all([
-        api.request(`/api/recruitments/mine/active${qs}`),
-        api.request(`/api/recruitments/mine/ended${qs}`),
-        api.request(`/api/recruitments/mine/draft${qs}`),
-      ])
-        .then(([active, ended, draft]) => {
-          const lists = sortMyRecruitmentLists({
-            active: active.items || [],
-            ended: ended.items || [],
-            draft: draft.items || [],
-          });
-          ['active', 'ended', 'draft'].forEach((tab) => {
-            (lists[tab] || []).forEach((item) => mirrorRecruitment(item, `mine_${tab}`));
-          });
-          return lists;
-        })
-        .catch(() => store.getMyRecruitmentLists());
-    }
-    return store.getMyRecruitmentLists();
-  });
+  return Promise.resolve(store.getMyRecruitmentLists());
 }
 
 function normalizeScope(tab) {
@@ -233,93 +243,42 @@ function normalizeScope(tab) {
 
 function createRecruitment(item, tab) {
   const scope = normalizeScope(tab || 'active');
-  return ensureApi().then((ok) => {
-    const withUser = { ...item, user_id: item.user_id || MOCK_USER_ID };
-    const local = () => {
+  const withUser = { ...item, user_id: item.user_id || MOCK_USER_ID };
+  return getHeroApplyStatus()
+    .then((res) => {
+      if ((!withUser.hero_id || withUser.hero_id === '1') && res?.status === 'approved') {
+        const app = res.application || {};
+        withUser.hero_id = res.hero_id || app.hero_id || withUser.hero_id || '1';
+        if (app.name) withUser.hero_name = app.name;
+      }
       mirrorRecruitment(withUser, scope);
       return withUser;
-    };
-    if (!ok) return Promise.resolve(local());
-    const attachHero = () => {
-      if (withUser.hero_id && withUser.hero_id !== '1') {
-        return Promise.resolve(withUser);
-      }
-      return api
-        .request(`/api/heroes/apply/status?user_id=${encodeURIComponent(MOCK_USER_ID)}`)
-        .then((res) => {
-          if (res?.status === 'approved') {
-            const app = res.application || {};
-            withUser.hero_id = res.hero_id || app.hero_id || withUser.hero_id || '1';
-            if (app.name) withUser.hero_name = app.name;
-          }
-          return withUser;
-        })
-        .catch(() => withUser);
-    };
-    return attachHero()
-      .then((payload) => api.request('/api/recruitments', 'POST', { ...payload, scope }))
-      .then((saved) => {
-        mirrorRecruitment(saved, scope);
-        return saved;
-      })
-      .catch(local);
-  });
+    })
+    .catch(() => {
+      mirrorRecruitment(withUser, scope);
+      return withUser;
+    });
 }
 
 function updateRecruitment(id, item) {
   const scope = normalizeScope(item.listTab || 'active');
-  return ensureApi().then((ok) => {
-    const local = () => {
-      mirrorRecruitment({ ...item, recruit_id: id }, scope);
-      return { ...item, recruit_id: id };
-    };
-    if (!ok) return Promise.resolve(local());
-    return api
-      .request(`/api/recruitments/${id}`, 'PUT', { ...item, scope })
-      .then((saved) => {
-        mirrorRecruitment(saved, scope);
-        return saved;
-      })
-      .catch(local);
-  });
+  const saved = { ...item, recruit_id: id };
+  mirrorRecruitment(saved, scope);
+  return Promise.resolve(saved);
 }
 
 function deleteRecruitment(id) {
-  return ensureApi().then((ok) => {
-    const local = () => store.deleteRecruitment(id);
-    if (!ok) return Promise.resolve(local());
-    return api
-      .request(`/api/recruitments/${id}`, 'DELETE')
-      .then(() => {
-        store.deleteRecruitment(id);
-        return true;
-      })
-      .catch(local);
-  });
+  return Promise.resolve(store.deleteRecruitment(id));
 }
 
 function getRecruitmentsByHeroId(heroId) {
-  return ensureApi().then((ok) => {
-    if (!ok) return mock.getRecruitmentsByHeroId(heroId);
-    return api
-      .request('/api/recruitments', 'GET', { hero_id: heroId, scope: 'public' })
-      .then((res) => {
-        const items = res.items || [];
-        if (!items.length) return mock.getRecruitmentsByHeroId(heroId);
-        return items.map((e) => ({
-          ...e,
-          timeDisplay: mock.formatRecruitmentTimeRange(e.start_at, e.end_at),
-          signupDisplay: mock.formatRecruitmentSignup(e.signed, e.total),
-          cover_image:
-            e.cover_image ||
-            (e.cover_images && e.cover_images.length ? e.cover_images[0] : 'recruit-cover.jpg'),
-        }));
-      })
-      .catch(() => mock.getRecruitmentsByHeroId(heroId));
-  });
+  return Promise.resolve(mock.getRecruitmentsByHeroId(heroId));
 }
 
 function getAppState(key, fallback) {
+  if (!AUTH_APP_STATE_KEYS.has(key)) {
+    return Promise.resolve(store.getAppState(key, fallback));
+  }
   return ensureApi().then((ok) => {
     if (ok) {
       return api
@@ -336,8 +295,9 @@ function getAppState(key, fallback) {
 }
 
 function setAppState(key, value) {
+  store.setAppState(key, value);
+  if (!AUTH_APP_STATE_KEYS.has(key)) return Promise.resolve(value);
   return ensureApi().then((ok) => {
-    store.setAppState(key, value);
     if (!ok) return value;
     return api
       .request(`/api/app-state/${key}`, 'PUT', { value })
@@ -346,8 +306,6 @@ function setAppState(key, value) {
   });
 }
 
-const MOCK_USER_ID = 'mock-user-1';
-
 function normalizeApplyStatus(res) {
   const status = (res && res.status) || 'none';
   return {
@@ -355,6 +313,11 @@ function normalizeApplyStatus(res) {
     application_id: res?.application_id || null,
     reject_reason: res?.reject_reason || null,
     application: res?.application || null,
+    hero_id: res?.hero_id || null,
+    profile_change_pending: !!res?.profile_change_pending,
+    pending_profile_change: res?.pending_profile_change || null,
+    hero_enabled: res?.hero_enabled !== false,
+    disable_reason: res?.disable_reason || '',
   };
 }
 
@@ -419,126 +382,71 @@ function withdrawHeroApply() {
 }
 
 function addMySignup(entry) {
-  return ensureApi().then((ok) => {
-    const local = () =>
-      getAppState('my_signups', []).then((list) => {
-        const next = [
-          {
-            id: `s${Date.now()}`,
-            status: '已报名',
-            checked_in: false,
-            time: new Date().toLocaleString('zh-CN'),
-            ...entry,
-          },
-          ...(list || []),
-        ];
-        return setAppState('my_signups', next).then(() => next[0]);
-      });
-    if (!ok) return local();
-    return api
-      .request('/api/signups', 'POST', {
+  return getAppState('my_signups', []).then((list) => {
+    const next = [
+      {
+        id: `s${Date.now()}`,
+        status: '已报名',
+        checked_in: false,
+        time: new Date().toLocaleString('zh-CN'),
         ...entry,
-        user_id: MOCK_USER_ID,
-        status: entry.status || '已报名',
-        pay_status: entry.payStatus || entry.pay_status || '待支付',
-      })
-      .then((item) => enrichSignup(item))
-      .catch(local);
+      },
+      ...(list || []),
+    ];
+    return setAppState('my_signups', next).then(() => enrichSignup(next[0]));
   });
 }
 
 function getMySignupByRecruitId(recruitId) {
-  return ensureApi().then((ok) => {
-    if (ok) {
-      return api
-        .request('/api/signups/mine')
-        .then((res) => {
-          const raw = (res.items || []).find((s) => s.recruit_id === recruitId);
-          return raw ? enrichSignup(raw) : null;
-        })
-        .catch(() =>
-          getAppState('my_signups', null).then((list) => {
-            const source = list && list.length ? list : DEFAULT_MY_SIGNUPS;
-            const raw = source.find((s) => s.recruit_id === recruitId);
-            return raw ? enrichSignup(raw) : null;
-          })
-        );
-    }
-    return getAppState('my_signups', null).then((list) => {
-      const source = list && list.length ? list : DEFAULT_MY_SIGNUPS;
-      const raw = source.find((s) => s.recruit_id === recruitId);
-      return raw ? enrichSignup(raw) : null;
-    });
+  return getAppState('my_signups', null).then((list) => {
+    const source = list && list.length ? list : DEFAULT_MY_SIGNUPS;
+    const raw = source.find((s) => s.recruit_id === recruitId);
+    return raw ? enrichSignup(raw) : null;
   });
 }
 
 function checkinMySignup(recruitId) {
   return getMySignupByRecruitId(recruitId).then((signup) => {
     if (!signup) return null;
-    const sid = signup.signup_id || signup.id;
-    return ensureApi().then((ok) => {
-      if (ok && sid) {
-        return api
-          .request(`/api/signups/${sid}/checkin`, 'POST', {})
-          .then((item) => enrichSignup(item))
-          .catch(() =>
-            getAppState('my_signups', null).then((list) => {
-              const source = list && list.length ? list : [...DEFAULT_MY_SIGNUPS];
-              const next = source.map((item) =>
-                item.recruit_id === recruitId
-                  ? {
-                      ...item,
-                      checked_in: true,
-                      checkin_at: new Date().toISOString(),
-                      status: '已签到',
-                    }
-                  : item
-              );
-              return setAppState('my_signups', next).then(() =>
-                enrichSignup(next.find((i) => i.recruit_id === recruitId))
-              );
-            })
-          );
-      }
-      return getAppState('my_signups', null).then((list) => {
-        const source = list && list.length ? list : [...DEFAULT_MY_SIGNUPS];
-        const next = source.map((item) =>
-          item.recruit_id === recruitId
-            ? {
-                ...item,
-                checked_in: true,
-                checkin_at: new Date().toISOString(),
-                status: '已签到',
-              }
-            : item
-        );
-        return setAppState('my_signups', next);
-      });
+    return getAppState('my_signups', null).then((list) => {
+      const source = list && list.length ? list : [...DEFAULT_MY_SIGNUPS];
+      const next = source.map((item) =>
+        item.recruit_id === recruitId
+          ? {
+              ...item,
+              checked_in: true,
+              checkin_at: new Date().toISOString(),
+              status: '已签到',
+            }
+          : item,
+      );
+      return setAppState('my_signups', next).then(() =>
+        enrichSignup(next.find((i) => i.recruit_id === recruitId)),
+      );
     });
   });
 }
 
 function updateSignupStatus(signupId, status) {
+  return getAppState('my_signups', []).then((list) => {
+    const next = (list || []).map((item) =>
+      item.id === signupId || item.signup_id === signupId ? { ...item, status } : item,
+    );
+    return setAppState('my_signups', next);
+  });
+}
+
+function listCourseSignups(courseId) {
   return ensureApi().then((ok) => {
     if (ok) {
       return api
-        .request(`/api/signups/${signupId}`, 'PUT', { status })
-        .then((item) => enrichSignup(item))
-        .catch(() =>
-          getAppState('my_signups', []).then((list) => {
-            const next = (list || []).map((item) =>
-              item.id === signupId || item.signup_id === signupId ? { ...item, status } : item
-            );
-            return setAppState('my_signups', next);
-          })
-        );
+        .request(`/api/signups?course_id=${encodeURIComponent(courseId)}`)
+        .then((res) => res.items || [])
+        .catch(() => []);
     }
-    return getAppState('my_signups', []).then((list) => {
-      const next = (list || []).map((item) =>
-        item.id === signupId || item.signup_id === signupId ? { ...item, status } : item
-      );
-      return setAppState('my_signups', next);
-    });
+    return getAppState('my_signups', []).then((list) =>
+      (list || []).filter((item) => item.type === 'course' && String(item.course_id) === String(courseId)),
+    );
   });
 }
 
@@ -603,25 +511,9 @@ function splitSignupLists(source) {
 }
 
 function getMySignupLists() {
-  return ensureApi().then((ok) => {
-    if (ok) {
-      return api
-        .request('/api/signups/mine')
-        .then((res) => {
-          const items = res.items || [];
-          return splitSignupLists(items.length ? items : DEFAULT_MY_SIGNUPS);
-        })
-        .catch(() =>
-          getAppState('my_signups', null).then((list) => {
-            const source = list && list.length ? list : DEFAULT_MY_SIGNUPS;
-            return splitSignupLists(source);
-          })
-        );
-    }
-    return getAppState('my_signups', null).then((list) => {
-      const source = list && list.length ? list : DEFAULT_MY_SIGNUPS;
-      return splitSignupLists(source);
-    });
+  return getAppState('my_signups', null).then((list) => {
+    const source = list && list.length ? list : DEFAULT_MY_SIGNUPS;
+    return splitSignupLists(source);
   });
 }
 
@@ -692,26 +584,9 @@ function enrichReview(review) {
 }
 
 function getMyReviews() {
-  return ensureApi().then((ok) => {
-    if (ok) {
-      return api
-        .request('/api/reviews/mine')
-        .then((res) => {
-          const items = res.items || [];
-          const source = items.length ? items : DEFAULT_MY_REVIEWS;
-          return sortReviewsByTimeDesc(source.map(enrichReview));
-        })
-        .catch(() =>
-          getAppState('my_reviews', null).then((list) => {
-            const source = list && list.length ? list : DEFAULT_MY_REVIEWS;
-            return sortReviewsByTimeDesc(source.map(enrichReview));
-          })
-        );
-    }
-    return getAppState('my_reviews', null).then((list) => {
-      const source = list && list.length ? list : DEFAULT_MY_REVIEWS;
-      return sortReviewsByTimeDesc(source.map(enrichReview));
-    });
+  return getAppState('my_reviews', null).then((list) => {
+    const source = list && list.length ? list : DEFAULT_MY_REVIEWS;
+    return sortReviewsByTimeDesc(source.map(enrichReview));
   });
 }
 
@@ -754,64 +629,19 @@ const DEFAULT_MY_STUDENTS = [
 ];
 
 function getMyRatings(heroId) {
-  const hid = heroId || '1';
-  return ensureApi().then((ok) => {
-    if (ok) {
-      return api
-        .request('/api/reviews', 'GET', { hero_id: hid })
-        .then((res) => {
-          const items = res.items || [];
-          const source = items.length ? items : DEFAULT_HERO_RATINGS;
-          return sortReviewsByTimeDesc(source.map(enrichReview));
-        })
-        .catch(() =>
-          getAppState('hero_ratings', null).then((list) => {
-            const source = list && list.length ? list : DEFAULT_HERO_RATINGS;
-            return sortReviewsByTimeDesc(source.map(enrichReview));
-          })
-        );
-    }
-    return getAppState('hero_ratings', null).then((list) => {
-      const source = list && list.length ? list : DEFAULT_HERO_RATINGS;
-      return sortReviewsByTimeDesc(source.map(enrichReview));
-    });
+  return getAppState('hero_ratings', null).then((list) => {
+    const source = list && list.length ? list : DEFAULT_HERO_RATINGS;
+    return sortReviewsByTimeDesc(source.map(enrichReview));
   });
 }
 
 function getMyStudents(heroId) {
-  const hid = heroId || '1';
-  return ensureApi().then((ok) => {
-    if (ok) {
-      return api
-        .request(`/api/heroes/${hid}/students`)
-        .then((res) => {
-          const items = res.items || [];
-          return items.length
-            ? items
-            : [...DEFAULT_MY_STUDENTS].sort((a, b) => {
-                const ta = new Date(a.last_active || 0).getTime();
-                const tb = new Date(b.last_active || 0).getTime();
-                return (Number.isNaN(tb) ? -Infinity : tb) - (Number.isNaN(ta) ? -Infinity : ta);
-              });
-        })
-        .catch(() =>
-          getAppState('my_students', null).then((list) => {
-            const source = list && list.length ? list : DEFAULT_MY_STUDENTS;
-            return [...source].sort((a, b) => {
-              const ta = new Date(a.last_active || 0).getTime();
-              const tb = new Date(b.last_active || 0).getTime();
-              return (Number.isNaN(tb) ? -Infinity : tb) - (Number.isNaN(ta) ? -Infinity : ta);
-            });
-          })
-        );
-    }
-    return getAppState('my_students', null).then((list) => {
-      const source = list && list.length ? list : DEFAULT_MY_STUDENTS;
-      return [...source].sort((a, b) => {
-        const ta = new Date(a.last_active || 0).getTime();
-        const tb = new Date(b.last_active || 0).getTime();
-        return (Number.isNaN(tb) ? -Infinity : tb) - (Number.isNaN(ta) ? -Infinity : ta);
-      });
+  return getAppState('my_students', null).then((list) => {
+    const source = list && list.length ? list : DEFAULT_MY_STUDENTS;
+    return [...source].sort((a, b) => {
+      const ta = new Date(a.last_active || 0).getTime();
+      const tb = new Date(b.last_active || 0).getTime();
+      return (Number.isNaN(tb) ? -Infinity : tb) - (Number.isNaN(ta) ? -Infinity : ta);
     });
   });
 }
@@ -825,17 +655,9 @@ function addMyCourse(course) {
     ...course,
     created_at: new Date().toISOString(),
   };
-  return ensureApi().then((ok) => {
-    const local = () =>
-      getAppState('my_courses', []).then((list) =>
-        setAppState('my_courses', [item, ...(list || [])]).then(() => item)
-      );
-    if (!ok) return local();
-    return api
-      .request('/api/courses', 'POST', item)
-      .then((saved) => enrichCourse(saved))
-      .catch(local);
-  });
+  return getAppState('my_courses', []).then((list) =>
+    setAppState('my_courses', [item, ...(list || [])]).then(() => enrichCourse(item)),
+  );
 }
 
 const DEFAULT_MY_COURSE_LISTS = {
@@ -928,52 +750,37 @@ function splitCourseLists(source) {
 }
 
 function getMyCourseLists(heroId) {
-  const hid = heroId || '1';
-  return ensureApi().then((ok) => {
-    if (ok) {
-      return api
-        .request('/api/courses', 'GET', { hero_id: hid })
-        .then((res) => {
-          const items = res.items || [];
-          if (!items.length) {
-            return splitCourseLists([
-              ...DEFAULT_MY_COURSE_LISTS.active,
-              ...DEFAULT_MY_COURSE_LISTS.ended,
-            ]);
-          }
-          return splitCourseLists(items);
-        })
-        .catch(() =>
-          getAppState('my_courses', null).then((stored) => {
-            const defaults = [
-              ...DEFAULT_MY_COURSE_LISTS.active,
-              ...DEFAULT_MY_COURSE_LISTS.ended,
-            ];
-            const map = new Map();
-            defaults.forEach((item) => map.set(item.course_id, item));
-            (stored || []).forEach((item) => {
-              const id = item.course_id || item.id;
-              if (id) map.set(id, { ...map.get(id), ...item });
-              else map.set(`stored-${map.size}`, item);
-            });
-            return splitCourseLists([...map.values()]);
-          })
-        );
-    }
-    return getAppState('my_courses', null).then((stored) => {
-      const defaults = [
-        ...DEFAULT_MY_COURSE_LISTS.active,
-        ...DEFAULT_MY_COURSE_LISTS.ended,
-      ];
-      const map = new Map();
-      defaults.forEach((item) => map.set(item.course_id, item));
-      (stored || []).forEach((item) => {
-        const id = item.course_id || item.id;
-        if (id) map.set(id, { ...map.get(id), ...item });
-        else map.set(`stored-${map.size}`, item);
-      });
-      return splitCourseLists([...map.values()]);
+  return getAppState('my_courses', null).then((stored) => {
+    const defaults = [...DEFAULT_MY_COURSE_LISTS.active, ...DEFAULT_MY_COURSE_LISTS.ended];
+    const map = new Map();
+    defaults.forEach((item) => map.set(item.course_id, item));
+    (stored || []).forEach((item) => {
+      const id = item.course_id || item.id;
+      if (id) map.set(id, { ...map.get(id), ...item });
+      else map.set(`stored-${map.size}`, item);
     });
+    return splitCourseLists([...map.values()]);
+  });
+}
+
+function listActivitySuppliers() {
+  return Promise.resolve(mock.listActivitySuppliersFromMock('/assets/images/'));
+}
+
+function submitProfileChange(heroId, patch, changeType) {
+  return ensureApi().then((ok) => {
+    if (!ok) return Promise.reject(new Error('api_unavailable'));
+    return api.request(`/api/heroes/${heroId}/profile-changes`, 'POST', {
+      patch,
+      change_type: changeType || 'profile',
+    });
+  });
+}
+
+function withdrawProfileChange(heroId) {
+  return ensureApi().then((ok) => {
+    if (!ok) return Promise.reject(new Error('api_unavailable'));
+    return api.request(`/api/heroes/${heroId}/profile-changes/withdraw`, 'POST', {});
   });
 }
 
@@ -1005,5 +812,9 @@ module.exports = {
   getMyStudents,
   getMyCourseLists,
   addMyCourse,
+  listCourseSignups,
+  listActivitySuppliers,
+  submitProfileChange,
+  withdrawProfileChange,
   ensureApi,
 };

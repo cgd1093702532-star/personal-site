@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """重新生成手机端预览 HTML"""
 import json
+import sys
 from datetime import datetime
 from pathlib import Path
 
@@ -8,6 +9,27 @@ ROOT = Path(__file__).resolve().parent
 MP = ROOT / "miniprogram"
 ASSETS = ROOT / "assets"
 I = "../assets/images"  # 示例图片目录
+
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from page_catalog import PREVIEW_DOC_SCOPE, build_nav_payload, missing_catalog_docs, preview_doc_map
+
+PREVIEW_DOC_MAP = preview_doc_map()
+
+
+def write_preview_page_nav():
+    """由 page_catalog ∩ 现存 md 写出左侧导航数据，禁止手改生成文件。"""
+    payload = build_nav_payload()
+    out = ASSETS / "preview-page-nav.json"
+    out.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    n = sum(len(g["pages"]) for g in payload["groups"])
+    print(f"preview-page-nav: {n} pages")
+    skipped = missing_catalog_docs()
+    if skipped:
+        print(f"preview-page-nav: skipped deleted docs: {', '.join(skipped)}")
 
 STATUS_ICONS = '''<span class="status-bar__icons" aria-hidden="true">
         <svg class="status-bar__svg" viewBox="0 0 17 11" fill="currentColor"><path d="M1 7h2.5v4H1V7zm4.5-2.5H8v6.5H5.5V4.5zm4.5-2.5h2.5V11H10V2zm4.5 0H17v11h-2.5V2z"/></svg>
@@ -26,17 +48,24 @@ STATUS_DARK = f'''<div class="status-bar status-bar--dark">
     </div>'''
 
 def tabbar(active):
-    icons = {
-        "index.html": '<svg class="tabbar__svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 10.5L12 4l8 6.5V20a1 1 0 01-1 1h-5v-6H10v6H5a1 1 0 01-1-1v-9.5z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
-        "heroes.html": '<svg class="tabbar__svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 19.5c1.2-3.2 3.5-4.8 6.5-4.8s5.3 1.6 6.5 4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16.5 7.2l1.2-2.1 2.2.4-1.1 2.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
-        "mall.html": '<svg class="tabbar__svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 8h12l-1 11H7L6 8z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M9 8a3 3 0 016 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
-        "profile.html": '<svg class="tabbar__svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="8" r="3.2" stroke="currentColor" stroke-width="1.8"/><path d="M5.5 19.5c1.2-3.2 3.5-4.8 6.5-4.8s5.3 1.6 6.5 4.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+    # 图标与小程序 app.json tabBar 一致（示意：首页 / 英雄 / 商城 / 我的）
+    icon_keys = {
+        "index.html": "home",
+        "heroes.html": "hero",
+        "mall.html": "mall",
+        "profile.html": "profile",
     }
     tabs = [("index.html", "首页"), ("heroes.html", "英雄"), ("mall.html", "商城"), ("profile.html", "我的")]
-    return "\n          ".join(
-        f'<a class="{"active" if h == active else ""}" href="{h}"><span class="tabbar__icon">{icons[h]}</span>{l}</a>'
-        for h, l in tabs
-    )
+    links = []
+    for href, label in tabs:
+        key = icon_keys[href]
+        suffix = "-active" if href == active else ""
+        icon = f'<img class="tabbar__icon-img" src="../assets/icons/tab-{key}{suffix}.png" alt="">'
+        links.append(
+            f'<a class="{"active" if href == active else ""}" href="{href}">'
+            f'<span class="tabbar__icon">{icon}</span>{label}</a>'
+        )
+    return "\n          ".join(links)
 
 def navbar(title, back="index.html", *, back_target="", title_id="", share=False, right_action=None):
     tid = f' id="{title_id}"' if title_id else ""
@@ -106,7 +135,7 @@ HERO_DETAIL_1 = {
     "student_count": 128,
     "honors_count": 3,
     "project_types": ["帆船", "游艇"],
-    "honor_titles": ["中欧航海协会秘书长", "ASA205级资深签证官"],
+    "honor_titles": ["ASA帆船认证教练"],
     "cert_badges": ["ASA认证", "ACA认证", "救生员证"],
     "about_me": "从事水上运动教学十五年，深耕帆船与游艇领域，持有 ASA 多项认证与救生员资质。带领学员从入门到参赛，注重安全规范与技术细节。曾出任中欧航海协会秘书长，担任 ASA205 级资深签证官，擅长根据学员水平定制课程方案。教学风格耐心细致，累计服务学员逾百人，多次组织企业团建与青少年帆船夏令营，希望帮助更多人爱上航海运动，在风浪中找到自信与快乐。",
     "past_honors": [
@@ -121,6 +150,44 @@ HERO_DETAIL_1 = {
         {"name": "ACA证", "image": "cert.jpg"},
         {"name": "ASA认证", "image": "cert.jpg"},
     ],
+    "teaching_philosophy": {
+        "intro": "小哥教练秉承“细心专业、耐心同频、快乐自信、安全至上”的教学理念，致力于将专业的航海知识与愉悦的航海体验完美结合。",
+        "belief_lead": "他相信：",
+        "points": [
+            {"title": "细心专业", "desc": "每一个细节都关乎航行安全与效率"},
+            {"title": "耐心同频", "desc": "根据学员节奏调整教学，确保理解掌握"},
+            {"title": "快乐自信", "desc": "在快乐中学习，在航海中建立自信"},
+            {"title": "安全至上", "desc": "安全是航海的第一原则和最终底线"},
+        ],
+    },
+    "race_showcase": {
+        "intro": "小哥教练拥有丰富的国内外赛事经验，曾参加多项知名帆船赛事：",
+        "items": [
+            {"title": "CCOR国际帆船赛", "image": "event.jpg"},
+            {"title": "上海帆船公开赛", "image": "banner.jpg"},
+            {"title": "厦门俱乐部杯帆船赛", "image": "recruit-cover.jpg"},
+            {"title": "青岛市长杯帆船赛", "image": "hero-1.jpg"},
+            {"title": "青岛新年杯帆船赛", "image": "course.jpg"},
+        ],
+    },
+    "voyage_leadership": {
+        "intro": "作为经验丰富的长航领队，小哥教练曾多次组织并带队完成具有挑战性的长距离航行：",
+        "items": [
+            {"title": "跨越渤海海峡长途航行", "image": "event.jpg"},
+            {"title": "青岛跳岛长航训练", "image": "banner.jpg"},
+            {"title": "舟山群岛长航探险", "image": "recruit-cover.jpg"},
+            {"title": "梦回西沙长航远航", "image": "hero-2.jpg"},
+        ],
+    },
+    "social_showcase": {
+        "intro": "作为中国海洋发展研究会常务理事和中欧校友航海协会秘书长，小哥教练积极推动中国航海运动的发展：",
+        "points": [
+            "促进国际航海文化交流",
+            "推动航海教育普及",
+            "培养新一代航海人才",
+            "倡导海洋环境保护理念",
+        ],
+    },
 }
 
 ALL_HEROES = {
@@ -192,6 +259,30 @@ ALL_HEROES = {
             {"name": "ASA认证", "image": "cert.jpg"},
         ],
     },
+    "5": {
+        "name": "阿海",
+        "nickname": "阿海",
+        "avatar_img": "hero-1.jpg",
+        "rating": 4.7,
+        "years_exp": 8,
+        "student_count": 86,
+        "honors_count": 2,
+        "enabled": True,
+        "project_types": ["皮划艇", "桨板"],
+        "honor_titles": ["省级皮划艇教练", "8年执教经验"],
+        "cert_badges": ["省级教练", "ACA认证", "救生员证"],
+        "about_me": "专注皮划艇与桨板教学八年，擅长零基础成人与亲子体验课。注重水域安全与团队协作，曾多次组织城市皮划艇巡游与企业团建。持有省级教练与救生员资质，教学风格轻松友好，希望带更多人感受桨叶划开水面的节奏与乐趣。",
+        "past_honors": [
+            {"icon": "🏅", "name": "省级皮划艇教练", "summary": "省级执业资质"},
+            {"icon": "🏆", "name": "城市巡游活动主理人", "summary": "多次组织百人级巡游"},
+        ],
+        "moments": ["hero-1.jpg", "event.jpg", "course.jpg"],
+        "certificates": [
+            {"name": "省级教练证", "image": "cert.jpg"},
+            {"name": "救生员证", "image": "cert.jpg"},
+            {"name": "ACA证", "image": "cert.jpg"},
+        ],
+    },
 }
 
 COURSE_CATALOG = {
@@ -219,91 +310,185 @@ COURSE_CATALOG = {
         "fee": 2680,
         "cover_image": "course.jpg",
     },
+    "c4": {
+        "course_id": "c4",
+        "title": "皮划艇入门体验课",
+        "timeDisplay": "7月19日 09:30 - 11:30",
+        "location": "淀山湖皮划艇基地",
+        "fee": 268,
+        "cover_image": "course.jpg",
+    },
+    "c5": {
+        "course_id": "c5",
+        "title": "帆船入门周末班",
+        "timeDisplay": "8月2日 09:00 - 16:00",
+        "location": "金鸡湖帆船码头",
+        "fee": 880,
+        "cover_image": "course.jpg",
+    },
+    "c6": {
+        "course_id": "c6",
+        "title": "ASA进阶航行课",
+        "timeDisplay": "8月15日 08:30 - 17:00",
+        "location": "青岛奥帆中心",
+        "fee": 1680,
+        "cover_image": "course.jpg",
+    },
 }
 
+# 每位英雄卡片：赛事 / 活动 / 课程（与首页英雄广场一致，共 5 人）
 COURSES_BY_HERO = {
     "1": ["c1"],
-    "2": ["c1"],
-    "3": ["c2", "c3"],
-    "4": ["c1"],
+    "2": ["c5"],
+    "3": ["c2"],
+    "4": ["c6"],
+    "5": ["c4"],
 }
 
 RECRUITMENTS_BY_HERO = {
     "1": [
         {
-            "recruit_id": "r2",
-            "title": "周末帆船体验营",
-            "start_at": "2026-07-12T09:30:00",
-            "end_at": "2026-07-12T16:00:00",
-            "location": "滴水湖帆船基地",
-            "fee": 680,
-            "signed": 8,
-            "total": 16,
-            "cover_image": "recruit-cover.jpg",
-        },
-        {
             "recruit_id": "r1",
+            "type": "event",
+            "typeLabel": "赛事",
+            "status": "招募中",
             "title": "企业家杯月赛",
-            "start_at": "2026-07-20T08:00:00",
-            "end_at": "2026-07-20T17:00:00",
+            "start_at": "2026-06-08T09:00:00",
+            "end_at": "2026-06-08T16:00:00",
             "location": "滴水湖二号码头",
             "fee": 500,
+            "feeDisplay": "500",
             "signed": 12,
             "total": 20,
             "cover_image": "event.jpg",
+            "time": "06/08 (周六) 09:00-16:00",
+        },
+        {
+            "recruit_id": "r2",
+            "type": "activity",
+            "typeLabel": "活动",
+            "status": "报名中",
+            "title": "亲子帆船体验日",
+            "start_at": "2026-06-08T09:00:00",
+            "end_at": "2026-06-08T16:00:00",
+            "location": "滴水湖二号码头",
+            "fee": 1280,
+            "feeDisplay": "1,280",
+            "signed": 8,
+            "total": 16,
+            "cover_image": "banner.jpg",
+            "time": "06/08 (周六) 09:00-16:00",
+        },
+        {
+            "recruit_id": "r9",
+            "type": "activity",
+            "typeLabel": "活动",
+            "status": "报名中",
+            "title": "周末帆船体验营",
+            "start_at": "2026-06-14T09:00:00",
+            "end_at": "2026-06-14T16:00:00",
+            "location": "滴水湖二号码头",
+            "fee": 680,
+            "feeDisplay": "680",
+            "signed": 9,
+            "total": 16,
+            "cover_image": "recruit-cover.jpg",
+            "time": "06/14 (周日) 09:00-16:00",
+        },
+        {
+            "recruit_id": "r10",
+            "type": "event",
+            "typeLabel": "赛事",
+            "status": "招募中",
+            "title": "城市帆船联赛选拔赛",
+            "start_at": "2026-06-21T08:00:00",
+            "end_at": "2026-06-21T17:00:00",
+            "location": "滴水湖一号码头",
+            "fee": 800,
+            "feeDisplay": "800",
+            "signed": 10,
+            "total": 20,
+            "cover_image": "event.jpg",
+            "time": "06/21 (周日) 08:00-17:00",
+        },
+        {
+            "recruit_id": "r11",
+            "type": "activity",
+            "typeLabel": "活动",
+            "status": "报名中",
+            "title": "游艇驾驶体验日",
+            "start_at": "2026-06-28T10:00:00",
+            "end_at": "2026-06-28T15:00:00",
+            "location": "滴水湖游艇会",
+            "fee": 1680,
+            "feeDisplay": "1,680",
+            "signed": 4,
+            "total": 8,
+            "cover_image": "course.jpg",
+            "time": "06/28 (周日) 10:00-15:00",
         },
     ],
     "2": [
         {
             "recruit_id": "r3",
-            "title": "浆板初体验",
+            "type": "event",
+            "status": "招募中",
+            "title": "金鸡湖浆板周末联赛",
             "start_at": "2026-08-03T14:00:00",
             "end_at": "2026-08-03T17:00:00",
             "location": "金鸡湖桨板码头",
             "fee": 298,
             "signed": 5,
             "total": 12,
-            "cover_image": "recruit-cover.jpg",
+            "cover_image": "event.jpg",
         },
         {
             "recruit_id": "r4",
-            "title": "ASA101-103培训课",
-            "start_at": "2026-07-26T09:00:00",
-            "end_at": "2026-07-26T16:30:00",
-            "location": "滴水湖二号码头",
-            "fee": 1280,
-            "signed": 10,
-            "total": 10,
+            "type": "activity",
+            "status": "报名中",
+            "title": "桨板周末体验",
+            "start_at": "2026-08-09T14:00:00",
+            "end_at": "2026-08-09T16:00:00",
+            "location": "金鸡湖桨板码头",
+            "fee": 168,
+            "signed": 6,
+            "total": 12,
             "cover_image": "event.jpg",
         },
     ],
     "3": [
         {
-            "recruit_id": "r5",
-            "title": "桨板入门体验课",
-            "start_at": "2026-07-18T10:00:00",
-            "end_at": "2026-07-18T12:00:00",
-            "location": "太湖桨板营地",
-            "fee": 198,
-            "signed": 3,
-            "total": 8,
-            "cover_image": "recruit-cover.jpg",
-        },
-        {
-            "recruit_id": "r6",
-            "title": "潜水基础课程",
+            "recruit_id": "r13",
+            "type": "event",
+            "status": "招募中",
+            "title": "开放水域潜水体验营",
             "start_at": "2026-08-10T09:00:00",
             "end_at": "2026-08-10T17:00:00",
             "location": "三亚开放水域基地",
-            "fee": 2680,
-            "signed": 2,
-            "total": 6,
+            "fee": 680,
+            "signed": 4,
+            "total": 10,
+            "cover_image": "event.jpg",
+        },
+        {
+            "recruit_id": "r5",
+            "type": "activity",
+            "status": "报名中",
+            "title": "桨板入门体验",
+            "start_at": "2026-07-18T10:00:00",
+            "end_at": "2026-07-18T12:00:00",
+            "location": "太湖桨板营地",
+            "fee": 128,
+            "signed": 5,
+            "total": 10,
             "cover_image": "event.jpg",
         },
     ],
     "4": [
         {
             "recruit_id": "r7",
+            "type": "event",
+            "status": "招募中",
             "title": "城市帆船精英赛",
             "start_at": "2026-07-28T07:30:00",
             "end_at": "2026-07-28T18:00:00",
@@ -313,19 +498,65 @@ RECRUITMENTS_BY_HERO = {
             "total": 24,
             "cover_image": "event.jpg",
         },
+        {
+            "recruit_id": "r7a",
+            "type": "activity",
+            "status": "报名中",
+            "title": "周末帆船体验",
+            "start_at": "2026-08-09T09:00:00",
+            "end_at": "2026-08-09T16:00:00",
+            "location": "青岛奥帆中心",
+            "fee": 398,
+            "signed": 8,
+            "total": 16,
+            "cover_image": "event.jpg",
+        },
+    ],
+    "5": [
+        {
+            "recruit_id": "r8",
+            "type": "event",
+            "status": "招募中",
+            "title": "周末皮划艇体验营",
+            "start_at": "2026-08-02T09:00:00",
+            "end_at": "2026-08-02T16:00:00",
+            "location": "滴水湖皮划艇营地",
+            "fee": 268,
+            "signed": 6,
+            "total": 12,
+            "cover_image": "event.jpg",
+        },
+        {
+            "recruit_id": "r8a",
+            "type": "activity",
+            "status": "报名中",
+            "title": "皮划艇亲子体验",
+            "start_at": "2026-08-16T10:00:00",
+            "end_at": "2026-08-16T12:00:00",
+            "location": "滴水湖皮划艇营地",
+            "fee": 168,
+            "signed": 4,
+            "total": 10,
+            "cover_image": "event.jpg",
+        },
     ],
 }
 
 
+WEEKDAYS_CN = ("周一", "周二", "周三", "周四", "周五", "周六", "周日")
+
+
 def format_recruit_time_range(start_at: str, end_at: str) -> str:
+    """卡片时间条：06/08 (周六) 09:00-16:00"""
     start = datetime.fromisoformat(start_at)
     end = datetime.fromisoformat(end_at)
-    start_str = f"{start.month}月{start.day}日 {start.hour:02d}:{start.minute:02d}"
+    weekday = WEEKDAYS_CN[start.weekday()]
+    start_part = f"{start.month:02d}/{start.day:02d} ({weekday}) {start.hour:02d}:{start.minute:02d}"
     same_day = start.date() == end.date()
     if same_day:
-        return f"{start_str} - {end.hour:02d}:{end.minute:02d}"
-    end_str = f"{end.month}月{end.day}日 {end.hour:02d}:{end.minute:02d}"
-    return f"{start_str} - {end_str}"
+        return f"{start_part}-{end.hour:02d}:{end.minute:02d}"
+    end_part = f"{end.month:02d}/{end.day:02d} {end.hour:02d}:{end.minute:02d}"
+    return f"{start_part}-{end_part}"
 
 
 def format_recruit_signup(signed: int, total: int) -> str:
@@ -334,11 +565,23 @@ def format_recruit_signup(signed: int, total: int) -> str:
     return f"共招募 {total} 名，已报 {signed} 名"
 
 
+def format_recruit_fee_display(fee) -> str:
+    try:
+        return f"{int(fee):,}"
+    except (TypeError, ValueError):
+        return str(fee)
+
+
 for hero_id, items in RECRUITMENTS_BY_HERO.items():
     ALL_HEROES[hero_id]["recruitments"] = [
         {
             **item,
-            "timeDisplay": format_recruit_time_range(item["start_at"], item["end_at"]),
+            "typeLabel": item.get("typeLabel") or ("活动" if item.get("type") == "activity" else "赛事"),
+            "time": item.get("time") or format_recruit_time_range(item["start_at"], item["end_at"]),
+            "timeDisplay": item.get("time")
+            or item.get("timeDisplay")
+            or format_recruit_time_range(item["start_at"], item["end_at"]),
+            "feeDisplay": item.get("feeDisplay") or format_recruit_fee_display(item.get("fee")),
             "signupDisplay": format_recruit_signup(item["signed"], item["total"]),
         }
         for item in items
@@ -346,6 +589,11 @@ for hero_id, items in RECRUITMENTS_BY_HERO.items():
 
 for hero_id, course_ids in COURSES_BY_HERO.items():
     ALL_HEROES[hero_id]["courses"] = [COURSE_CATALOG[cid] for cid in course_ids]
+
+def truncate_label(text, max_len=6):
+    s = str(text or "")
+    return s if len(s) <= max_len else f"{s[:max_len]}…"
+
 
 def hero_home_card(
     name,
@@ -365,8 +613,18 @@ def hero_home_card(
     rating="",
     bio="",
     list_mode=False,
+    nickname="",
+    home_badges=False,
+    row3="",
+    row3_id="",
+    row3_type="course",
 ):
-    type_tags = "".join(f'<span class="tag tag--skill">{t.strip()}</span>' for t in types.split(","))
+    display_name = nickname or name
+    type_tags = "".join(
+        f'<span class="tag tag--skill">{truncate_label(t.strip())}</span>'
+        for t in types.split(",")
+        if t.strip()
+    )
     row_labels = {"event": "赛事", "course": "课程", "activity": "活动"}
 
     def row_href(row_type, item_id):
@@ -376,19 +634,102 @@ def hero_home_card(
 
     row1_link = row_href(row1_type, row1_id)
     row2_link = row_href(row2_type, row2_id)
-    extra = " hero-card--list" if list_mode else ""
-    data = f' data-name="{name}" data-types="{types}" data-years="{years}" data-rating="{rating}" data-bio="{bio}" data-honors="{honor1},{honor2}"'
+    extra = " hero-card--list" if list_mode else (" hero-card--home" if not list_mode else "")
+    honors_attr = honor1 if not (list_mode and honor2) else f"{honor1},{honor2}"
+    data = (
+        f' data-name="{name}" data-nickname="{display_name}" data-types="{types}"'
+        f' data-years="{years}" data-rating="{rating}" data-bio="{bio}" data-honors="{honors_attr}"'
+    )
+    honors_html = ""
+    if honor1:
+        honors_html = (
+            '<div class="hero-card__honors">'
+            '<span class="hero-card__honor hero-card__honor--primary">'
+            '<span class="hero-card__honor-icon">'
+            '<img class="hero-card__honor-icon-img" src="../assets/icons/crown.png" alt=""></span>'
+            f'<span class="hero-card__honor-text">{honor1}</span></span>'
+        )
+        # 主荣誉（皇冠）+ 经验副标；无经验时用第二条荣誉
+        secondary = ""
+        if years:
+            y = str(years).strip()
+            if y.isdigit():
+                secondary = f"{y}年经验"
+            elif "经验" in y:
+                secondary = y.replace("执教经验", "经验")
+            else:
+                secondary = f"{y}经验"
+        elif honor2:
+            secondary = honor2.replace("执教经验", "经验") if "执教经验" in honor2 else honor2
+        if secondary:
+            honors_html += (
+                '<span class="hero-card__honor hero-card__honor--secondary">'
+                f'<span class="hero-card__honor-text">{secondary}</span></span>'
+            )
+        honors_html += "</div>"
+
+    def row_html(href, label_key, text, plain=False):
+        if plain:
+            return (
+                f'<a class="hero-card__row nav-forward" href="{href}">'
+                f'<span class="hero-card__row-text">{text}</span>'
+                f'<span class="hero-card__row-arrow">›</span></a>'
+            )
+        return (
+            f'<a class="hero-card__row nav-forward" href="{href}">'
+            f'<span class="tag tag--{label_key}">{row_labels[label_key]}</span>'
+            f'<span class="hero-card__row-text">{text}</span>'
+            f'<span class="hero-card__row-arrow">›</span></a>'
+        )
+
+    rows = row_html(row1_link, row1_type, row1) + row_html(row2_link, row2_type, row2)
+    if row3:
+        rows += row_html(row_href(row3_type, row3_id or row2_id), row3_type, row3)
+
     return (
         f'<div class="hero-card{extra}" data-hero-id="{hero_id}"{data}>'
         f'<a class="hero-card__head nav-forward" href="hero-detail.html?id={hero_id}">'
-        f'<div class="hero-card__avatar"><img src="{I}/{img}" alt="{name}"></div>'
-        f'<div class="hero-card__meta"><div class="hero-card__name-row"><span class="hero-card__name">{name}</span>{type_tags}</div>'
-        f'<div class="hero-card__honors"><span class="hero-card__honor hero-card__honor--primary"><span class="hero-card__honor-icon">👑</span><span class="hero-card__honor-text">{honor1}</span></span>'
-        f'<span class="hero-card__honor hero-card__honor--secondary"><span class="hero-card__honor-text">{honor2}</span></span></div></div></a>'
-        f'<div class="hero-card__rows">'
-        f'<a class="hero-card__row nav-forward" href="{row1_link}"><span class="tag tag--{row1_type}">{row_labels[row1_type]}</span><span class="hero-card__row-text">{row1}</span><span class="hero-card__row-arrow">›</span></a>'
-        f'<a class="hero-card__row nav-forward" href="{row2_link}"><span class="tag tag--{row2_type}">{row_labels[row2_type]}</span><span class="hero-card__row-text">{row2}</span><span class="hero-card__row-arrow">›</span></a>'
-        f'</div></div>'
+        f'<div class="hero-card__avatar"><img src="{I}/{img}" alt="{display_name}"></div>'
+        f'<div class="hero-card__meta"><div class="hero-card__name-row">'
+        f'<span class="hero-card__name">{display_name}</span>{type_tags}</div>'
+        f"{honors_html}</div></a>"
+        f'<div class="hero-card__rows">{rows}</div></div>'
+    )
+
+def event_hero_card(
+    title,
+    img,
+    location,
+    price,
+    time_text,
+    *,
+    recruit_id="r1",
+    hero_id="",
+    card_type="event",
+):
+    """首页英雄横滑 / 精选活动同壳大图卡"""
+    type_label = "活动" if card_type == "activity" else "赛事"
+    tag_class = "tag--activity" if card_type == "activity" else "tag--event"
+    dot_class = " event-card__dot--activity" if card_type == "activity" else ""
+    hero_attr = f' data-hero-id="{hero_id}"' if hero_id else ""
+    return (
+        f'<a class="event-card event-card--hero event-card--home nav-forward" '
+        f'href="recruitment-detail.html?id={recruit_id}"{hero_attr}>'
+        f'<div class="event-card__bg"><img src="{I}/{img}" alt="{title}"></div>'
+        f'<div class="event-card__scrim"></div>'
+        f'<div class="event-card__top">'
+        f'<span class="event-card__time"><i class="event-card__dot{dot_class}" aria-hidden="true"></i>{time_text}</span>'
+        f"</div>"
+        f'<div class="event-card__bottom">'
+        f'<div class="event-card__info">'
+        f'<span class="tag {tag_class}">{type_label}</span>'
+        f'<div class="event-card__title">{title}</div>'
+        f'<div class="event-card__meta">{location}</div>'
+        f"</div>"
+        f'<div class="event-card__footer">'
+        f'<span class="event-card__price">{price}</span>'
+        f'<span class="event-card__btn">立即报名</span>'
+        f"</div></div></a>"
     )
 
 def hero_row(name, img, types, years, rating, badges, bio):
@@ -422,37 +763,38 @@ HERO_FILTER_SHEET = '''
               <div class="heroes-filter-sheet__group">
                 <div class="heroes-filter-sheet__label">项目</div>
                 <div class="heroes-filter-sheet__chips filter-scroll" id="hero-filters">
-                  <span class="filter-chip active" data-type="全部">全部</span><span class="filter-chip" data-type="帆船">帆船</span><span class="filter-chip" data-type="桨板">桨板</span><span class="filter-chip" data-type="潜水">潜水</span>
+                  <span class="filter-chip active" data-type="全部">全部</span><span class="filter-chip" data-type="帆船">帆船</span><span class="filter-chip" data-type="皮划艇">皮划艇</span><span class="filter-chip" data-type="桨板">桨板</span><span class="filter-chip" data-type="潜水">潜水</span><span class="filter-chip" data-type="冲浪">冲浪</span>
                 </div>
               </div>
               <div class="heroes-filter-sheet__group">
                 <div class="heroes-filter-sheet__label">排序</div>
                 <div class="heroes-filter-sheet__chips filter-scroll" id="hero-sort">
-                  <span class="filter-chip active" data-sort="default">综合</span><span class="filter-chip" data-sort="rating_desc">评分高→低</span><span class="filter-chip" data-sort="rating_asc">评分低→高</span>
+                  <span class="filter-chip active" data-sort="default">综合排序</span><span class="filter-chip" data-sort="rating_desc">评分从高到低</span><span class="filter-chip" data-sort="rating_asc">评分从低到高</span>
                 </div>
               </div>
               <div class="heroes-filter-sheet__group">
                 <div class="heroes-filter-sheet__label">年限</div>
                 <div class="heroes-filter-sheet__chips filter-scroll" id="hero-years">
-                  <span class="filter-chip active" data-years="全部">不限</span><span class="filter-chip" data-years="1-3">1-3年</span><span class="filter-chip" data-years="3-5">3-5年</span><span class="filter-chip" data-years="5-10">5-10年</span><span class="filter-chip" data-years="10+">10年+</span>
+                  <span class="filter-chip active" data-years="全部">不限年限</span><span class="filter-chip" data-years="1-3">1-3年</span><span class="filter-chip" data-years="3-5">3-5年</span><span class="filter-chip" data-years="5-10">5-10年</span><span class="filter-chip" data-years="10+">10年以上</span>
                 </div>
               </div>
               <button type="button" class="heroes-filter-sheet__confirm" id="hero-filter-done">完成</button>
             </div>
           </div>'''
 
-PROFILE_PUBLISH_SHEET = '''
-          <div id="profile-publish-sheet" class="profile-action-sheet mobile-overlay" hidden>
-            <div class="profile-action-sheet__mask"></div>
-            <div class="profile-action-sheet__panel">
-              <button type="button" class="profile-action-sheet__item" data-href="recruitment-create.html">发布赛事招募</button>
-              <button type="button" class="profile-action-sheet__item" data-href="course-create.html">发布课程</button>
-              <button type="button" class="profile-action-sheet__item profile-action-sheet__item--cancel" data-action="cancel">取消</button>
-            </div>
-          </div>'''
+PROFILE_PUBLISH_SHEET = ''
 
-PROFILE_PAGE_SCRIPT = '<script src="../assets/db-client.js"></script><script src="../assets/preview-toast.js"></script><script src="../assets/profile-preview.js"></script>'
-HERO_PAGE_SCRIPT = '<script src="../assets/hero-search.js"></script>'
+PROFILE_PAGE_SCRIPT = (
+    '<script src="../assets/db-client.js"></script>'
+    '<script src="../assets/preview-toast.js"></script>'
+    '<script src="../assets/profile-preview.js"></script>'
+)
+HERO_PAGE_SCRIPT = (
+    '<script src="../assets/heroes-data.js"></script>'
+    '<script src="../assets/db-client.js"></script>'
+    '<script src="../assets/heroes-list-preview.js"></script>'
+    '<script src="../assets/hero-search.js"></script>'
+)
 
 def cover_carousel(images, alt="活动封面"):
     imgs = images if isinstance(images, list) else [images]
@@ -472,7 +814,18 @@ def cover_carousel(images, alt="活动封面"):
         f'<div class="cover-carousel__dots">{dots}</div></div>'
     )
 
-def render(title, content, *, status=STATUS_DARK, navbar_html="", tabbar_html="", overlays="", immersive=False):
+def render(
+    title,
+    content,
+    *,
+    status=STATUS_DARK,
+    navbar_html="",
+    tabbar_html="",
+    overlays="",
+    immersive=False,
+    preview_doc="",
+    preview_doc_scope="",
+):
     tb = f'<nav class="tabbar">{tabbar_html}</nav>' if tabbar_html else ""
     if immersive:
         shell_cls = "mobile-shell mobile-shell--immersive"
@@ -492,6 +845,25 @@ def render(title, content, *, status=STATUS_DARK, navbar_html="", tabbar_html=""
         header_block = f"{status}{nav}"
         cc = "content--tab" if tabbar_html else "content--sub"
         main_attrs = ""
+    body_attrs = ""
+    device_attrs = ""
+    if preview_doc:
+        body_attrs = f' data-preview-doc="{preview_doc}"'
+        device_attrs = f' data-preview-doc="{preview_doc}"'
+        if preview_doc_scope:
+            body_attrs += f' data-preview-doc-scope="{preview_doc_scope}"'
+            device_attrs += f' data-preview-doc-scope="{preview_doc_scope}"'
+    # 所有小程序预览页都挂文档面板 + 左侧页面导航，便于 SPA 三方联动
+    _aside_js = ASSETS / "preview-doc-aside.js"
+    _aside_ver = int(_aside_js.stat().st_mtime) if _aside_js.is_file() else 0
+    _nav_js = ASSETS / "preview-page-nav.js"
+    _nav_ver = int(_nav_js.stat().st_mtime) if _nav_js.is_file() else 0
+    doc_script = (
+        f'\n  <script src="../assets/preview-doc-aside.js?v={_aside_ver}"></script>'
+        f'\n  <script src="../assets/preview-page-nav.js?v={_nav_ver}"></script>'
+    )
+    if "preview-doc-aside.js" in overlays:
+        doc_script = ""
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -501,8 +873,8 @@ def render(title, content, *, status=STATUS_DARK, navbar_html="", tabbar_html=""
   <title>{title} · 英雄广场</title>
   <link rel="stylesheet" href="../assets/preview.css">
 </head>
-<body>
-  <div class="device">
+<body{body_attrs}>
+  <div class="device"{device_attrs}>
     <div class="device__frame">
       <div class="device__notch"></div>
       <div class="{shell_cls}">
@@ -516,7 +888,7 @@ def render(title, content, *, status=STATUS_DARK, navbar_html="", tabbar_html=""
       </div>
     </div>
   </div>
-  <script src="../assets/preview-nav.js"></script>
+  <script src="../assets/preview-nav.js"></script>{doc_script}
 </body>
 </html>"""
 
@@ -525,50 +897,105 @@ HOME = f"""
             <img class="home-banner__img" src="{I}/banner.jpg" alt="帆船赛事">
             <div class="home-banner__overlay"></div>
             <div class="home-banner__fade"></div>
-            <div class="home-banner__season"><span class="home-banner__dot"></span>2026 夏季航季</div>
+            <div class="home-banner__season"><span class="home-banner__pin" aria-hidden="true">📍</span>2023.06 前往</div>
             <div class="home-banner__content">
               <span class="home-banner__title">企业家杯月赛</span>
               <span class="home-banner__date">06.20</span>
-              <span class="home-banner__desc">一站式高端水上运动体验平台</span>
+              <span class="home-banner__desc">定制式高端水上潮流体育</span>
               <a class="home-banner__cta" href="recruitment-detail.html">查看活动</a>
             </div>
           </div>
           <div class="home-nav">
-            <div><div class="home-nav__icon">⛵</div><span class="home-nav__label">船艇预约</span></div>
-            <div><div class="home-nav__icon">🏆</div><span class="home-nav__label">活动赛事</span></div>
-            <div><div class="home-nav__icon">⛵</div><span class="home-nav__label">精选课程</span></div>
-            <div><div class="home-nav__icon">🛍</div><span class="home-nav__label">好物推荐</span></div>
+            <div class="home-nav__item"><div class="home-nav__icon"><img class="home-nav__icon-img" src="../assets/icons/boat.png" alt=""></div><span class="home-nav__label">预约场地</span></div>
+            <div class="home-nav__item"><div class="home-nav__icon"><img class="home-nav__icon-img" src="../assets/icons/trophy.png" alt=""></div><span class="home-nav__label">活动赛事</span></div>
+            <div class="home-nav__item"><div class="home-nav__icon"><img class="home-nav__icon-img" src="../assets/icons/wave.png" alt=""></div><span class="home-nav__label">精致航程</span></div>
+            <div class="home-nav__item"><div class="home-nav__icon"><img class="home-nav__icon-img" src="../assets/icons/shopping.png" alt=""></div><span class="home-nav__label">时尚装备</span></div>
           </div>
           <div class="section">
             <div class="membership__card">
               <div class="membership__main">
-                <div><div class="membership__title"><span>航海家</span><span class="membership__title-gold">权益卡</span></div><div class="membership__price-num">￥300</div></div>
-                <div class="membership__btn">立即开通 ›</div>
+                <div><div class="membership__title"><span>航海家</span><span class="membership__title-gold">权益卡</span></div><div class="membership__price-num">¥ 300</div></div>
+                <div class="membership__btn">立即开通 →</div>
               </div>
-              <div class="membership__footer"><span>✓ 课程体验</span><span>✓ 课程折扣</span><span>✓ 商城折扣</span></div>
+              <div class="membership__footer"><span>✓ 优惠购船</span><span>✓ 课程折扣</span><span>✓ 活动优先</span></div>
             </div>
           </div>
-          <div class="section">
+          <div class="section" id="home-heroes-section">
             <div class="section-header"><span class="section-header__title">英雄广场</span><a class="section-header__more nav-forward" href="heroes.html">查看更多 ›</a></div>
             <div class="home-scroll-x">
-              <div class="home-scroll-x__track">
-              {hero_home_card("小哥", "hero-1.jpg", "帆船,游艇", "中欧航海协会秘书长", "ASA205级资深签证官", "招募中 | 企业家杯帆船赛系列赛7月站", "报名中 | ASA101-103培训课", hero_id="1")}
-              {hero_home_card("熊猫", "hero-2.jpg", "帆船,浆板", "ASA帆船认证教练", "15年执教经验", "招募中 | 企业家杯帆船赛系列赛7月站", "报名中 | ASA101-103培训课", hero_id="2")}
-              {hero_home_card("Amy", "hero-1.jpg", "桨板,潜水", "PADI潜水教练", "5年教学经验", "报名中 | 桨板入门体验课", "报名中 | 潜水基础课程", hero_id="3", row1_type="course", row2_type="course", row1_id="c2", row2_id="c3")}
+              <div class="home-scroll-x__track" id="home-hero-track">
+              {hero_home_card("小哥", "hero-1.jpg", "浆板,帆船", "ASA帆船认证教练", "", "招募中 | 企业家杯月赛 招募8人", "报名中 | 亲子帆船体验日", hero_id="1", row1_id="r1", row1_type="event", row2_id="r2", row2_type="activity", years="15", nickname="小哥", row3="ASA 101+ASA 103 组合课程", row3_id="c1", row3_type="course")}
+              {hero_home_card("熊猫", "hero-2.jpg", "帆船,浆板", "ASA帆船认证教练", "", "招募中 | 金鸡湖浆板周末联赛 招募8人", "报名中 | 桨板周末体验", hero_id="2", row1_id="r3", row1_type="event", row2_id="r4", row2_type="activity", years="15", nickname="熊猫", row3="帆船入门周末班", row3_id="c5", row3_type="course")}
+              {hero_home_card("Amy", "hero-1.jpg", "桨板,潜水", "PADI潜水教练", "", "招募中 | 开放水域潜水体验营 招募8人", "报名中 | 桨板入门体验", hero_id="3", row1_id="r13", row1_type="event", row2_id="r5", row2_type="activity", years="5", nickname="Amy", row3="桨板入门体验课", row3_id="c2", row3_type="course")}
+              {hero_home_card("大伟", "hero-2.jpg", "帆船,冲浪", "国家级帆船教练", "", "招募中 | 城市帆船精英赛", "报名中 | 周末帆船体验", hero_id="4", row1_id="r7", row1_type="event", row2_id="r7a", row2_type="activity", years="20", nickname="大伟", row3="ASA进阶航行课", row3_id="c6", row3_type="course")}
+              {hero_home_card("阿海", "hero-1.jpg", "皮划艇,桨板", "省级皮划艇教练", "", "招募中 | 周末皮划艇体验营", "报名中 | 皮划艇亲子体验", hero_id="5", row1_id="r8", row1_type="event", row2_id="r8a", row2_type="activity", years="8", nickname="阿海", row3="皮划艇入门体验课", row3_id="c4", row3_type="course")}
               </div>
             </div>
           </div>
-          <div class="section">
+          <div class="section" id="home-featured-section">
             <div class="section-header"><span class="section-header__title">精选活动与赛事</span><span class="section-header__more">查看更多 ›</span></div>
-            <a class="event-card" href="recruitment-detail.html"><div class="event-card__cover"><img src="{I}/event.jpg" alt="企业家杯月赛"></div><div class="event-card__body"><span class="event-card__tag">赛事</span><div class="event-card__title">企业家杯月赛</div><div class="event-card__meta">06/08 · 滴水湖二号码头</div><div class="event-card__price">¥500/人</div></div></a>
+            <a class="event-card event-card--hero" href="recruitment-detail.html?id=r1">
+              <div class="event-card__bg"><img src="{I}/event.jpg" alt="企业家杯月赛"></div>
+              <div class="event-card__scrim"></div>
+              <div class="event-card__top">
+                <span class="event-card__time"><i class="event-card__dot" aria-hidden="true"></i>06/08 (周六) 09:00-16:00</span>
+              </div>
+              <div class="event-card__bottom">
+                <div class="event-card__info">
+                  <span class="tag tag--event">赛事</span>
+                  <div class="event-card__title">企业家杯月赛</div>
+                  <div class="event-card__meta">滴水湖二号码头</div>
+                </div>
+                <div class="event-card__footer">
+                  <span class="event-card__price">¥500/人</span>
+                  <span class="event-card__btn">立即报名</span>
+                </div>
+              </div>
+            </a>
+            <a class="event-card event-card--hero" href="recruitment-detail.html?id=r2">
+              <div class="event-card__bg"><img src="{I}/banner.jpg" alt="亲子帆船体验日"></div>
+              <div class="event-card__scrim"></div>
+              <div class="event-card__top">
+                <span class="event-card__time"><i class="event-card__dot event-card__dot--activity" aria-hidden="true"></i>06/08 (周六) 09:00-16:00</span>
+              </div>
+              <div class="event-card__bottom">
+                <div class="event-card__info">
+                  <span class="tag tag--activity">活动</span>
+                  <div class="event-card__title">亲子帆船体验日</div>
+                  <div class="event-card__meta">滴水湖二号码头</div>
+                </div>
+                <div class="event-card__footer">
+                  <span class="event-card__price">¥1,280/人</span>
+                  <span class="event-card__btn">立即报名</span>
+                </div>
+              </div>
+            </a>
+            <a class="event-card event-card--hero" href="recruitment-detail.html?id=r4">
+              <div class="event-card__bg"><img src="{I}/recruit-cover.jpg" alt="浆板初体验"></div>
+              <div class="event-card__scrim"></div>
+              <div class="event-card__top">
+                <span class="event-card__time"><i class="event-card__dot event-card__dot--activity" aria-hidden="true"></i>06/08 (周六) 09:00-16:00</span>
+              </div>
+              <div class="event-card__bottom">
+                <div class="event-card__info">
+                  <span class="tag tag--activity">活动</span>
+                  <div class="event-card__title">浆板初体验</div>
+                  <div class="event-card__meta">滴水湖二号码头</div>
+                </div>
+                <div class="event-card__footer">
+                  <span class="event-card__price">¥1,280/人</span>
+                  <span class="event-card__btn">立即报名</span>
+                </div>
+              </div>
+            </a>
           </div>
           <div class="section">
             <div class="section-header"><span class="section-header__title">精选课程</span><span class="section-header__more">查看更多 ›</span></div>
             <div class="home-scroll-x">
               <div class="home-scroll-x__track">
-              <div class="course-card"><div class="course-card__cover"><img src="{I}/course.jpg" alt="ASA课程"></div><div class="course-card__title">ASA 101+103 组合课程</div><div class="course-card__price">¥12800</div></div>
-              <div class="course-card"><div class="course-card__cover"><img src="{I}/course.jpg" alt="桨板课"></div><div class="course-card__title">桨板入门体验课</div><div class="course-card__price">¥198</div></div>
-              <div class="course-card"><div class="course-card__cover"><img src="{I}/course.jpg" alt="潜水课"></div><div class="course-card__title">潜水基础课程</div><div class="course-card__price">¥2680</div></div>
+              <div class="course-card"><div class="course-card__cover"><img src="{I}/course.jpg" alt="ASA课程"></div><div class="course-card__title">ASA 101+ASA 103 组合课程</div><div class="course-card__price">¥ 12800.00</div></div>
+              <div class="course-card"><div class="course-card__cover"><img src="{I}/course.jpg" alt="桨板课"></div><div class="course-card__title">桨板入门体验课</div><div class="course-card__price">¥ 198.00</div></div>
+              <div class="course-card"><div class="course-card__cover"><img src="{I}/course.jpg" alt="潜水课"></div><div class="course-card__title">潜水基础课程</div><div class="course-card__price">待定中</div></div>
               </div>
             </div>
           </div>
@@ -581,10 +1008,13 @@ HOME = f"""
           </div>
           <div class="section section--last">
             <div class="section-header"><span class="section-header__title">新闻动态</span><span class="section-header__more">查看更多 ›</span></div>
-            <div class="news-item"><div class="news-item__cover"><img src="{I}/news-1.jpg" alt="新闻"></div><div><div class="news-item__title">城市亲子帆船体验日开启</div><div class="news-item__cat">帆船</div></div></div>
-            <div class="news-item"><div class="news-item__cover"><img src="{I}/news-2.jpg" alt="新闻"></div><div><div class="news-item__title">ASA航海课程报名升温</div><div class="news-item__cat">浆板</div></div></div>
+            <div class="news-item"><div class="news-item__cover"><img src="{I}/news-1.jpg" alt="新闻"></div><div><div class="news-item__title">城市亲子帆船体验日开启，孩子们在风里完成第一次掌舵</div><div class="news-item__cat">资讯</div></div></div>
+            <div class="news-item"><div class="news-item__cover"><img src="{I}/news-2.jpg" alt="新闻"></div><div><div class="news-item__title">ASA航海课程报名升温，城市白领成为主力学员</div><div class="news-item__cat">资讯</div></div></div>
           </div>
           <script src="../assets/home-scroll.js"></script>
+          <script src="../assets/heroes-data.js"></script>
+          <script src="../assets/db-client.js"></script>
+          <script src="../assets/home-heroes-preview.js"></script>
 """
 
 tab_pages = {
@@ -592,32 +1022,31 @@ tab_pages = {
     "heroes.html": ("英雄广场", f"""
           <div class="search-bar-wrap heroes-search-row">
             <div class="heroes-search-field">
-              <input id="hero-search" class="search-bar search-bar--input" type="search" placeholder="搜索教练姓名或项目名称" autocomplete="off" readonly />
+              <input id="hero-search" class="search-bar search-bar--input" type="search" placeholder="搜索教练昵称、姓名或项目名称" autocomplete="off" readonly />
               <button type="button" id="hero-search-clear" class="search-bar__clear" aria-label="清空" hidden>×</button>
             </div>
-            <button type="button" id="hero-filter-btn" class="heroes-filter-btn" aria-label="筛选"><span class="heroes-filter-btn__icon"></span></button>
           </div>
-          <div class="heroes-banner"><img src="{I}/banner.jpg" alt="英雄广场"></div>
+          <div class="heroes-banner" id="heroes-banner"><img src="{I}/heroes-banner.png" alt="英雄招募令"></div>
           <div id="hero-search-status" class="hero-search-status" style="display:none"></div>
           <div id="hero-list" class="heroes-card-list">
-          {hero_home_card("小哥", "hero-1.jpg", "帆船,游艇", "中欧航海协会秘书长", "ASA205级资深签证官", "招募中 | 企业家杯帆船赛系列赛7月站", "报名中 | ASA101-103培训课", hero_id="1", years="15", rating="4.9", bio="ASA帆船认证教练，15年水上运动教学经验。", list_mode=True)}
-          {hero_home_card("熊猫", "hero-2.jpg", "帆船,浆板", "ASA帆船认证教练", "15年执教经验", "招募中 | 企业家杯帆船赛系列赛7月站", "报名中 | ASA101-103培训课", hero_id="2", years="15", rating="4.8", bio="专注帆船与浆板入门教学。", list_mode=True)}
-          {hero_home_card("Amy", "hero-1.jpg", "桨板,潜水", "PADI潜水教练", "5年教学经验", "报名中 | 桨板入门体验课", "报名中 | 潜水基础课程", hero_id="3", row1_type="course", row2_type="course", row1_id="c2", row2_id="c3", years="5", rating="4.6", bio="桨板与潜水入门教学，5年教学经验。", list_mode=True)}
-          {hero_home_card("大伟", "hero-2.jpg", "帆船,冲浪", "国家级帆船教练", "20年执教经验", "招募中 | 城市帆船精英赛", "报名中 | ASA101-103培训课", hero_id="4", row1_id="r7", row2_id="c1", years="20", rating="5.0", bio="20年帆船与冲浪执教经验，多次带队参赛获奖。", list_mode=True)}
+          {hero_home_card("小哥", "hero-1.jpg", "帆船,游艇", "ASA帆船认证教练", "", "招募中 | 企业家杯帆船赛系列赛7月站", "报名中 | 亲子帆船体验日", hero_id="1", row1_id="r1", row1_type="event", row2_id="r2", row2_type="activity", years="15", rating="4.9", bio="ASA帆船认证教练，15年水上运动教学经验。", list_mode=True, row3="ASA101-103培训课", row3_id="c1", row3_type="course")}
+          {hero_home_card("熊猫", "hero-2.jpg", "帆船,浆板", "ASA帆船认证教练", "", "招募中 | 金鸡湖浆板周末联赛", "报名中 | 桨板周末体验", hero_id="2", row1_id="r3", row1_type="event", row2_id="r4", row2_type="activity", years="15", rating="4.8", bio="专注帆船与浆板入门教学。", list_mode=True, row3="帆船入门周末班", row3_id="c5", row3_type="course")}
+          {hero_home_card("Amy", "hero-1.jpg", "桨板,潜水", "PADI潜水教练", "", "招募中 | 开放水域潜水体验营", "报名中 | 桨板入门体验", hero_id="3", row1_id="r13", row1_type="event", row2_id="r5", row2_type="activity", years="5", rating="4.6", bio="桨板与潜水入门教学，5年教学经验。", list_mode=True, row3="桨板入门体验课", row3_id="c2", row3_type="course")}
+          {hero_home_card("大伟", "hero-2.jpg", "帆船,冲浪", "国家级帆船教练", "", "招募中 | 城市帆船精英赛", "报名中 | 周末帆船体验", hero_id="4", row1_id="r7", row1_type="event", row2_id="r7a", row2_type="activity", years="20", rating="5.0", bio="20年帆船与冲浪执教经验，多次带队参赛获奖。", list_mode=True, row3="ASA进阶航行课", row3_id="c6", row3_type="course")}
+          {hero_home_card("阿海", "hero-1.jpg", "皮划艇,桨板", "省级皮划艇教练", "", "招募中 | 周末皮划艇体验营", "报名中 | 皮划艇亲子体验", hero_id="5", row1_id="r8", row1_type="event", row2_id="r8a", row2_type="activity", years="8", rating="4.7", bio="专注皮划艇与桨板教学八年，擅长零基础体验课。", list_mode=True, row3="皮划艇入门体验课", row3_id="c4", row3_type="course")}
           </div>
           <div id="hero-empty" class="heroes-empty-state" style="display:none">
-            <div class="heroes-empty-state__icon">🔍</div>
-            <div class="heroes-empty-state__title">未找到相关教练和项目</div>
-            <div class="heroes-empty-state__hint">试试调整关键词或筛选条件</div>
+            <div class="heroes-empty-state__icon"><img src="../assets/icons/empty.png" alt="" width="32" height="32"></div>
+            <div class="heroes-empty-state__title">广场暂无数据</div>
+            <div class="heroes-empty-state__hint" style="display:none"></div>
           </div>
           {VK_HTML}
-    """, STATUS_DARK, navbar("英雄广场", "index.html"), tabbar("heroes.html"), HERO_FILTER_SHEET + HERO_PAGE_SCRIPT),
+    """, STATUS_DARK, navbar("英雄广场", "index.html"), tabbar("heroes.html"), HERO_PAGE_SCRIPT),
     "mall.html": ("商城", f"""
-          <div style="padding:16px 16px 8px"><div style="font-size:18px;font-weight:600">好物商城</div><div style="font-size:12px;color:#5c6c7a;margin-top:4px">航海装备与精选好物</div></div>
+          <div style="padding:16px 16px 8px"><div style="font-size:18px;font-weight:600">好物商城</div><div style="font-size:12px;color:#5c6c7a;margin-top:4px">精选水上装备</div></div>
           <div class="grid-2"><div><div class="cover"><img src="{I}/product-1.jpg" alt="商品"></div><div style="font-size:12px;margin-top:6px">生态种植｜零添加…</div><div class="price">¥299.00</div></div><div><div class="cover"><img src="{I}/product-2.jpg" alt="商品"></div><div style="font-size:12px;margin-top:6px">航海专用手套</div><div class="price">¥98.00</div></div></div>
     """, STATUS_DARK, navbar("商城"), tabbar("mall.html")),
     "profile.html": ("个人中心", '''
-          <button type="button" class="profile-dev-toggle" id="profile-dev-toggle">预览：切换为已认证状态</button>
           <div id="profile-root"></div>
     ''', STATUS_DARK, navbar("个人中心", back=None), tabbar("profile.html"), PROFILE_PUBLISH_SHEET + PROFILE_PAGE_SCRIPT),
 }
@@ -637,6 +1066,7 @@ sub_pages = {
           <script src="../assets/preview-toast.js"></script>
           <script src="../assets/my-signups-preview.js"></script>
           <script src="../assets/signup-action-preview.js"></script>
+          <script src="../assets/heroes-data.js"></script>
           <script src="../assets/recruitments-data.js"></script>
           <script src="../assets/cover-carousel.js"></script>
           <script src="../assets/recruitment-detail-preview.js"></script>
@@ -674,10 +1104,10 @@ sub_pages = {
           <div id="recruitment-create-root"></div>
           <script src="../assets/db-client.js"></script>
           <script src="../assets/preview-toast.js"></script>
-          <script src="../assets/recruitment-form-preview.js"></script>
+          <script src="../assets/recruitments-data.js"></script>
           <script src="../assets/recruitment-create-preview.js"></script>
     '''),
-    "course-create.html": ("发布课程", '''
+    "course-create.html": ("申请课程", '''
           <div id="course-create-root"></div>
           <script src="../assets/db-client.js"></script>
           <script src="../assets/preview-toast.js"></script>
@@ -705,7 +1135,12 @@ sub_pages = {
           <script src="../assets/recruitment-form-preview.js"></script>
           <script src="../assets/recruitment-edit-preview.js"></script>
     '''),
-    "signup-list.html": ("报名人员", '<div class="card-block" style="margin-top:12px"><div class="card__title">张三 · 待确认</div></div>'),
+    "signup-list.html": ("报名人员", '''
+          <div id="signup-list-root"></div>
+          <script src="../assets/db-client.js"></script>
+          <script src="../assets/preview-toast.js"></script>
+          <script src="../assets/signup-list-preview.js"></script>
+    '''),
     "my-signups.html": ("我的报名", '''
           <div id="my-signups-root"></div>
           <script src="../assets/recruitments-data.js"></script>
@@ -733,14 +1168,30 @@ sub_pages = {
 for fname, data in tab_pages.items():
     title, body, status, nav, tb = data[:5]
     overlays = data[5] if len(data) > 5 else ""
-    (MP / fname).write_text(render(title, body, status=status, navbar_html=nav, tabbar_html=tb, overlays=overlays), encoding="utf-8")
+    preview_doc = PREVIEW_DOC_MAP.get(fname, "")
+    preview_doc_scope = PREVIEW_DOC_SCOPE.get(fname, "")
+    (MP / fname).write_text(
+        render(
+            title,
+            body,
+            status=status,
+            navbar_html=nav,
+            tabbar_html=tb,
+            overlays=overlays,
+            preview_doc=preview_doc,
+            preview_doc_scope=preview_doc_scope,
+        ),
+        encoding="utf-8",
+    )
 
 for fname, (title, body) in sub_pages.items():
     back = "profile.html"
     if fname.startswith("hero") and fname not in ("hero-apply-success.html", "hero-apply-submitted.html", "hero-profile.html", "hero-apply.html"):
         back = "heroes.html"
-    if fname in ("recruitment-detail.html", "course-detail.html", "hero-detail.html", "signup-list.html"):
+    if fname in ("recruitment-detail.html", "course-detail.html", "hero-detail.html"):
         back = "heroes.html"
+    if fname == "signup-list.html":
+        back = "my-courses.html"
     if fname == "hero-reviews.html":
         back = "profile.html"
     if fname == "recruitment-edit.html":
@@ -754,25 +1205,157 @@ for fname, (title, body) in sub_pages.items():
     nav_title_id = ""
     nav_right_action = None
     back_target = ""
-    if fname in ("hero-apply-submitted.html", "hero-apply-success.html"):
+    if fname in ("hero-apply-submitted.html", "hero-apply-success.html", "recruitment-create.html", "course-create.html"):
         back_target = "profile.html"
     if fname == "hero-detail.html":
         nav_title_id = "navbar-hero-title"
     elif fname == "recruitment-detail.html":
         nav_title_id = "navbar-recruit-title"
+    elif fname == "course-detail.html":
+        nav_title_id = "navbar-course-title"
+    elif fname == "signup-list.html":
+        nav_title_id = "navbar-signup-title"
     (MP / fname).write_text(
         render(
             title,
             body,
             navbar_html=navbar(title, back, back_target=back_target, title_id=nav_title_id, right_action=nav_right_action),
-            immersive=fname == "recruitment-detail.html",
+            immersive=fname in ("recruitment-detail.html", "course-detail.html"),
+            preview_doc=PREVIEW_DOC_MAP.get(fname, ""),
         ),
         encoding="utf-8",
     )
 
+PLAZA_HEROES_MOCK_JS = r"""
+/** 英雄广场列表 mock（首页 / 广场页共用） */
+window.listPlazaHeroesMock = function listPlazaHeroesMock() {
+  const data = window.HEROES_DATA || {};
+  return Object.keys(data).map(function (id) {
+    const h = data[id] || {};
+    const recruitments = Array.isArray(h.recruitments) ? h.recruitments : [];
+    const courses = Array.isArray(h.courses) ? h.courses : [];
+    const nested = [];
+    recruitments.forEach(function (r) {
+      nested.push({
+        type: r.type || 'event',
+        status: r.status || r.status_label || (r.type === 'activity' ? '报名中' : '招募中'),
+        title: r.title || '',
+        target_id: r.recruit_id || r.id,
+        recruit_id: r.recruit_id || r.id,
+      });
+    });
+    courses.forEach(function (c) {
+      nested.push({
+        type: 'course',
+        status: '报名中',
+        title: c.title || '',
+        target_id: c.course_id || c.id,
+        course_id: c.course_id || c.id,
+      });
+    });
+    return {
+      hero_id: id,
+      id: id,
+      enabled: h.enabled !== false,
+      name: h.name,
+      nickname: h.nickname || h.name,
+      avatar: h.avatar_img || h.avatar || '',
+      avatar_img: h.avatar_img || h.avatar || '',
+      rating: h.rating,
+      years_exp: h.years_exp,
+      student_count: h.student_count,
+      honors_count: h.honors_count,
+      project_types: h.project_types || [],
+      honor_titles: h.honor_titles || [],
+      cert_badges: h.cert_badges || [],
+      about_me: h.about_me || h.bio || '',
+      bio: h.about_me || h.bio || '',
+      recruitments: nested,
+      events: recruitments,
+      courses: courses,
+    };
+  });
+};
+"""
+
 (ASSETS / "heroes-data.js").write_text(
-    "window.HEROES_DATA = " + json.dumps(ALL_HEROES, ensure_ascii=False, indent=2) + ";\n",
+    "window.HEROES_DATA = "
+    + json.dumps(ALL_HEROES, ensure_ascii=False, indent=2)
+    + ";\n"
+    + PLAZA_HEROES_MOCK_JS,
     encoding="utf-8",
 )
+
+
+def sync_preview_docs():
+    """预览右侧文档目录改为符号链接指向真源，避免 copy 漂移。"""
+    import os
+    import shutil
+
+    repo_pages = ROOT.parent / "docs" / "miniprogram" / "pages"
+    preview_pages = ROOT / "docs" / "miniprogram" / "pages"
+    preview_pages.parent.mkdir(parents=True, exist_ok=True)
+    if not repo_pages.is_dir():
+        raise SystemExit(f"真源不存在：{repo_pages}")
+
+    target_rel = Path(os.path.relpath(repo_pages, start=preview_pages.parent))
+
+    def link_ok() -> bool:
+        if not preview_pages.is_symlink():
+            return False
+        try:
+            return preview_pages.resolve() == repo_pages.resolve()
+        except FileNotFoundError:
+            return False
+
+    if link_ok():
+        print("docs-synced symlink-ok")
+        return
+
+    if preview_pages.is_symlink() or preview_pages.exists():
+        if preview_pages.is_symlink() or preview_pages.is_file():
+            preview_pages.unlink()
+        else:
+            shutil.rmtree(preview_pages)
+
+    preview_pages.symlink_to(target_rel, target_is_directory=True)
+    if not link_ok():
+        raise SystemExit(f"创建符号链接失败：{preview_pages} -> {target_rel}")
+    print("docs-synced symlink", target_rel)
+
+
+def verify_preview_docs_sync():
+    """核对预览 docs 已符号链接到真源。"""
+    import sys
+
+    repo_pages = ROOT.parent / "docs" / "miniprogram" / "pages"
+    preview_pages = ROOT / "docs" / "miniprogram" / "pages"
+    if not preview_pages.is_symlink():
+        print("docs-sync-verify FAILED: preview/docs/.../pages 不是符号链接", file=sys.stderr)
+        raise SystemExit(1)
+    try:
+        resolved = preview_pages.resolve()
+    except FileNotFoundError:
+        print("docs-sync-verify FAILED: 符号链接目标不存在", file=sys.stderr)
+        raise SystemExit(1)
+    if resolved != repo_pages.resolve():
+        print(
+            f"docs-sync-verify FAILED: 链接到 {resolved}，期望 {repo_pages.resolve()}",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
+    print("docs-sync-verify OK (symlink)")
+
+
+sync_preview_docs()
+verify_preview_docs_sync()
+write_preview_page_nav()
+
+import subprocess
+
+_check = ROOT.parent / "scripts" / "check-preview-page-nav.py"
+_r = subprocess.run([sys.executable, str(_check)], cwd=str(ROOT.parent))
+if _r.returncode != 0:
+    raise SystemExit(_r.returncode)
 
 print("ok", len(tab_pages) + len(sub_pages))

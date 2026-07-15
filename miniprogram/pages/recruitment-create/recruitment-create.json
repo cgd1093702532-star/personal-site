@@ -1,3 +1,6 @@
 {
-  "navigationBarTitleText": "发布赛事招募"
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "event-card": "/components/event-card/event-card"
+  }
 }

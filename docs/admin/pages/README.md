@@ -1,35 +1,26 @@
 # 管理后台页面
 
-> 平台：**Web 管理后台** · 源码在 `admin/src/pages/`  
-> 与小程序文档 `docs/miniprogram/` **完全分离**  
-> 业务规则已按 2026-07-10 清单同步
+> 平台：**Web 管理后台** · 实现以 `preview/admin/` 为准  
+> 范围（2026-07-14）：**仅认证治理**；运营页已移除
 
-模板：[_TEMPLATE.md](./_TEMPLATE.md) · 总索引：[../../PAGES.md](../../PAGES.md) · 总纲：[../../PRD.md](../../PRD.md)
+模板：[_TEMPLATE.md](./_TEMPLATE.md) · 总索引：[../../PAGES.md](../../PAGES.md)
 
-## 页面列表
+## 保留页面
 
-| 需求文档 | 源码文件 | 路由 | M1 |
-|----------|----------|------|-----|
-| [仪表盘.md](./仪表盘.md) | `admin/src/pages/Dashboard.vue` | `/admin/dashboard` | P0 |
-| [供方列表.md](./供方列表.md) | `preview/admin/heroes.html` · `supplier-edit.html` | `/admin/heroes` | P0 |
-| [英雄管理.md](./英雄管理.md) | `admin/src/pages/Heroes.vue`（旧稿，见供方列表） | `/admin/heroes` | P0 |
-| [招募管理.md](./招募管理.md) | `admin/src/pages/Recruitments.vue` | `/admin/recruitments` | P0 |
-| [课程管理.md](./课程管理.md) | `admin/src/pages/Courses.vue` | `/admin/courses` | P1 |
-| [报名管理.md](./报名管理.md) | `admin/src/pages/Signups.vue` | `/admin/signups` | P1 |
-| [评价管理.md](./评价管理.md) | `admin/src/pages/Reviews.vue` | `/admin/reviews` | P1 |
-| [用户管理.md](./用户管理.md) | `admin/src/pages/Users.vue` | `/admin/users` | P1 |
-| [系统配置.md](./系统配置.md) | `admin/src/pages/Settings.vue` | `/admin/settings` | P2 |
-| [主页变更审核.md](./主页变更审核.md) | `admin/src/pages/ProfileChanges.vue` | `/admin/profile-changes` | P2 |
+| 需求文档 | 源码 | 说明 |
+|----------|------|------|
+| [供方列表.md](./供方列表.md) | `preview/admin/heroes.html` · `supplier-edit.html` | 申请审核 / 已认证供方 |
+| [英雄管理.md](./英雄管理.md) | （旧稿，见供方列表） | 历史文档 |
+| [主页变更审核.md](./主页变更审核.md) | `preview/admin/profile-changes.html` | 资料变更审核 |
+| [用户管理.md](./用户管理.md) | `preview/admin/users.html` | 用户禁用/启用 |
+
+## 已废弃（不再实现）
+
+仪表盘、招募管理、课程管理、报名管理、评价管理、系统配置 — 对应预览页与 Admin API 已删除；小程序业务数据改走本地 mock。
 
 ## 跨端约定
 
-- 前后台同一 SQLite；报名 / 课程 / 评价不以 `app_state` 为正式源
-- `app_state` 仅会话 / 调试
-- API 优先
+- 本地 API **仅**保留认证相关接口（申请/审核、主页变更、用户启停、供方 CRUD）
+- 小程序英雄/招募/课程/报名/评价等业务数据：`store.js` / `mock.js`，不请求业务 API
 - 本地管理端不鉴权；不做真实微信登录 / 真实支付
 - **商城不纳入本轮业务规则**
-
-## 开发说明
-
-框架选型后，在 `admin/` 根目录执行 `npm install` 与 `npm run dev`。  
-各页面 Vue 文件当前为 **M1 占位**，需求细节以本目录 `.md` 为准。

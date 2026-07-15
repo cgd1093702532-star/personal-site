@@ -54,6 +54,7 @@
   const filterReset = document.getElementById('hero-filter-reset');
   const keyboard = document.getElementById('hero-keyboard');
   const shell = document.querySelector('.mobile-shell');
+  const banner = document.getElementById('heroes-banner') || document.querySelector('.heroes-banner');
   if (!input || !list) return;
 
   let activeType = '全部';
@@ -138,10 +139,11 @@
       const yearsOk = matchYears(row.dataset.years, activeYears);
 
       const fields = [
+        row.dataset.nickname,
         row.dataset.name,
+        row.dataset.types,
         row.dataset.honors,
         row.dataset.bio,
-        row.dataset.types,
         row.dataset.years,
         row.dataset.years + '年',
         row.dataset.rating,
@@ -164,6 +166,13 @@
     return rows;
   }
 
+  function updateBannerVisibility() {
+    if (!banner) return;
+    const searching = input.value.trim().length > 0;
+    banner.hidden = searching;
+    banner.style.display = searching ? 'none' : '';
+  }
+
   function updateClearButton() {
     if (!clearBtn) return;
     const hasValue = input.value.trim().length > 0;
@@ -181,6 +190,11 @@
     status.textContent = count > 0 ? `找到 ${count} 位教练` : '';
   }
 
+  function scheduleRender() {
+    clearTimeout(timer);
+    timer = setTimeout(render, 0);
+  }
+
   function render() {
     const keyword = input.value.trim();
     const all = [...list.querySelectorAll('.hero-card')];
@@ -193,29 +207,37 @@
     });
 
     const hasKeyword = keyword.length > 0;
-    const hasFilters = countActiveFilters() > 0;
     list.style.display = visible.length === 0 ? 'none' : '';
     if (empty) {
-      empty.style.display = visible.length === 0 ? 'flex' : 'none';
-      if (hasKeyword && visible.length === 0) {
+      if (visible.length === 0) {
+        const mode = hasKeyword ? 'search' : 'plaza';
+        empty.style.display = 'flex';
         const title = empty.querySelector('.heroes-empty-state__title');
         const hint = empty.querySelector('.heroes-empty-state__hint');
-        if (title) title.textContent = '未找到相关教练和项目';
-        if (hint) hint.textContent = '试试调整关键词或筛选条件';
-      } else if ((hasFilters || !all.length) && visible.length === 0) {
-        const title = empty.querySelector('.heroes-empty-state__title');
-        const hint = empty.querySelector('.heroes-empty-state__hint');
-        if (title) title.textContent = all.length ? '未找到相关教练和项目' : '暂无认证教练';
-        if (hint) {
-          hint.textContent = all.length
-            ? '试试调整关键词或筛选条件'
-            : '后台「英雄管理」开启后将显示在此';
+        const iconImg = empty.querySelector('.heroes-empty-state__icon img');
+        if (mode === 'search') {
+          if (title) title.textContent = '未找到相关教练和项目';
+          if (hint) {
+            hint.style.display = '';
+            hint.textContent = '试试调整搜索词';
+          }
+          if (iconImg) iconImg.src = '../assets/icons/search.png';
+        } else {
+          if (title) title.textContent = '广场暂无数据';
+          if (hint) {
+            hint.style.display = 'none';
+            hint.textContent = '';
+          }
+          if (iconImg) iconImg.src = '../assets/icons/empty.png';
         }
+      } else {
+        empty.style.display = 'none';
       }
     }
 
     updateClearButton();
     updateSearchStatus(keyword, visible.length);
+    updateBannerVisibility();
     updateFilterBtn();
   }
 
@@ -244,7 +266,7 @@
     }
     input.setSelectionRange(input.value.length, input.value.length);
     clearTimeout(timer);
-    timer = setTimeout(render, 150);
+    scheduleRender();
     updateClearButton();
   }
 
@@ -252,6 +274,7 @@
     clearBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       input.value = '';
+      hideKeyboard();
       updateClearButton();
       render();
     });
@@ -297,8 +320,7 @@
   });
 
   input.addEventListener('input', () => {
-    clearTimeout(timer);
-    timer = setTimeout(render, 300);
+    scheduleRender();
   });
 
   if (filters) {
@@ -337,5 +359,8 @@
   render();
   document.addEventListener('heroes-list-updated', () => {
     render();
+  });
+  window.addEventListener('pagehide', () => {
+    clearTimeout(timer);
   });
 })();

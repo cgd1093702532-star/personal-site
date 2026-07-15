@@ -104,7 +104,7 @@
     if (item.actionType === 'active') {
       return (
         `<div class="my-recruit__actions">` +
-        `<a class="my-recruit__btn my-recruit__btn--primary nav-forward" href="signup-list.html"><img class="my-recruit__btn-icon" src="../assets/icons/users.png" alt=""><span>查看报名</span></a>` +
+        `<a class="my-recruit__btn my-recruit__btn--primary nav-forward" href="signup-list.html">查看报名</a>` +
         `</div>`
       );
     }
@@ -193,8 +193,8 @@
   function render() {
     const current = lists[activeTab] || [];
     const tabs = [
-      { key: 'active', label: '进行中', count: lists.active.length },
-      { key: 'ended', label: '已结束', count: lists.ended.length },
+      { key: 'active', label: '招募', count: lists.active.length },
+      { key: 'ended', label: '招募已结束', count: lists.ended.length },
     ];
 
     root.innerHTML =

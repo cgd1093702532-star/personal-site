@@ -108,6 +108,27 @@
   border-radius: 6rpx;
 }
 
+.my-courses__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20rpx;
+  padding-top: 20rpx;
+  border-top: 1rpx solid var(--color-divider);
+}
+
+.my-courses__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64rpx;
+  padding: 0 24rpx;
+  border-radius: 16rpx;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-size: 26rpx;
+  font-weight: 500;
+}
+
 .my-courses__empty {
   padding: 120rpx 32rpx;
   text-align: center;

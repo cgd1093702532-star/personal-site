@@ -1,4 +1,4 @@
-/** 编辑招募 · 预览页（与发布招募相同表单） */
+/** 编辑招募 · 预览页（与发布招募相同精简表单） */
 (function () {
   const root = document.getElementById('recruitment-edit-root');
   if (!root || !window.RecruitmentFormPreview) return;
@@ -23,8 +23,6 @@
       recruitId: id,
       sourceItem: item,
       isEdit: true,
-      publishLabel: '保存修改',
-      publishHref: 'my-recruitments.html',
     });
   }
 

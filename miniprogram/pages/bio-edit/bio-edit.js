@@ -1,5 +1,3 @@
-const data = require('../../utils/data.js');
-
 Page({
   data: { bio: '', field: 'bio', from: '' },
 
@@ -26,17 +24,9 @@ Page({
     }
     const bio = this.data.bio.trim();
     if (this.data.from === 'hero-profile' && this.data.field === 'about') {
-      data
-        .updateHero('1', { about_me: bio })
-        .then(() => {
-          wx.showToast({ title: '保存成功', icon: 'success' });
-          setTimeout(() => wx.navigateBack(), 800);
-        })
-        .catch(() => {
-          wx.setStorageSync('hero-profile-edit-bio-result', bio);
-          wx.showToast({ title: '已保存到本地缓存', icon: 'success' });
-          setTimeout(() => wx.navigateBack(), 800);
-        });
+      wx.setStorageSync('hero-profile-edit-bio-result', bio);
+      wx.showToast({ title: '已保存', icon: 'success' });
+      setTimeout(() => wx.navigateBack(), 800);
       return;
     }
     wx.showToast({ title: '保存成功（Mock）', icon: 'success' });

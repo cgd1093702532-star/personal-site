@@ -56,10 +56,7 @@
         </view>
 
         <view class="my-recruit__actions" wx:if="{{item.actionType === 'active'}}">
-          <view class="my-recruit__btn my-recruit__btn--primary" data-title="{{item.title}}" catchtap="onViewSignup">
-            <image class="my-recruit__btn-icon" src="/assets/icons/users.png" mode="aspectFit" />
-            <text>查看报名</text>
-          </view>
+          <view class="my-recruit__btn my-recruit__btn--primary" data-title="{{item.title}}" catchtap="onViewSignup">查看报名</view>
         </view>
 
         <view class="my-recruit__actions" wx:elif="{{item.actionType === 'closed'}}">

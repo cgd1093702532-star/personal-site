@@ -1,0 +1,65 @@
+---
+description: 小程序需求文档须全程产品可读中文，忌技术黑话
+globs: "{docs/miniprogram/pages/**,preview/miniprogram/*.html,preview/build-pages.py,preview/assets/preview-doc-aside.js}"
+alwaysApply: false
+---
+
+# 小程序页面需求文档（产品可读）
+
+## 读者
+
+文档给**不懂技术的产品协作方**看。全文（含 §6）用中文、说人话。
+
+## 范例与模板
+
+- 范例：[个人中心.md](docs/miniprogram/pages/个人中心.md)
+- 模板：[_TEMPLATE.md](docs/miniprogram/pages/_TEMPLATE.md)
+
+## 结构
+
+1. 文首：产品说明 / 状态 / 日期 / 预览地址 / 协作提示  
+2. §1 页面业务目标  
+3. §2 登录和身份描述  
+4. §3 页面详细描述  
+5. §4 常见路径（流程图用中文标签；保留 mermaid）  
+6. §5 相关页面  
+7. §6 规则补充与验收要点（**仍须产品可读**；预览右侧隐藏）  
+8. §7 变更记录  
+
+## 用语对照（写作时替换）
+
+| 避免写 | 改成 |
+|--------|------|
+| Toast | 页面提示 / 轻提示（写出提示原文） |
+| API / 接口 / POST / GET | 提交到平台 / 从平台拉取 / 后台审核 |
+| `mode=edit`、路由、源码路径 | 「修改资料」入口 / 从个人中心进入 |
+| `pending` / `approved` 等英文状态 | 审核中 / 已认证 / 已驳回 |
+| 字段 key、payload、正则 | 必填项说明 + 填错时提示什么 |
+| navigateBack / switchTab / redirectTo | 返回上一页 / 回到「我的」/ 打开新页并替换当前页 |
+| Mock / localStorage / onLoad | 预览演示 / 打开页面时 |
+
+## 表格说明分点（必须换行）
+
+表格单元格里凡有 **多条分点**（`1、` `2、` / `1.` `2.` 等），**每个点单独一行**，用 `<br>` 书写，例如：
+
+`1、必填…<br>2、选中后…<br>3、提交后…`
+
+禁止把多条分点挤在同一行（如 `1、… 2、… 3、…`）。  
+预览右侧面板会按分点换行展示；即使漏写 `<br>`，遇到「数字、」也会自动断行，但仍应以显式 `<br>` 为准。  
+详见始终生效规则：`doc-table-linebreaks.mdc`。
+
+## 预览
+
+- 有文档的预览页挂右侧面板；**左侧手机内切换页面时，右侧需求说明自动联动**
+- `preview/docs/miniprogram/pages` 为**符号链接**指向真源；改 `docs/miniprogram/pages/` 后强制刷新即可（链接丢失时跑 `python3 preview/build-pages.py`）
+- 核对：`python3 scripts/check-docs-preview-sync.py`（须 OK symlink）
+- 流程图用 \`\`\`mermaid 代码块；面板会渲染，勿删
+- 详见：`docs-preview-sync.mdc`
+
+## 禁止
+
+- 正文堆接口表、英文字段名、代码片段当主说明  
+- 删掉已有流程图  
+- 只改预览不改对应 `.md`
+- 表格单元格里写半角 `|`（会截断内容；竖线用全角 `｜`）
+- 把预览 docs 恢复成拷贝目录（会再次漂移）

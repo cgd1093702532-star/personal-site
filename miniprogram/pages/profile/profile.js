@@ -1,5 +1,7 @@
 const data = require('../../utils/data.js');
 
+const REASON_FALLBACK = '您的英雄身份当前不可用，可联系客服处理';
+
 const CTA = {
   none: {
     hint: '成为英雄，发布赛事招募，开启您的水上教育事业',
@@ -13,6 +15,10 @@ const CTA = {
     hint: '认证申请被驳回，请修改后再次提交申请',
     btn: '查看原因',
   },
+  disabled: {
+    hint: '您的英雄身份当前不可用，可联系客服处理',
+    btn: '查看原因',
+  },
 };
 
 Page({
@@ -20,15 +26,28 @@ Page({
     user: { nickname: '航海用户', avatar: '', member: '普通会员' },
     hero: null,
     isHero: false,
+    heroActive: false,
+    heroDisabled: false,
     heroPending: false,
     heroRejected: false,
+    profileChangePending: false,
     rejectReason: '',
+    disableReason: '',
+    showRejectDialog: false,
+    showDisableDialog: false,
+    showPublishSheet: false,
     ctaHint: CTA.none.hint,
     ctaBtn: CTA.none.btn,
+    mall: { points: 0, gifts: 0, coupons: 0 },
   },
 
   onShow() {
     this.loadProfile();
+  },
+
+  reasonOrFallback(reason) {
+    const text = String(reason || '').trim();
+    return text || REASON_FALLBACK;
   },
 
   loadProfile() {
@@ -36,29 +55,41 @@ Page({
       const mockRole = res.status;
       const base = { nickname: '航海用户', member: '普通会员' };
       if (mockRole === 'approved') {
+        const disabled = res.hero_enabled === false;
+        const hero = disabled
+          ? null
+          : {
+              name: '小哥',
+              certification_level: 'ASA帆船认证教练',
+              rating: 4.9,
+              student_count: 128,
+              course_count: 12,
+            };
         this.setData({
           user: base,
           isHero: true,
+          heroActive: !disabled,
+          heroDisabled: disabled,
           heroPending: false,
           heroRejected: false,
+          profileChangePending: !disabled && !!res.profile_change_pending,
           rejectReason: '',
-          ctaHint: CTA.none.hint,
-          ctaBtn: CTA.none.btn,
-          hero: {
-            name: '小哥',
-            certification_level: 'ASA帆船认证教练',
-            rating: 4.9,
-            student_count: 128,
-            course_count: 12,
-          },
+          disableReason: this.reasonOrFallback(res.disable_reason),
+          ctaHint: disabled ? CTA.disabled.hint : CTA.none.hint,
+          ctaBtn: disabled ? CTA.disabled.btn : CTA.none.btn,
+          hero,
         });
       } else if (mockRole === 'pending') {
         this.setData({
           user: base,
           isHero: false,
+          heroActive: false,
+          heroDisabled: false,
           heroPending: true,
           heroRejected: false,
+          profileChangePending: false,
           rejectReason: '',
+          disableReason: '',
           ctaHint: CTA.pending.hint,
           ctaBtn: CTA.pending.btn,
           hero: null,
@@ -67,9 +98,13 @@ Page({
         this.setData({
           user: base,
           isHero: false,
+          heroActive: false,
+          heroDisabled: false,
           heroPending: false,
           heroRejected: true,
-          rejectReason: res.reject_reason || '',
+          profileChangePending: false,
+          rejectReason: this.reasonOrFallback(res.reject_reason),
+          disableReason: '',
           ctaHint: CTA.rejected.hint,
           ctaBtn: CTA.rejected.btn,
           hero: null,
@@ -78,9 +113,13 @@ Page({
         this.setData({
           user: base,
           isHero: false,
+          heroActive: false,
+          heroDisabled: false,
           heroPending: false,
           heroRejected: false,
+          profileChangePending: false,
           rejectReason: '',
+          disableReason: '',
           ctaHint: CTA.none.hint,
           ctaBtn: CTA.none.btn,
           hero: null,
@@ -89,9 +128,34 @@ Page({
     });
   },
 
+  requireHeroActive() {
+    if (this.data.heroActive) return true;
+    if (this.data.heroDisabled) {
+      this.setData({ showDisableDialog: true });
+      return false;
+    }
+    if (this.data.heroPending) {
+      wx.navigateTo({ url: '/pages/hero-apply-submitted/hero-apply-submitted' });
+      return false;
+    }
+    if (this.data.heroRejected) {
+      this.setData({ showRejectDialog: true });
+      return false;
+    }
+    wx.showToast({ title: '请先成为认证英雄', icon: 'none' });
+    return false;
+  },
+
   onApplyHero() {
     data.getHeroApplyStatus().then((res) => {
       const status = res.status;
+      if (status === 'approved' && res.hero_enabled === false) {
+        this.setData({
+          disableReason: this.reasonOrFallback(res.disable_reason),
+          showDisableDialog: true,
+        });
+        return;
+      }
       if (status === 'approved') {
         wx.showToast({ title: '您已是认证英雄', icon: 'none' });
         this.loadProfile();
@@ -102,16 +166,9 @@ Page({
         return;
       }
       if (status === 'rejected') {
-        wx.showModal({
-          title: '驳回原因',
-          content: (res.reject_reason || '').trim() || '暂无驳回原因',
-          cancelText: '取消',
-          confirmText: '去修改',
-          success(modalRes) {
-            if (modalRes.confirm) {
-              wx.navigateTo({ url: '/pages/hero-apply/hero-apply' });
-            }
-          },
+        this.setData({
+          rejectReason: this.reasonOrFallback(res.reject_reason),
+          showRejectDialog: true,
         });
         return;
       }
@@ -119,41 +176,80 @@ Page({
     });
   },
 
-  onHeroCertSuccess() {
-    if (!this.data.isHero) return;
-    wx.navigateTo({ url: '/pages/hero-apply-success/hero-apply-success' });
+  onCloseRejectDialog() {
+    this.setData({ showRejectDialog: false });
   },
 
-  onMySignups() {
-    wx.navigateTo({ url: '/pages/my-signups/my-signups' });
+  onCloseDisableDialog() {
+    this.setData({ showDisableDialog: false });
   },
 
-  onMyReviews() {
-    wx.navigateTo({ url: '/pages/my-reviews/my-reviews' });
+  onEditRejectedApply() {
+    this.setData({ showRejectDialog: false });
+    wx.navigateTo({ url: '/pages/hero-apply/hero-apply' });
   },
 
-  onMyStudents() {
-    if (!this.data.isHero) return;
-    wx.navigateTo({ url: '/pages/my-students/my-students' });
+  noop() {},
+
+  onVipCard() {
+    wx.showToast({ title: '即将开放', icon: 'none' });
   },
 
-  onMyRatings() {
-    if (!this.data.isHero) return;
-    wx.navigateTo({ url: '/pages/hero-reviews/hero-reviews' });
+  onMallAsset() {
+    wx.showToast({ title: '即将开放', icon: 'none' });
+  },
+
+  onShoppingCart() {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
+  },
+
+  onShippingAddress() {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
+  },
+
+  onCustomerService() {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
+  },
+
+  onAccountSettings() {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
+  },
+
+  onMessages() {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
   },
 
   onHeroProfile() {
-    if (!this.data.isHero) return;
-    wx.navigateTo({ url: '/pages/hero-profile/hero-profile' });
+    if (!this.requireHeroActive()) return;
+    wx.navigateTo({ url: '/pages/hero-apply/hero-apply?mode=edit' });
   },
 
   onMyRecruitments() {
-    if (!this.data.isHero) return;
+    if (!this.requireHeroActive()) return;
     wx.navigateTo({ url: '/pages/my-recruitments/my-recruitments' });
   },
 
   onMyCourses() {
-    if (!this.data.isHero) return;
+    if (!this.requireHeroActive()) return;
     wx.navigateTo({ url: '/pages/my-courses/my-courses' });
+  },
+
+  onPublishEntry() {
+    if (!this.requireHeroActive()) return;
+    this.setData({ showPublishSheet: true });
+  },
+
+  onClosePublishSheet() {
+    this.setData({ showPublishSheet: false });
+  },
+
+  onPublishRecruitment() {
+    this.setData({ showPublishSheet: false });
+    wx.navigateTo({ url: '/pages/recruitment-create/recruitment-create' });
+  },
+
+  onPublishCourse() {
+    this.setData({ showPublishSheet: false });
+    wx.navigateTo({ url: '/pages/course-create/course-create' });
   },
 });

@@ -3,23 +3,49 @@
   const root = document.getElementById('hero-profile-root');
   if (!root) return;
 
-  const HERO_ID = '1';
+  const FALLBACK_HERO_ID = '1';
   const imgBase = '../assets/images/';
   const MAX_PHOTOS = 9;
   let albumInput = null;
   let heroBase = null;
+  let heroId = FALLBACK_HERO_ID;
   let dbEnabled = false;
 
-  if (window.HeroPlazaDB && (await window.HeroPlazaDB.isAvailable())) {
+  async function resolveMyHero() {
+    if (!window.HeroPlazaDB || !(await window.HeroPlazaDB.isAvailable())) return null;
     try {
-      heroBase = await window.HeroPlazaDB.getHero(HERO_ID);
-      dbEnabled = true;
+      const status = await window.HeroPlazaDB.getHeroApplyStatus();
+      if (status?.status !== 'approved') return null;
+      const id = status.hero_id || status.application?.hero_id;
+      if (!id) return null;
+      const fromDb = await window.HeroPlazaDB.getHero(id);
+      if (!fromDb) return null;
+      return { hero: fromDb, heroId: String(id) };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  const resolved = await resolveMyHero();
+  if (resolved) {
+    heroBase = resolved.hero;
+    heroId = resolved.heroId;
+    dbEnabled = true;
+  } else if (window.HeroPlazaDB && (await window.HeroPlazaDB.isAvailable())) {
+    try {
+      const fromDb = await window.HeroPlazaDB.getHero(FALLBACK_HERO_ID);
+      if (fromDb) {
+        heroBase = fromDb;
+        heroId = FALLBACK_HERO_ID;
+        dbEnabled = true;
+      }
     } catch (_) {
       /* fallback */
     }
   }
   if (!heroBase && window.HEROES_DATA) {
-    heroBase = JSON.parse(JSON.stringify(window.HEROES_DATA[HERO_ID]));
+    heroBase = JSON.parse(JSON.stringify(window.HEROES_DATA[FALLBACK_HERO_ID]));
+    heroId = FALLBACK_HERO_ID;
   }
   if (!heroBase) {
     root.innerHTML = '<div class="heroes-empty-state" style="display:flex;padding:40px 16px"><div>资料加载失败</div></div>';
@@ -39,8 +65,15 @@
     return url;
   }
 
+  function yearsSubtitle(years) {
+    const raw = String(years || '').trim();
+    if (!raw) return '';
+    if (/年/.test(raw)) return /经验/.test(raw) ? raw : `${raw}经验`;
+    return `${raw}年经验`;
+  }
+
   const state = {
-    aboutMe: heroBase.about_me || '',
+    aboutMe: heroBase.about_me || heroBase.bio || '',
     honors: (heroBase.past_honors || []).map((h, i) => ({ ...h, id: h.id || `h-${i}` })),
     moments: (heroBase.moments || []).map((img, i) => {
       const value = typeof img === 'string' ? img : img.url || img.image;
@@ -55,9 +88,10 @@
     dragIndex: -1,
   };
 
-  async function persistHeroProfile() {
-    if (!dbEnabled || !window.HeroPlazaDB) return;
-    const patch = {
+  let submitting = false;
+
+  function buildPatch() {
+    return {
       about_me: state.aboutMe,
       past_honors: state.honors.map(({ id, ...h }) => h),
       honors_count: state.honors.length,
@@ -67,16 +101,54 @@
         image: mediaUrlToStorage(c.url),
       })),
     };
-    try {
-      await window.HeroPlazaDB.updateHero(HERO_ID, patch);
-    } catch (err) {
-      console.warn('[hero-profile] 保存到本地数据库失败', err);
-    }
+  }
+
+  function toast(msg, type) {
+    if (window.PreviewToast) window.PreviewToast.show(msg, type);
+    else window.alert(msg);
   }
 
   function afterChange() {
     render();
-    persistHeroProfile();
+  }
+
+  function ensureFooter() {
+    const shell = document.querySelector('.mobile-shell');
+    if (!shell || document.getElementById('hero-profile-submit')) return;
+    const footer = document.createElement('div');
+    footer.className = 'create-footer create-footer--single create-footer--pinned';
+    footer.innerHTML =
+      '<button type="button" class="create-footer__publish" id="hero-profile-submit">提交修改</button>';
+    shell.appendChild(footer);
+    footer.querySelector('#hero-profile-submit')?.addEventListener('click', () => {
+      submitProfileChange();
+    });
+  }
+
+  async function submitProfileChange() {
+    if (submitting) return;
+    if (!dbEnabled || !window.HeroPlazaDB?.submitProfileChange) {
+      toast('请先启动本地 API', 'error');
+      return;
+    }
+    submitting = true;
+    const btn = document.getElementById('hero-profile-submit');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '提交中…';
+    }
+    try {
+      await window.HeroPlazaDB.submitProfileChange(heroId, buildPatch(), 'profile');
+      toast('已提交审核', 'success');
+    } catch (err) {
+      toast(`提交失败：${err.message || '请重试'}`, 'error');
+    } finally {
+      submitting = false;
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '提交修改';
+      }
+    }
   }
 
   function starsHtml(rating) {
@@ -227,13 +299,14 @@
   function render() {
     const hero = heroBase;
     const tags = [...(hero.honor_titles || []), ...(hero.cert_badges || [])].slice(0, 3);
-    const subtitle = `${(hero.project_types || []).join(' · ')} · ${hero.years_exp || ''}年经验`;
+    const subtitle = `${(hero.project_types || []).join(' · ')}${(hero.project_types || []).length && yearsSubtitle(hero.years_exp) ? ' · ' : ''}${yearsSubtitle(hero.years_exp)}`;
+    const displayName = hero.nickname || hero.name || '';
 
     root.innerHTML =
       `<div class="hero-detail hero-detail--edit">` +
       `<div class="hero-profile"><div class="hero-profile__cover"></div><div class="hero-profile__main">` +
-      `<div class="hero-profile__avatar"><img src="${imgBase}${hero.avatar_img}" alt="${hero.name}"></div>` +
-      `<div class="hero-profile__name">${hero.name}</div>` +
+      `<div class="hero-profile__avatar"><img src="${imgBase}${hero.avatar_img || 'hero-1.jpg'}" alt="${displayName}"></div>` +
+      `<div class="hero-profile__name">${escapeHtml(displayName)}</div>` +
       `<div class="hero-profile__subtitle">${subtitle}</div>` +
       `<div class="hero-profile__rating"><div class="hero-profile__stars">${starsHtml(hero.rating)}</div><span class="hero-profile__score">${hero.rating}</span></div>` +
       `<div class="hero-profile__tags">${tags.map((t) => `<span class="hero-profile__tag">${t}</span>`).join('')}</div>` +
@@ -256,11 +329,12 @@
       state.certificates.map((c, i) => mediaItem(c, i, 'cert')).join('') +
       (state.certificates.length < MAX_PHOTOS ? addMediaBtn('add-cert', '添加证书') : '') +
       `</div></div>` +
-      `<div class="hero-detail__bottom-spacer"></div></div>` +
+      `<div class="hero-detail__bottom-spacer hero-detail__bottom-spacer--submit"></div></div>` +
       honorSheet() +
       aboutSheet();
 
     bind();
+    ensureFooter();
   }
 
   function bindDragSort(containerId, listKey) {

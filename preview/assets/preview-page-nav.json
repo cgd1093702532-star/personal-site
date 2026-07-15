@@ -1,0 +1,176 @@
+{
+  "groups": [
+    {
+      "title": "Tab 页",
+      "pages": [
+        {
+          "html": "index.html",
+          "doc": "营销首页.md",
+          "label": "营销首页",
+          "docUrl": "../docs/miniprogram/pages/营销首页.md",
+          "scope": "intro"
+        },
+        {
+          "html": "heroes.html",
+          "doc": "英雄广场.md",
+          "label": "英雄广场",
+          "docUrl": "../docs/miniprogram/pages/英雄广场.md",
+          "scope": ""
+        },
+        {
+          "html": "profile.html",
+          "doc": "个人中心.md",
+          "label": "个人中心",
+          "docUrl": "../docs/miniprogram/pages/个人中心.md",
+          "scope": ""
+        }
+      ]
+    },
+    {
+      "title": "浏览与报名",
+      "pages": [
+        {
+          "html": "hero-detail.html",
+          "doc": "英雄详情.md",
+          "label": "英雄详情",
+          "docUrl": "../docs/miniprogram/pages/英雄详情.md",
+          "scope": ""
+        },
+        {
+          "html": "recruitment-detail.html",
+          "doc": "招募详情.md",
+          "label": "招募详情",
+          "docUrl": "../docs/miniprogram/pages/招募详情.md",
+          "scope": ""
+        },
+        {
+          "html": "course-detail.html",
+          "doc": "课程详情.md",
+          "label": "课程详情",
+          "docUrl": "../docs/miniprogram/pages/课程详情.md",
+          "scope": ""
+        }
+      ]
+    },
+    {
+      "title": "英雄认证",
+      "pages": [
+        {
+          "html": "hero-apply.html",
+          "doc": "申请成为英雄.md",
+          "label": "申请成为英雄",
+          "docUrl": "../docs/miniprogram/pages/申请成为英雄.md",
+          "scope": ""
+        },
+        {
+          "html": "hero-apply-submitted.html",
+          "doc": "申请提交成功.md",
+          "label": "申请提交成功",
+          "docUrl": "../docs/miniprogram/pages/申请提交成功.md",
+          "scope": ""
+        }
+      ]
+    },
+    {
+      "title": "英雄中心",
+      "pages": [
+        {
+          "html": "hero-profile.html",
+          "doc": "我的英雄资料.md",
+          "label": "我的英雄资料",
+          "docUrl": "../docs/miniprogram/pages/我的英雄资料.md",
+          "scope": ""
+        },
+        {
+          "html": "recruitment-create.html",
+          "doc": "发布招募.md",
+          "label": "发布招募",
+          "docUrl": "../docs/miniprogram/pages/发布招募.md",
+          "scope": ""
+        },
+        {
+          "html": "course-create.html",
+          "doc": "发布课程.md",
+          "label": "发布课程",
+          "docUrl": "../docs/miniprogram/pages/发布课程.md",
+          "scope": ""
+        },
+        {
+          "html": "my-recruitments.html",
+          "doc": "我的招募.md",
+          "label": "我的招募",
+          "docUrl": "../docs/miniprogram/pages/我的招募.md",
+          "scope": ""
+        },
+        {
+          "html": "my-courses.html",
+          "doc": "我的课程.md",
+          "label": "我的课程",
+          "docUrl": "../docs/miniprogram/pages/我的课程.md",
+          "scope": ""
+        },
+        {
+          "html": "my-students.html",
+          "doc": "我的学员.md",
+          "label": "我的学员",
+          "docUrl": "../docs/miniprogram/pages/我的学员.md",
+          "scope": ""
+        },
+        {
+          "html": "recruitment-edit.html",
+          "doc": "招募编辑.md",
+          "label": "招募编辑",
+          "docUrl": "../docs/miniprogram/pages/招募编辑.md",
+          "scope": ""
+        },
+        {
+          "html": "signup-list.html",
+          "doc": "报名人员列表.md",
+          "label": "报名人员列表",
+          "docUrl": "../docs/miniprogram/pages/报名人员列表.md",
+          "scope": ""
+        },
+        {
+          "html": "cert-edit.html",
+          "doc": "证书编辑.md",
+          "label": "证书编辑",
+          "docUrl": "../docs/miniprogram/pages/证书编辑.md",
+          "scope": ""
+        },
+        {
+          "html": "bio-edit.html",
+          "doc": "简介编辑.md",
+          "label": "简介编辑",
+          "docUrl": "../docs/miniprogram/pages/简介编辑.md",
+          "scope": ""
+        },
+        {
+          "html": "hero-reviews.html",
+          "doc": "英雄评价列表.md",
+          "label": "英雄评价列表",
+          "docUrl": "../docs/miniprogram/pages/英雄评价列表.md",
+          "scope": ""
+        }
+      ]
+    },
+    {
+      "title": "用户活动",
+      "pages": [
+        {
+          "html": "my-signups.html",
+          "doc": "我的报名.md",
+          "label": "我的报名",
+          "docUrl": "../docs/miniprogram/pages/我的报名.md",
+          "scope": ""
+        },
+        {
+          "html": "my-reviews.html",
+          "doc": "我的评价.md",
+          "label": "我的评价",
+          "docUrl": "../docs/miniprogram/pages/我的评价.md",
+          "scope": ""
+        }
+      ]
+    }
+  ]
+}

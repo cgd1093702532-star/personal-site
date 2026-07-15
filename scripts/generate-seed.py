@@ -4,24 +4,12 @@
 from __future__ import annotations
 
 import json
-import re
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-HEROES_JS = ROOT / "preview/assets/heroes-data.js"
 SEED_OUT = ROOT / "data/seed.json"
-
-
-def load_heroes() -> dict:
-    text = HEROES_JS.read_text(encoding="utf-8")
-    payload = re.sub(r"^window\.HEROES_DATA\s*=\s*", "", text.strip()).rstrip(";")
-    raw = json.loads(payload)
-    heroes = {}
-    for hero_id, item in raw.items():
-        heroes[hero_id] = {**item, "hero_id": hero_id}
-    return heroes
 
 
 def load_mock_via_node() -> dict:
@@ -47,8 +35,9 @@ console.log(JSON.stringify({
 
 
 def main() -> None:
+    # 供方不灌种子：后台供方列表仅展示真实创建/入驻数据
     seed = {
-        "heroes": load_heroes(),
+        "heroes": {},
         **load_mock_via_node(),
         "app_state": {
             "mock_hero_role": "",

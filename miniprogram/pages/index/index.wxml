@@ -5,7 +5,7 @@
     <view class="home-banner__fade"></view>
     <view class="home-banner__safe" style="height: {{statusBarHeight}}px;"></view>
     <view class="home-banner__season">
-      <view class="home-banner__dot"></view>
+      <text class="home-banner__pin">📍</text>
       <text>{{banner.season}}</text>
     </view>
     <view class="home-banner__content">
@@ -33,11 +33,11 @@
         <view class="membership__info">
           <text class="membership__title"><text class="membership__title-white">航海家</text><text class="membership__title-gold">权益卡</text></text>
           <view class="membership__price">
-            <text class="membership__price-symbol">￥</text>
+            <text class="membership__price-symbol">¥ </text>
             <text class="membership__price-num">{{membership.price}}</text>
           </view>
         </view>
-        <view class="membership__btn">立即开通 ›</view>
+        <view class="membership__btn">立即开通 →</view>
       </view>
       <view class="membership__footer">
         <view class="membership__benefit" wx:for="{{membership.benefits}}" wx:key="*this">
@@ -48,12 +48,12 @@
     </view>
   </view>
 
-  <!-- 英雄广场 -->
-  <view class="section">
+  <!-- 英雄广场：至少 1 个推荐教练才展示整块 -->
+  <view class="section" wx:if="{{heroes.length}}">
     <section-header title="英雄广场" bind:more="onHeroMore" />
     <scroll-view class="home-scroll-x" scroll-x enable-flex show-scrollbar="{{false}}" enhanced>
       <view class="home-scroll-x__track">
-        <hero-card wx:for="{{heroes}}" wx:key="hero_id" hero="{{item}}" bind:tap="onHeroTap" />
+        <hero-card wx:for="{{heroes}}" wx:key="hero_id" hero="{{item}}" layout="home" bind:tap="onHeroTap" />
       </view>
     </scroll-view>
   </view>

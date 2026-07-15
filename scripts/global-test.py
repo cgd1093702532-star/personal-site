@@ -22,14 +22,25 @@ PREVIEW_PAGES = [
     "/miniprogram/profile.html",
     "/miniprogram/recruitment-detail.html?id=r1",
     "/miniprogram/my-recruitments.html",
+    "/admin/heroes.html",
+    "/admin/profile-changes.html",
+    "/admin/users.html",
 ]
 
 API_CHECKS = [
     ("GET", "/api/health", None),
-    ("GET", "/api/heroes", None),
-    ("GET", "/api/heroes/1", None),
-    ("GET", "/api/recruitments/mine/active", None),
-    ("GET", "/api/courses", None),
+    ("GET", "/api/heroes/apply/status", None),
+    ("GET", "/api/admin/applications", None),
+    ("GET", "/api/admin/users", None),
+    ("GET", "/api/admin/profile-changes", None),
+]
+
+# 业务 API 已删除，应 404
+API_GONE = [
+    "/api/heroes",
+    "/api/recruitments",
+    "/api/courses",
+    "/api/admin/dashboard",
 ]
 
 
@@ -67,7 +78,7 @@ def main() -> int:
         code, _ = fetch(f"{PREVIEW}{path}")
         all_pass &= ok(f"preview {path}", code == 200, f"HTTP {code}")
 
-    print("\n-- 本地数据库 API (8787) --")
+    print("\n-- 本地数据库 API (8787) · 认证相关 --")
     for method, path, body in API_CHECKS:
         code, text = fetch(f"{API}{path}", method, body)
         all_pass &= ok(f"api {method} {path}", code == 200, f"HTTP {code}")
@@ -77,6 +88,11 @@ def main() -> int:
                 all_pass &= ok("api health ok field", data.get("ok") is True)
             except json.JSONDecodeError:
                 all_pass &= ok("api health json", False, "invalid json")
+
+    print("\n-- 业务 API 应已移除 (404) --")
+    for path in API_GONE:
+        code, _ = fetch(f"{API}{path}")
+        all_pass &= ok(f"api gone {path}", code == 404, f"HTTP {code}")
 
     print("\n-- 数据文件 --")
     all_pass &= ok("seed.json exists", (ROOT / "data/seed.json").exists())

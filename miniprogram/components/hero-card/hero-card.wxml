@@ -3,38 +3,39 @@
     <view class="hero-card__avatar cover-placeholder"></view>
     <view class="hero-card__meta">
       <view class="hero-card__name-row">
-        <text class="hero-card__name">{{hero.name}}</text>
+        <text class="hero-card__name">{{displayName}}</text>
         <view class="hero-card__tags">
-          <category-tag wx:for="{{hero.project_types}}" wx:key="*this" label="{{item}}" variant="skill" />
+          <category-tag wx:for="{{displayTypes}}" wx:key="*this" label="{{item}}" variant="skill" />
         </view>
       </view>
-      <view class="hero-card__honors" wx:if="{{hero.honor_titles && hero.honor_titles.length}}">
-        <view class="hero-card__honor hero-card__honor--primary" wx:if="{{hero.honor_titles[0]}}">
-          <view class="hero-card__honor-icon">
+      <view class="hero-card__honors" wx:if="{{honorItems.length}}">
+        <view
+          class="hero-card__honor {{item.primary ? 'hero-card__honor--primary' : 'hero-card__honor--secondary'}}"
+          wx:for="{{honorItems}}"
+          wx:key="text"
+        >
+          <view wx:if="{{item.primary}}" class="hero-card__honor-icon">
             <image class="hero-card__honor-icon-img" src="/assets/icons/crown.png" mode="aspectFit" />
           </view>
-          <text class="hero-card__honor-text">{{hero.honor_titles[0]}}</text>
-        </view>
-        <view class="hero-card__honor hero-card__honor--secondary" wx:if="{{hero.honor_titles[1]}}">
-          <text class="hero-card__honor-text">{{hero.honor_titles[1]}}</text>
+          <text class="hero-card__honor-text">{{item.text}}</text>
         </view>
       </view>
     </view>
   </view>
-  <view class="hero-card__rows" wx:if="{{hero.recruitments && hero.recruitments.length}}">
+  <view class="hero-card__rows" wx:if="{{displayRows.length}}">
     <view
       class="hero-card__row"
-      wx:for="{{hero.recruitments}}"
-      wx:key="title"
+      wx:for="{{displayRows}}"
+      wx:key="key"
       catchtap="onRowTap"
       data-type="{{item.type}}"
       data-target-id="{{item.target_id}}"
     >
       <category-tag
-        label="{{item.type === 'event' ? '赛事' : item.type === 'course' ? '课程' : '活动'}}"
-        variant="{{item.type === 'event' ? 'event' : item.type === 'course' ? 'course' : 'activity'}}"
+        label="{{item.tagLabel}}"
+        variant="{{item.tagVariant}}"
       />
-      <text class="hero-card__row-text">{{item.status}}{{item.status ? ' | ' : ''}}{{item.title}}</text>
+      <text class="hero-card__row-text">{{item.text}}</text>
       <text class="hero-card__row-arrow">›</text>
     </view>
   </view>

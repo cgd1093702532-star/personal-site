@@ -3,10 +3,6 @@
     <view class="hero-profile__cover"></view>
     <view class="hero-profile__main">
       <view class="hero-profile__avatar cover-placeholder"></view>
-      <view class="hero-detail__share" bindtap="onShareTap">
-        <text class="hero-detail__share-icon">↗</text>
-        <text class="hero-detail__share-text">分享</text>
-      </view>
       <text class="hero-profile__name">{{hero.name}}</text>
       <text class="hero-profile__subtitle">{{hero.project_types.join(' · ')}} · {{hero.years_exp}}年经验</text>
       <view class="hero-profile__rating">
@@ -28,8 +24,8 @@
           <text class="hero-profile__stat-label">学员</text>
         </view>
         <view class="hero-profile__stat">
-          <text class="hero-profile__stat-num hero-profile__stat-num--text">{{certLevel}}</text>
-          <text class="hero-profile__stat-label">资质等级</text>
+          <text class="hero-profile__stat-num">{{hero.rating}}</text>
+          <text class="hero-profile__stat-label">评分</text>
         </view>
         <view class="hero-profile__stat">
           <text class="hero-profile__stat-num">{{hero.honors_count}}</text>
@@ -45,8 +41,11 @@
   </view>
 
   <view class="hero-detail__block" wx:if="{{hero.past_honors.length}}">
-    <text class="hero-detail__label">过往荣誉</text>
+    <text class="hero-detail__label">荣誉成就</text>
     <view class="hero-detail__honor" wx:for="{{hero.past_honors}}" wx:key="name">
+      <view class="hero-detail__honor-icon">
+        <image class="hero-detail__honor-icon-img" src="{{item.icon}}" mode="aspectFit" />
+      </view>
       <view class="hero-detail__honor-body">
         <text class="hero-detail__honor-name">{{item.name}}</text>
       </view>
@@ -69,6 +68,43 @@
     </scroll-view>
   </view>
 
+  <view class="hero-detail__block" wx:if="{{hero.teaching_philosophy && hero.teaching_philosophy.points.length}}">
+    <view class="hero-teaching">
+      <view class="hero-teaching__head">
+        <image class="hero-teaching__icon" src="/assets/icons/boat.png" mode="aspectFit" />
+        <text class="hero-teaching__title">教学理念</text>
+      </view>
+      <text class="hero-teaching__intro">{{hero.teaching_philosophy.intro}}</text>
+      <text class="hero-teaching__lead">{{hero.teaching_philosophy.belief_lead}}</text>
+      <view
+        class="hero-teaching__item"
+        wx:for="{{hero.teaching_philosophy.points}}"
+        wx:key="title"
+      >
+        <text class="hero-teaching__item-title">{{item.title}}</text>
+        <text class="hero-teaching__item-desc">{{item.desc}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="hero-detail__block" wx:if="{{hero.race_showcase && hero.race_showcase.items.length}}">
+    <view class="hero-race">
+      <view class="hero-race__head">
+        <image class="hero-race__icon" src="/assets/icons/trophy.png" mode="aspectFit" />
+        <text class="hero-race__title">赛事经验</text>
+      </view>
+      <text class="hero-race__intro">{{hero.race_showcase.intro}}</text>
+      <view
+        class="hero-race__item {{index % 2 === 0 ? 'hero-race__item--photo-right' : 'hero-race__item--photo-left'}}"
+        wx:for="{{hero.race_showcase.items}}"
+        wx:key="title"
+      >
+        <text class="hero-race__label">{{item.title}}</text>
+        <view class="hero-race__media cover-placeholder hero-race__media--{{index % 3}}"></view>
+      </view>
+    </view>
+  </view>
+
   <view class="hero-detail__block" wx:if="{{hero.moments.length}}">
     <text class="hero-detail__label">个人展示</text>
     <view class="hero-detail__gallery">
@@ -82,28 +118,37 @@
     </view>
   </view>
 
-  <view class="hero-detail__block" wx:if="{{recruitments.length}}">
-    <view class="hero-detail__label-row">
-      <text class="hero-detail__label">赛事招募</text>
-      <text class="hero-detail__label-extra">共{{recruitments.length}}个</text>
-    </view>
-    <view
-      class="hero-detail__recruit-card"
-      wx:for="{{recruitments}}"
-      wx:key="recruit_id"
-      data-id="{{item.recruit_id}}"
-      bindtap="onRecruitmentTap"
-    >
-      <view class="hero-detail__recruit-thumb cover-placeholder hero-detail__recruit-thumb--{{index % 3}}"></view>
-      <view class="hero-detail__recruit-body">
-        <text class="hero-detail__recruit-title">{{item.title}}</text>
-        <text class="hero-detail__recruit-meta">{{item.timeDisplay}}</text>
-        <text class="hero-detail__recruit-meta">赛事地点：{{item.location}}</text>
-        <view class="hero-detail__recruit-bottom">
-          <text class="hero-detail__recruit-fee">¥{{item.fee}}/人</text>
-          <text class="hero-detail__recruit-signup">{{item.signupDisplay}}</text>
-        </view>
+  <view class="hero-detail__block" wx:if="{{hero.social_showcase && hero.social_showcase.points.length}}">
+    <view class="hero-social">
+      <view class="hero-social__head">
+        <view class="hero-social__badge">★</view>
+        <text class="hero-social__title">社会贡献</text>
       </view>
+      <text class="hero-social__intro">{{hero.social_showcase.intro}}</text>
+      <view class="hero-social__item" wx:for="{{hero.social_showcase.points}}" wx:key="*this">
+        <view class="hero-social__dot"></view>
+        <text class="hero-social__text">{{item}}</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="hero-detail__block" wx:if="{{recruitmentsAll.length}}">
+    <view class="hero-detail__label-row">
+      <text class="hero-detail__label">活动与赛事</text>
+      <text class="hero-detail__label-extra">共{{recruitmentsAll.length}}个</text>
+    </view>
+    <view class="hero-detail__recruit-list">
+      <event-card
+        wx:for="{{recruitments}}"
+        wx:key="recruit_id"
+        item="{{item}}"
+        bind:tap="onRecruitmentTap"
+      />
+      <view
+        wx:if="{{showRecruitExpand}}"
+        class="hero-detail__recruit-expand"
+        bindtap="onExpandRecruitments"
+      >展开全部（{{recruitExpandCount}}）</view>
     </view>
   </view>
 
@@ -131,7 +176,27 @@
     </view>
   </view>
 
-  <view class="hero-detail__bottom-spacer"></view>
+  <view class="hero-detail__bottom-spacer hero-detail__bottom-spacer--cta"></view>
+
+  <view class="hero-detail__footer {{showApplyBtn ? '' : 'hero-detail__footer--share-only'}}">
+    <view class="hero-detail__share" bindtap="onShareTap">
+      <text class="hero-detail__share-icon">↗</text>
+      <text class="hero-detail__share-text">分享</text>
+    </view>
+    <view wx:if="{{showApplyBtn}}" class="hero-detail__apply-btn" bindtap="onApplyHero">申请成为英雄</view>
+  </view>
+</view>
+
+<view wx:if="{{showRejectDialog}}" class="profile-dialog">
+  <view class="profile-dialog__mask" bindtap="onCloseRejectDialog"></view>
+  <view class="profile-dialog__panel" catchtap="noop">
+    <text class="profile-dialog__title">申请失败</text>
+    <text class="profile-dialog__body">{{rejectReason}}</text>
+    <view class="profile-dialog__actions">
+      <view class="profile-dialog__btn profile-dialog__btn--cancel" bindtap="onCloseRejectDialog">取消</view>
+      <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onEditRejectedApply">去修改</view>
+    </view>
+  </view>
 </view>
 
 <hero-share

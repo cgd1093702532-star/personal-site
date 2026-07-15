@@ -1,17 +1,13 @@
 <view class="page apply-page">
   <scroll-view class="apply-scroll" scroll-y enhanced show-scrollbar="{{false}}">
     <view class="apply">
-  <view class="apply-header">
-    <text class="apply-header__title">认证成为英雄教练</text>
-    <text class="apply-header__desc">发布课程/赛事，开启你的水上教育事业</text>
-  </view>
 
   <view class="apply-section">
     <text class="apply-section__title">基本信息</text>
 
     <view class="apply-field">
-      <text class="apply-label apply-label--required">姓名</text>
-      <input class="apply-input" placeholder="请输入" data-field="name" value="{{form.name}}" bindinput="onInput" />
+      <text class="apply-label apply-label--required">昵称</text>
+      <input class="apply-input" placeholder="请输入" placeholder-class="apply-placeholder" maxlength="10" data-field="nickname" value="{{form.nickname}}" bindinput="onInput" />
     </view>
 
     <view class="apply-field">
@@ -22,6 +18,7 @@
           type="number"
           maxlength="11"
           placeholder="请输入"
+          placeholder-class="apply-placeholder"
           data-field="phone"
           value="{{form.phone}}"
           bindinput="onPhoneInput"
@@ -37,6 +34,7 @@
           type="number"
           maxlength="6"
           placeholder="请输入"
+          placeholder-class="apply-placeholder"
           data-field="sms_code"
           value="{{form.sms_code}}"
           bindinput="onInput"
@@ -45,27 +43,42 @@
     </view>
 
     <view class="apply-field">
-      <text class="apply-label apply-label--required">项目类型</text>
-      <view class="apply-tags">
-        <view
-          wx:for="{{projectTypes}}"
-          wx:key="*this"
-          class="apply-tag {{selectedMap[item] ? 'apply-tag--active' : ''}}"
-          data-type="{{item}}"
-          bindtap="onProjectToggle"
-        >{{item}}</view>
-      </view>
+      <text class="apply-label apply-label--required">姓名</text>
+      <input class="apply-input" placeholder="请输入" placeholder-class="apply-placeholder" maxlength="10" data-field="name" value="{{form.name}}" bindinput="onInput" />
     </view>
 
     <view class="apply-field">
-      <text class="apply-label apply-label--required">常驻城市</text>
+      <text class="apply-label apply-label--required">证件类型</text>
+      <view class="apply-picker" bindtap="onOpenIdDocTypeSheet">{{form.id_doc_type || '身份证'}} ›</view>
+    </view>
+
+    <view class="apply-field">
+      <text class="apply-label apply-label--required">证件号码</text>
+      <input class="apply-input" placeholder="请输入" placeholder-class="apply-placeholder" maxlength="32" data-field="id_card" value="{{form.id_card}}" bindinput="onInput" />
+    </view>
+
+    <view class="apply-field">
+      <text class="apply-label">银行账户</text>
+      <input class="apply-input" placeholder="请输入" placeholder-class="apply-placeholder" data-field="bank_account" value="{{form.bank_account}}" bindinput="onInput" />
+    </view>
+
+    <view class="apply-field">
+      <text class="apply-label apply-label--required">项目类型</text>
+      <view
+        class="apply-picker {{projectTypesDisplay ? '' : 'apply-picker--placeholder'}}"
+        bindtap="onOpenProjectSheet"
+      >{{projectTypesDisplay || '请选择'}} ›</view>
+    </view>
+
+    <view class="apply-field">
+      <text class="apply-label">收货地址（选填）</text>
       <textarea
-        class="apply-textarea apply-textarea--city"
+        class="apply-textarea"
         placeholder="请输入"
-        auto-height
+        placeholder-class="apply-placeholder"
         maxlength="100"
-        data-field="city"
-        value="{{form.city}}"
+        data-field="address"
+        value="{{form.address}}"
         bindinput="onInput"
       />
     </view>
@@ -76,13 +89,14 @@
 
     <view class="apply-field">
       <text class="apply-label apply-label--required">教练资质等级</text>
-      <picker mode="selector" range="{{certOptions}}" value="{{certIndex}}" bindchange="onCertChange">
-        <view class="apply-picker">{{form.certification || '请选择'}} ›</view>
-      </picker>
+      <view
+        class="apply-picker {{form.certification ? '' : 'apply-picker--placeholder'}}"
+        bindtap="onOpenCertSheet"
+      >{{form.certification || '请选择'}} ›</view>
     </view>
 
     <view class="apply-field">
-      <text class="apply-label apply-label--required">从业年限</text>
+      <text class="apply-label apply-label--required">经验年限</text>
       <view class="apply-tags">
         <view
           wx:for="{{yearsOptions}}"
@@ -96,32 +110,31 @@
 
     <view class="apply-field">
       <text class="apply-label apply-label--required">资质证书上传</text>
-      <view class="apply-cert-grid">
-        <view class="apply-cert-item" wx:for="{{certFiles}}" wx:key="id">
-          <image wx:if="{{item.url}}" class="apply-cert-item__img" src="{{item.url}}" mode="aspectFill" />
-          <view wx:else class="apply-cert-item__placeholder cover-placeholder"></view>
-          <text class="apply-cert-item__label">{{item.label}}</text>
+      <view class="apply-cert-list">
+        <view class="apply-cert-row" wx:for="{{certFiles}}" wx:key="id">
+          <image wx:if="{{item.url}}" class="apply-cert-row__thumb" src="{{item.url}}" mode="aspectFill" />
+          <view wx:else class="apply-cert-row__placeholder cover-placeholder"></view>
+          <input
+            class="apply-cert-row__name"
+            maxlength="{{15}}"
+            placeholder="请输入证书名称"
+            placeholder-class="apply-placeholder"
+            value="{{item.label}}"
+            data-index="{{index}}"
+            bindinput="onCertNameInput"
+          />
+          <view
+            wx:if="{{item.url}}"
+            class="apply-cert-row__remove"
+            data-index="{{index}}"
+            catchtap="onDeleteCert"
+          >×</view>
         </view>
-        <view wx:if="{{certFiles.length < 5}}" class="apply-cert-add" bindtap="onChooseCert">
+        <view wx:if="{{certFiles.length < 10}}" class="apply-cert-add apply-cert-add--row" bindtap="onChooseCert">
           <text class="apply-cert-add__icon">+</text>
-          <text class="apply-cert-add__text">添加更多</text>
+          <text class="apply-cert-add__text">{{certFiles.length ? '添加更多' : '上传证书'}}</text>
         </view>
       </view>
-    </view>
-  </view>
-
-  <view class="apply-section">
-    <text class="apply-section__title">荣誉与成就</text>
-    <view class="apply-field">
-      <text class="apply-label">曾获荣誉（选填）</text>
-      <textarea
-        class="apply-textarea"
-        placeholder="填写赛事获奖、执教荣誉等"
-        maxlength="200"
-        data-field="honors"
-        value="{{form.honors}}"
-        bindinput="onInput"
-      />
     </view>
   </view>
 
@@ -130,26 +143,103 @@
 
     <view class="apply-field">
       <text class="apply-label apply-label--required">详细介绍</text>
-      <textarea
-        class="apply-textarea apply-textarea--lg"
-        placeholder="介绍执教经历、教学风格与擅长方向"
-        maxlength="500"
-        data-field="bio"
-        value="{{form.bio}}"
-        bindinput="onInput"
-      />
+      <view class="apply-textarea-wrap">
+        <textarea
+          class="apply-textarea apply-textarea--lg apply-textarea--autosize"
+          placeholder="请输入个人详细介绍，如教学风格，擅长方向"
+          placeholder-class="apply-placeholder"
+          maxlength="500"
+          auto-height
+          data-field="bio"
+          value="{{form.bio}}"
+          bindinput="onInput"
+        />
+        <text class="apply-textarea-count">{{bioLength}}/500</text>
+      </view>
     </view>
 
     <view class="apply-field">
-      <text class="apply-label">个人展示视频（选填）</text>
-      <view class="apply-video" bindtap="onChooseVideo">
-        <block wx:if="{{videoPath}}">
-          <text class="apply-video__selected">已选择视频，点击重新上传</text>
-        </block>
-        <block wx:else>
-          <image class="apply-video__icon" src="/assets/icons/video.png" mode="aspectFit" />
-          <text class="apply-video__hint">点击上传/拍摄视频介绍（建议30秒以内）</text>
-        </block>
+      <text class="apply-label apply-label--required">个人展示</text>
+      <view class="apply-showcase-list">
+        <view class="apply-showcase-section" wx:for="{{showcaseSections}}" wx:key="id" wx:for-item="section">
+          <view wx:if="{{!section.isDefault}}" class="apply-showcase-section__head">
+            <input
+              class="apply-showcase-section__title-input"
+              maxlength="20"
+              value="{{section.title}}"
+              data-section-id="{{section.id}}"
+              bindinput="onShowcaseTitleInput"
+            />
+            <text
+              class="apply-showcase-section__remove"
+              data-section-id="{{section.id}}"
+              catchtap="onRemoveShowcaseSection"
+            >删除栏目</text>
+          </view>
+          <view class="apply-textarea-wrap">
+            <textarea
+              class="apply-textarea apply-textarea--autosize"
+              maxlength="300"
+              auto-height
+              placeholder="请输入展示介绍"
+              placeholder-class="apply-placeholder"
+              value="{{section.intro}}"
+              data-section-id="{{section.id}}"
+              bindinput="onShowcaseIntroInput"
+            />
+            <text class="apply-textarea-count">{{section.intro.length}}/300</text>
+          </view>
+          <view class="apply-showcase-media {{section.mode === 'video' && section.video ? 'apply-showcase-media--video' : ''}}">
+            <block wx:if="{{section.mode === 'video' && section.video}}">
+              <view class="apply-showcase-video-fill">
+                <image
+                  wx:if="{{section.videoThumb}}"
+                  class="apply-showcase-video-fill__media"
+                  src="{{section.videoThumb}}"
+                  mode="aspectFill"
+                />
+                <video
+                  wx:else
+                  class="apply-showcase-video-fill__media"
+                  src="{{section.video}}"
+                  object-fit="cover"
+                  muted
+                  show-center-play-btn="{{false}}"
+                  show-play-btn="{{false}}"
+                  controls="{{false}}"
+                  enable-progress-gesture="{{false}}"
+                />
+                <text class="apply-showcase-video-fill__duration">{{section.videoDurationText}}</text>
+                <view
+                  class="apply-cert-item__remove apply-showcase-video-fill__remove"
+                  data-section-id="{{section.id}}"
+                  catchtap="onDeleteShowcaseVideo"
+                >×</view>
+              </view>
+            </block>
+            <view wx:else class="apply-cert-grid apply-showcase-grid">
+              <view class="apply-cert-item apply-showcase-item" wx:for="{{section.images}}" wx:key="*this" wx:for-item="imgUrl" wx:for-index="imgIndex">
+                <image class="apply-cert-item__img" src="{{imgUrl}}" mode="aspectFill" />
+                <view
+                  class="apply-cert-item__remove"
+                  data-section-id="{{section.id}}"
+                  data-index="{{imgIndex}}"
+                  catchtap="onDeleteShowcaseImage"
+                >×</view>
+              </view>
+              <view
+                wx:if="{{section.images.length < 9}}"
+                class="apply-cert-add"
+                data-section-id="{{section.id}}"
+                bindtap="onChooseShowcaseMedia"
+              >
+                <text class="apply-cert-add__icon">+</text>
+                <text class="apply-cert-add__text">{{section.images.length ? '上传图片' : '上传图片/视频'}}</text>
+              </view>
+            </view>
+          </view>
+          <text class="apply-showcase-media-hint">若上传视频，建议使用5分钟以内的视频</text>
+        </view>
       </view>
     </view>
   </view>
@@ -164,6 +254,104 @@
       </view>
       <text class="apply-agreement__text">我已阅读并同意<text class="apply-agreement__link" catchtap="onOpenAgreement" data-doc="hero">《英雄认证协议》</text><text class="apply-agreement__link" catchtap="onOpenAgreement" data-doc="terms">《平台服务条款》</text>和<text class="apply-agreement__link" catchtap="onOpenAgreement" data-doc="safety">《安全保障须知》</text>，承诺以上信息真实有效。</text>
     </view>
-    <view class="apply-submit" bindtap="onSubmit">提交申请</view>
+    <view wx:if="{{isEdit && profileChangePending}}" class="apply-submit apply-submit--ghost" bindtap="onWithdrawProfileChange">撤回审核</view>
+    <view class="apply-submit" bindtap="onSubmit">{{submitLabel}}</view>
+  </view>
+
+  <view wx:if="{{showIdDocTypeSheet}}" class="apply-cert-sheet" catchtouchmove="noop">
+    <view class="apply-cert-sheet__mask" bindtap="onCloseIdDocTypeSheet"></view>
+    <view class="apply-cert-sheet__panel">
+      <text class="apply-cert-sheet__title">选择证件类型</text>
+      <view
+        wx:for="{{idDocTypes}}"
+        wx:key="*this"
+        class="apply-cert-sheet__item {{form.id_doc_type === item ? 'apply-cert-sheet__item--active' : ''}}"
+        data-type="{{item}}"
+        bindtap="onSelectIdDocType"
+      >{{item}}</view>
+      <view class="apply-cert-sheet__item apply-cert-sheet__item--cancel" bindtap="onCloseIdDocTypeSheet">取消</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showCertSheet}}" class="apply-cert-sheet" catchtouchmove="noop">
+    <view class="apply-cert-sheet__mask" bindtap="onCloseCertSheet"></view>
+    <view class="apply-cert-sheet__panel">
+      <text class="apply-cert-sheet__title">选择资质等级</text>
+      <view
+        wx:for="{{certOptions}}"
+        wx:key="*this"
+        class="apply-cert-sheet__item {{form.certification === item ? 'apply-cert-sheet__item--active' : ''}}"
+        data-cert="{{item}}"
+        bindtap="onSelectCert"
+      >{{item}}</view>
+      <view class="apply-cert-sheet__item apply-cert-sheet__item--cancel" bindtap="onCloseCertSheet">取消</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showCertNameDialog}}" class="profile-dialog" catchtouchmove="noop">
+    <view class="profile-dialog__mask" bindtap="onCloseCertNameDialog"></view>
+    <view class="profile-dialog__panel">
+      <text class="profile-dialog__title">命名证书</text>
+      <view class="profile-dialog__body">
+        <image
+          wx:if="{{pendingCertUrl}}"
+          class="apply-cert-name-dialog__preview"
+          src="{{pendingCertUrl}}"
+          mode="aspectFill"
+        />
+        <input
+          class="profile-dialog__input"
+          maxlength="{{15}}"
+          placeholder="请输入证书名称"
+          placeholder-class="apply-placeholder"
+          value="{{pendingCertName}}"
+          bindinput="onPendingCertNameInput"
+          focus="{{showCertNameDialog}}"
+        />
+      </view>
+      <view class="profile-dialog__actions">
+        <view class="profile-dialog__btn" bindtap="onCloseCertNameDialog">取消</view>
+        <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onConfirmCertName">确认添加</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showCustomCertDialog}}" class="profile-dialog" catchtouchmove="noop">
+    <view class="profile-dialog__mask" bindtap="onCloseCustomCertDialog"></view>
+    <view class="profile-dialog__panel">
+      <text class="profile-dialog__title">自定义教练资质等级</text>
+      <view class="profile-dialog__body">
+        <input
+          class="profile-dialog__input"
+          placeholder="请输入资质等级名称"
+          placeholder-class="apply-placeholder"
+          maxlength="30"
+          value="{{customCertName}}"
+          bindinput="onCustomCertInput"
+          focus="{{showCustomCertDialog}}"
+        />
+      </view>
+      <view class="profile-dialog__actions">
+        <view class="profile-dialog__btn" bindtap="onCloseCustomCertDialog">取消</view>
+        <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onConfirmCustomCert">确定</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showProjectSheet}}" class="apply-cert-sheet" catchtouchmove="noop">
+    <view class="apply-cert-sheet__mask" bindtap="onCloseProjectSheet"></view>
+    <view class="apply-cert-sheet__panel">
+      <view class="apply-cert-sheet__header">
+        <text class="apply-cert-sheet__title">选择项目类型（最多3个）</text>
+        <view class="apply-cert-sheet__done" bindtap="onCloseProjectSheet">完成</view>
+      </view>
+      <view
+        wx:for="{{projectTypes}}"
+        wx:key="*this"
+        class="apply-cert-sheet__item {{selectedMap[item] ? 'apply-cert-sheet__item--active' : ''}}"
+        data-type="{{item}}"
+        bindtap="onProjectToggle"
+      >{{item}}</view>
+    </view>
   </view>
 </view>

@@ -166,6 +166,13 @@
       });
     },
 
+    async withdrawProfileChange(heroId) {
+      return request(`/api/heroes/${heroId}/profile-changes/withdraw`, {
+        method: 'POST',
+        body: '{}',
+      });
+    },
+
     async getDashboard() {
       return request('/api/admin/dashboard');
     },

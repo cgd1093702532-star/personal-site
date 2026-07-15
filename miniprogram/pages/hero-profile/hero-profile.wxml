@@ -4,7 +4,7 @@
     <view class="hero-profile__main">
       <view class="hero-profile__avatar cover-placeholder"></view>
       <text class="hero-profile__name">{{hero.name}}</text>
-      <text class="hero-profile__subtitle">{{hero.project_types.join(' · ')}} · {{hero.years_exp}}年经验</text>
+      <text class="hero-profile__subtitle">{{subtitle}}</text>
       <view class="hero-profile__rating">
         <view class="hero-profile__stars">
           <text
@@ -123,7 +123,13 @@
     </view>
   </view>
 
-  <view class="hero-detail__bottom-spacer"></view>
+  <view class="hero-detail__bottom-spacer hero-detail__bottom-spacer--submit"></view>
+
+  <view class="create-footer create-footer--single">
+    <view class="create-footer__publish {{submitting ? 'create-footer__publish--disabled' : ''}}" bindtap="onSubmitChange">
+      {{submitting ? '提交中…' : '提交修改'}}
+    </view>
+  </view>
 </view>
 
 <view class="hero-profile-sheet" wx:if="{{honorForm.visible}}" catchtouchmove="noop">

@@ -1,35 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>仪表盘 · 英雄广场管理后台</title>
-  <link rel="stylesheet" href="../assets/preview.css">
-  <link rel="stylesheet" href="../assets/admin.css">
+  <meta charset="UTF-8" />
+  <meta http-equiv="refresh" content="0;url=heroes.html" />
+  <title>管理后台 · 重定向</title>
+  <script>location.replace('heroes.html');</script>
 </head>
-<body data-admin-page="dashboard" data-admin-title="供需管理" data-admin-breadcrumb="供需管理">
-  <div id="admin-page-root">
-    <p id="dashboard-hint" class="admin-page-tip"></p>
-    <div class="admin-stat-row" id="dashboard-stats">
-      <div class="admin-stat-card"><div class="admin-stat-card__label">认证英雄</div><div class="admin-stat-card__value" data-stat="heroes">—</div></div>
-      <div class="admin-stat-card"><div class="admin-stat-card__label">进行中赛事</div><div class="admin-stat-card__value" data-stat="active_recruitments">—</div></div>
-      <div class="admin-stat-card"><div class="admin-stat-card__label">本月报名</div><div class="admin-stat-card__value" data-stat="month_signups">—</div></div>
-      <div class="admin-stat-card"><div class="admin-stat-card__label">待审核申请</div><div class="admin-stat-card__value" data-stat="pending_applications">—</div></div>
-    </div>
-    <div class="admin-stat-row">
-      <div class="admin-stat-card"><div class="admin-stat-card__label">待确认报名</div><div class="admin-stat-card__value" data-stat="pending_signups">—</div></div>
-      <div class="admin-stat-card"><div class="admin-stat-card__label">待审主页变更</div><div class="admin-stat-card__value" data-stat="pending_profile_changes">—</div></div>
-      <div class="admin-stat-card"><div class="admin-stat-card__label">可见评价</div><div class="admin-stat-card__value" data-stat="reviews">—</div></div>
-    </div>
-    <div class="admin-card">
-      <div class="admin-card__body">
-        <h3 class="admin-card__title">近期动态</h3>
-        <ul id="dashboard-activities" class="admin-activity-list"><li class="admin-page-tip">加载中…</li></ul>
-      </div>
-    </div>
-  </div>
-  <script src="../assets/admin-layout.js"></script>
-  <script src="../assets/db-client.js"></script>
-  <script src="../assets/dashboard-admin-preview.js"></script>
+<body>
+  <p>运营仪表盘已移除，正在跳转至 <a href="heroes.html">供方列表</a>…</p>
 </body>
 </html>

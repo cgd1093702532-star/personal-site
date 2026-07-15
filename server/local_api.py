@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-"""英雄广场 · 本地 REST API（SQLite）"""
+"""英雄广场 · 本地 REST API（仅认证治理相关）"""
 
 from __future__ import annotations
 
 import json
 import re
 import sys
-import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -59,122 +58,9 @@ class Handler(BaseHTTPRequestHandler):
             json_response(self, 200, {"ok": True, "db": str(db.DB_PATH)})
             return
 
-        if path == "/api/heroes":
-            items = [
-                h for h in db.list_heroes()
-                if h.get("enabled") is not False
-            ]
-            json_response(self, 200, {"items": items})
-            return
-
         if path == "/api/heroes/apply/status":
             user_id = qs.get("user_id", [db.DEFAULT_USER_ID])[0]
             json_response(self, 200, db.get_hero_apply_status(user_id))
-            return
-
-        m = re.match(r"^/api/heroes/([^/]+)/students$", path)
-        if m:
-            json_response(self, 200, {"items": db.list_hero_students(m.group(1))})
-            return
-
-        m = re.match(r"^/api/heroes/([^/]+)$", path)
-        if m:
-            hero = db.get_hero(m.group(1))
-            if hero:
-                json_response(self, 200, hero)
-            else:
-                json_response(self, 404, {"error": "hero_not_found"})
-            return
-
-        if path == "/api/recruitments":
-            scope = qs.get("scope", [None])[0]
-            hero_id = qs.get("hero_id", [None])[0]
-            json_response(self, 200, {"items": db.list_recruitments(scope=scope, hero_id=hero_id)})
-            return
-
-        m = re.match(r"^/api/recruitments/mine/([^/]+)$", path)
-        if m:
-            tab = m.group(1)
-            user_id = qs.get("user_id", [db.DEFAULT_USER_ID])[0]
-            items = db.list_my_recruitments(tab, user_id=user_id)
-            json_response(self, 200, {
-                "items": items,
-                "tab": tab,
-                "hero_id": db.resolve_user_hero_id(user_id),
-            })
-            return
-
-        m = re.match(r"^/api/recruitments/([^/]+)$", path)
-        if m:
-            item = db.get_recruitment(m.group(1))
-            if item:
-                json_response(self, 200, item)
-            else:
-                json_response(self, 404, {"error": "recruitment_not_found"})
-            return
-
-        if path == "/api/courses":
-            hero_id = qs.get("hero_id", [None])[0]
-            json_response(self, 200, {"items": db.list_courses_by_hero(hero_id)})
-            return
-
-        m = re.match(r"^/api/courses/([^/]+)$", path)
-        if m:
-            course = db.get_course(m.group(1))
-            if course:
-                json_response(self, 200, course)
-            else:
-                json_response(self, 404, {"error": "course_not_found"})
-            return
-
-        if path == "/api/signups/mine":
-            user_id = qs.get("user_id", [db.DEFAULT_USER_ID])[0]
-            json_response(self, 200, {"items": db.list_my_signups(user_id)})
-            return
-
-        if path == "/api/signups":
-            json_response(
-                self,
-                200,
-                {
-                    "items": db.list_signups(
-                        user_id=qs.get("user_id", [None])[0],
-                        recruit_id=qs.get("recruit_id", [None])[0],
-                        course_id=qs.get("course_id", [None])[0],
-                        hero_id=qs.get("hero_id", [None])[0],
-                    )
-                },
-            )
-            return
-
-        m = re.match(r"^/api/signups/([^/]+)$", path)
-        if m:
-            item = db.get_signup(m.group(1))
-            if item:
-                json_response(self, 200, item)
-            else:
-                json_response(self, 404, {"error": "signup_not_found"})
-            return
-
-        if path == "/api/reviews/mine":
-            user_id = qs.get("user_id", [db.DEFAULT_USER_ID])[0]
-            json_response(self, 200, {"items": db.list_reviews(user_id=user_id, include_hidden=False)})
-            return
-
-        if path == "/api/reviews":
-            json_response(
-                self,
-                200,
-                {
-                    "items": db.list_reviews(
-                        hero_id=qs.get("hero_id", [None])[0],
-                        user_id=qs.get("user_id", [None])[0],
-                        status=qs.get("status", [None])[0],
-                        q=qs.get("q", [None])[0],
-                        include_hidden=qs.get("include_hidden", ["0"])[0] in ("1", "true", "True"),
-                    )
-                },
-            )
             return
 
         m = re.match(r"^/api/app-state/([^/]+)$", path)
@@ -183,67 +69,8 @@ class Handler(BaseHTTPRequestHandler):
             json_response(self, 200, {"key": m.group(1), "value": value})
             return
 
-        # ---- admin ----
-        if path == "/api/admin/dashboard":
-            json_response(self, 200, db.get_admin_dashboard())
-            return
-
-        if path == "/api/admin/courses":
-            json_response(self, 200, {"items": db.list_courses()})
-            return
-
-        if path == "/api/admin/signups":
-            json_response(
-                self,
-                200,
-                {
-                    "items": db.list_admin_signups(
-                        status=qs.get("status", [None])[0],
-                        pay_status=qs.get("pay_status", [None])[0],
-                        q=qs.get("q", [None])[0],
-                    )
-                },
-            )
-            return
-
-        if path == "/api/admin/recruitments":
-            json_response(
-                self,
-                200,
-                {
-                    "items": db.list_admin_recruitments(
-                        status=qs.get("status", [None])[0],
-                        q=qs.get("q", [None])[0],
-                    )
-                },
-            )
-            return
-
-        m = re.match(r"^/api/admin/recruitments/([^/]+)/signups$", path)
-        if m:
-            json_response(self, 200, {"items": db.list_recruitment_signups(m.group(1))})
-            return
-
-        m = re.match(r"^/api/admin/recruitments/([^/]+)$", path)
-        if m:
-            item = db.get_recruitment(m.group(1))
-            if item:
-                json_response(self, 200, db.recruit_admin_view(item))
-            else:
-                json_response(self, 404, {"error": "recruitment_not_found"})
-            return
-
         if path == "/api/admin/heroes":
             json_response(self, 200, {"items": db.list_admin_heroes(q=qs.get("q", [None])[0])})
-            return
-
-        m = re.match(r"^/api/admin/signups/([^/]+)$", path)
-        if m:
-            item = db.get_signup(m.group(1))
-            if item:
-                json_response(self, 200, item)
-            else:
-                json_response(self, 404, {"error": "signup_not_found"})
             return
 
         if path == "/api/admin/applications":
@@ -265,20 +92,6 @@ class Handler(BaseHTTPRequestHandler):
                 json_response(self, 200, app)
             else:
                 json_response(self, 404, {"error": "application_not_found"})
-            return
-
-        if path == "/api/admin/reviews":
-            json_response(
-                self,
-                200,
-                {
-                    "items": db.list_reviews(
-                        status=qs.get("status", [None])[0],
-                        q=qs.get("q", [None])[0],
-                        include_hidden=True,
-                    )
-                },
-            )
             return
 
         if path == "/api/admin/users":
@@ -311,10 +124,6 @@ class Handler(BaseHTTPRequestHandler):
                 json_response(self, 404, {"error": "change_not_found"})
             return
 
-        if path == "/api/admin/settings":
-            json_response(self, 200, db.get_settings())
-            return
-
         json_response(self, 404, {"error": "not_found"})
 
     def do_PUT(self) -> None:
@@ -322,55 +131,10 @@ class Handler(BaseHTTPRequestHandler):
         path = parsed.path.rstrip("/")
         body = read_json(self)
 
-        m = re.match(r"^/api/heroes/([^/]+)$", path)
-        if m:
-            hero = db.update_hero(m.group(1), body)
-            if hero:
-                json_response(self, 200, hero)
-            else:
-                json_response(self, 404, {"error": "hero_not_found"})
-            return
-
-        m = re.match(r"^/api/recruitments/([^/]+)$", path)
-        if m:
-            rid = m.group(1)
-            existing = db.get_recruitment(rid) or {}
-            merged = {**existing, **body, "recruit_id": rid}
-            scope = body.get("scope")
-            if not scope:
-                scope = f"mine_{existing['listTab']}" if existing.get("listTab") else "public"
-            elif scope in ("active", "ended", "draft"):
-                scope = f"mine_{scope}"
-            item = db.upsert_recruitment(merged, scope=scope)
-            json_response(self, 200, item)
-            return
-
-        m = re.match(r"^/api/courses/([^/]+)$", path)
-        if m:
-            cid = m.group(1)
-            existing = db.get_course(cid) or {}
-            merged = {**existing, **body, "course_id": cid}
-            item = db.upsert_course(cid, merged)
-            json_response(self, 200, item)
-            return
-
-        m = re.match(r"^/api/signups/([^/]+)$", path)
-        if m:
-            item = db.update_signup(m.group(1), body)
-            if item:
-                json_response(self, 200, item)
-            else:
-                json_response(self, 404, {"error": "signup_not_found"})
-            return
-
         m = re.match(r"^/api/app-state/([^/]+)$", path)
         if m:
             value = db.set_app_state(m.group(1), body.get("value"))
             json_response(self, 200, {"key": m.group(1), "value": value})
-            return
-
-        if path == "/api/admin/settings":
-            json_response(self, 200, db.update_settings(body))
             return
 
         json_response(self, 404, {"error": "not_found"})
@@ -389,49 +153,6 @@ class Handler(BaseHTTPRequestHandler):
             json_response(self, 200, {"ok": True, "message": "database reseeded"})
             return
 
-        if path == "/api/migrate-legacy":
-            result = db.migrate_legacy_app_state()
-            json_response(self, 200, {"ok": True, "migrated": result})
-            return
-
-        if path == "/api/recruitments":
-            rid = body.get("recruit_id") or f"r{int(time.time() * 1000)}"
-            user_id = body.get("user_id") or db.DEFAULT_USER_ID
-            item = {**body, "recruit_id": rid}
-            if not item.get("hero_id"):
-                item["hero_id"] = db.resolve_user_hero_id(user_id) or "1"
-            scope = body.get("scope") or "public"
-            if scope in ("active", "ended", "draft"):
-                scope = f"mine_{scope}"
-            db.upsert_recruitment(item, scope=scope)
-            json_response(self, 201, item)
-            return
-
-        if path == "/api/courses":
-            cid = body.get("course_id") or f"c{int(time.time() * 1000)}"
-            item = db.upsert_course(cid, {**body, "course_id": cid})
-            json_response(self, 201, item)
-            return
-
-        if path == "/api/signups":
-            item = db.create_signup(body)
-            json_response(self, 201, item)
-            return
-
-        m = re.match(r"^/api/signups/([^/]+)/checkin$", path)
-        if m:
-            item = db.checkin_signup(m.group(1))
-            if item:
-                json_response(self, 200, item)
-            else:
-                json_response(self, 404, {"error": "signup_not_found"})
-            return
-
-        if path == "/api/reviews":
-            item = db.create_review(body)
-            json_response(self, 201, item)
-            return
-
         m = re.match(r"^/api/heroes/([^/]+)/profile-changes$", path)
         if m:
             try:
@@ -443,6 +164,12 @@ class Handler(BaseHTTPRequestHandler):
                 json_response(self, 201, item)
             except LookupError:
                 json_response(self, 404, {"error": "hero_not_found"})
+            return
+
+        m = re.match(r"^/api/heroes/([^/]+)/profile-changes/withdraw$", path)
+        if m:
+            ok = db.withdraw_profile_change(m.group(1))
+            json_response(self, 200, {"ok": ok})
             return
 
         if path == "/api/heroes/apply":
@@ -484,42 +211,6 @@ class Handler(BaseHTTPRequestHandler):
                 json_response(self, 400, {"error": "invalid_status"})
             return
 
-        m = re.match(r"^/api/admin/signups/([^/]+)/cancel$", path)
-        if m:
-            item = db.cancel_signup(m.group(1))
-            if item:
-                json_response(self, 200, item)
-            else:
-                json_response(self, 404, {"error": "signup_not_found"})
-            return
-
-        m = re.match(r"^/api/admin/recruitments/([^/]+)/close$", path)
-        if m:
-            item = db.close_recruitment(m.group(1))
-            if item:
-                json_response(self, 200, item)
-            else:
-                json_response(self, 404, {"error": "recruitment_not_found"})
-            return
-
-        m = re.match(r"^/api/admin/reviews/([^/]+)/hide$", path)
-        if m:
-            item = db.set_review_status(m.group(1), "hidden")
-            if item:
-                json_response(self, 200, item)
-            else:
-                json_response(self, 404, {"error": "review_not_found"})
-            return
-
-        m = re.match(r"^/api/admin/reviews/([^/]+)/delete$", path)
-        if m:
-            item = db.set_review_status(m.group(1), "deleted")
-            if item:
-                json_response(self, 200, item)
-            else:
-                json_response(self, 404, {"error": "review_not_found"})
-            return
-
         m = re.match(r"^/api/admin/users/([^/]+)/disable$", path)
         if m:
             item = db.set_user_status(m.group(1), "disabled")
@@ -540,7 +231,11 @@ class Handler(BaseHTTPRequestHandler):
 
         m = re.match(r"^/api/admin/heroes/([^/]+)/enable$", path)
         if m:
-            item = db.set_hero_enabled(m.group(1), True)
+            try:
+                item = db.set_hero_enabled(m.group(1), True)
+            except ValueError as exc:
+                json_response(self, 400, {"error": str(exc)})
+                return
             if item:
                 json_response(self, 200, item)
             else:
@@ -559,7 +254,13 @@ class Handler(BaseHTTPRequestHandler):
 
         m = re.match(r"^/api/admin/heroes/([^/]+)/disable$", path)
         if m:
-            item = db.set_hero_enabled(m.group(1), False)
+            try:
+                item = db.set_hero_enabled(
+                    m.group(1), False, body.get("reason") or body.get("disable_reason")
+                )
+            except ValueError as exc:
+                json_response(self, 400, {"error": str(exc)})
+                return
             if item:
                 json_response(self, 200, item)
             else:
@@ -594,12 +295,6 @@ class Handler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path.rstrip("/")
 
-        m = re.match(r"^/api/recruitments/([^/]+)$", path)
-        if m:
-            ok = db.delete_recruitment(m.group(1))
-            json_response(self, 200 if ok else 404, {"ok": ok})
-            return
-
         m = re.match(r"^/api/admin/applications/([^/]+)$", path)
         if m:
             ok = db.delete_hero_application(m.group(1))
@@ -631,7 +326,7 @@ def main() -> None:
         print(f"[local-api] 使用已有数据库: {db.DB_PATH}")
 
     server = ThreadingHTTPServer(("127.0.0.1", PORT), Handler)
-    print(f"[local-api] 本地 API: http://127.0.0.1:{PORT}/api/health")
+    print(f"[local-api] 本地 API（仅认证）: http://127.0.0.1:{PORT}/api/health")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

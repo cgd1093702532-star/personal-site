@@ -4,6 +4,15 @@ const signupAction = require('../../utils/signup-action.js');
 const NAV_BAR_HEIGHT = 44;
 const COVER_BODY_HEIGHT = 180;
 
+function formatFeeParts(fee) {
+  const n = Number(fee);
+  if (!Number.isFinite(n)) {
+    return { int: String(fee ?? '0'), dec: '00' };
+  }
+  const [intPart, decPart] = n.toFixed(2).split('.');
+  return { int: intPart, dec: decPart };
+}
+
 Page({
   data: {
     item: null,
@@ -12,10 +21,15 @@ Page({
     coverImages: [],
     showForm: false,
     showCheckin: false,
+    showInitiateConfirm: false,
     form: { name: '', phone: '', remark: '' },
     footerLabel: '立即报名',
     footerDisabled: false,
     footerAction: 'signup',
+    isApprovedHero: false,
+    feeInt: '0',
+    feeDec: '00',
+    displayTags: [],
     statusBarHeight: 20,
     navBarHeight: NAV_BAR_HEIGHT,
     coverThreshold: COVER_BODY_HEIGHT,
@@ -29,7 +43,11 @@ Page({
       wx.showToast({ title: '活动不存在', icon: 'none' });
       return;
     }
-    Promise.all([data.getRecruitmentById(id), data.getMySignupByRecruitId(id)]).then(([item, signup]) => {
+    Promise.all([
+      data.getRecruitmentById(id),
+      data.getMySignupByRecruitId(id),
+      data.getHeroApplyStatus(),
+    ]).then(([item, signup, applyStatus]) => {
       if (!item) {
         wx.showToast({ title: '活动不存在', icon: 'none' });
         return;
@@ -38,14 +56,25 @@ Page({
       const statusBarHeight = sys.statusBarHeight || 20;
       const chromeHeight = statusBarHeight + NAV_BAR_HEIGHT;
       const coverImages = item.cover_images || ['recruit-cover.jpg'];
-      const progress = item.total ? Math.min(100, Math.round((item.signed / item.total) * 100)) : 0;
-      const footer = signupAction.resolveSignupFooter({ recruitment: item, signup });
+      const isApprovedHero = applyStatus && applyStatus.status === 'approved';
+      const footer = signupAction.resolveSignupFooter({
+        recruitment: item,
+        isApprovedHero,
+      });
+      const feeParts = formatFeeParts(item.fee);
+      const displayTags = (Array.isArray(item.tags) ? item.tags : [])
+        .map((t) => String(t || '').trim())
+        .filter(Boolean)
+        .slice(0, 3);
       this.setData({
         item,
         recruitId: id,
         signup,
         coverImages,
-        progress,
+        isApprovedHero,
+        feeInt: feeParts.int,
+        feeDec: feeParts.dec,
+        displayTags,
         footerLabel: footer.label,
         footerDisabled: footer.disabled,
         footerAction: footer.action,
@@ -57,10 +86,18 @@ Page({
     });
   },
 
+  onShareAppMessage() {
+    const { item, recruitId } = this.data;
+    return {
+      title: (item && item.title) || '赛事招募',
+      path: `/pages/recruitment-detail/recruitment-detail?id=${recruitId}`,
+    };
+  },
+
   applyFooter() {
     const footer = signupAction.resolveSignupFooter({
       recruitment: this.data.item,
-      signup: this.data.signup,
+      isApprovedHero: this.data.isApprovedHero,
     });
     this.setData({
       footerLabel: footer.label,
@@ -81,16 +118,52 @@ Page({
     wx.navigateBack();
   },
 
+  onGoHome() {
+    wx.switchTab({ url: '/pages/index/index' });
+  },
+
+  onCustomerService() {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
+  },
+
+  onLocationTap() {
+    wx.showToast({ title: '地图功能开发中', icon: 'none' });
+  },
+
+  onOrganizerTap() {
+    const id = (this.data.item && this.data.item.hero_id) || '1';
+    wx.navigateTo({ url: `/pages/hero-detail/hero-detail?id=${id}` });
+  },
+
+  onVipTap() {
+    wx.showToast({ title: '即将开放', icon: 'none' });
+  },
+
   onFooterTap() {
     if (this.data.footerDisabled) return;
-    if (this.data.footerAction === 'checkin') {
-      this.setData({ showCheckin: true });
+    if (this.data.footerAction === 'initiate') {
+      this.setData({ showInitiateConfirm: true });
       return;
     }
     if (this.data.footerAction === 'signup') {
+      if (this.data.signup) {
+        wx.showToast({ title: '您已报名', icon: 'none' });
+        return;
+      }
       this.setData({ showForm: true });
     }
   },
+
+  onCloseInitiateConfirm() {
+    this.setData({ showInitiateConfirm: false });
+  },
+
+  onConfirmInitiate() {
+    this.setData({ showInitiateConfirm: false });
+    wx.navigateTo({ url: '/pages/my-recruitments/my-recruitments' });
+  },
+
+  noop() {},
 
   onCloseForm() {
     this.setData({ showForm: false });
@@ -157,7 +230,6 @@ Page({
           form: { name: '', phone: '', remark: '' },
           item: { ...item, signed: nextSigned },
           signup,
-          progress: item.total ? Math.min(100, Math.round((nextSigned / item.total) * 100)) : 0,
         });
         this.applyFooter();
         wx.showToast({ title: '报名成功', icon: 'success' });

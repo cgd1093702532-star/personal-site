@@ -8,6 +8,11 @@ if [ ! -f "$ROOT/data/seed.json" ]; then
   python3 "$ROOT/scripts/generate-seed.py"
 fi
 
+echo "同步需求文档到预览…"
+python3 "$ROOT/preview/build-pages.py" || exit 1
+python3 "$ROOT/scripts/check-docs-preview-sync.py" || exit 1
+python3 "$ROOT/scripts/check-preview-page-nav.py" || exit 1
+
 bash "$ROOT/scripts/start-local-db.sh" "$DB_PORT" &
 DB_PID=$!
 

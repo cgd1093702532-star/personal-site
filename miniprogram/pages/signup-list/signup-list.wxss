@@ -37,3 +37,76 @@
   border-radius: var(--radius-pill);
   font-size: var(--text-caption);
 }
+
+.signup-member {
+  min-height: 100vh;
+  padding: 24rpx var(--space-page-x) 48rpx;
+  background: var(--color-bg-subtle);
+  box-sizing: border-box;
+}
+
+.signup-member__head {
+  display: block;
+  margin-bottom: 16rpx;
+  font-size: var(--text-section-title);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.signup-member__list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.signup-member__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 20rpx;
+  padding: 24rpx;
+  background: var(--color-bg-page);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4rpx 16rpx rgba(27, 87, 156, 0.05);
+}
+
+.signup-member__avatar {
+  flex-shrink: 0;
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: var(--color-bg-gray);
+}
+
+.signup-member__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.signup-member__name {
+  display: block;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  line-height: 1.4;
+}
+
+.signup-member__phone {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 26rpx;
+  color: var(--color-text-body);
+}
+
+.signup-member__time {
+  display: block;
+  margin-top: 8rpx;
+  font-size: 24rpx;
+  color: var(--color-text-secondary);
+}
+
+.signup-member__empty {
+  padding: 80rpx 24rpx;
+  text-align: center;
+  font-size: 28rpx;
+  color: var(--color-text-secondary);
+}

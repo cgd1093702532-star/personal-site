@@ -1,13 +1,19 @@
 @import "../../styles/common.wxss";
 
 .heroes {
-  padding: 24rpx var(--space-page-x) 0;
+  padding: 0 var(--space-page-x);
 }
 
 .heroes-search {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   gap: 16rpx;
+  margin: 0 calc(0px - var(--space-page-x));
+  padding: 24rpx var(--space-page-x);
+  background: var(--color-bg-page);
 }
 
 .heroes-search__field {
@@ -123,6 +129,12 @@
   overflow: hidden;
 }
 
+.heroes-banner__img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .heroes-list {
   margin-top: 24rpx;
   padding-bottom: 24rpx;
@@ -135,7 +147,11 @@
 }
 
 .heroes-empty {
-  padding: 80rpx 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 48rpx;
   text-align: center;
   font-size: var(--text-body);
   color: var(--color-text-secondary);

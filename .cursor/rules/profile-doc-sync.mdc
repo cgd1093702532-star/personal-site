@@ -1,0 +1,36 @@
+---
+description: 个人中心改动必须同步更新需求文档描述与状态截图
+globs: "{docs/miniprogram/pages/个人中心.md,docs/miniprogram/pages/images/profile/**,preview/assets/profile-preview.js,preview/miniprogram/profile.html,miniprogram/pages/profile/**,scripts/shot-profile-states.py}"
+alwaysApply: false
+---
+
+# 个人中心：文档与截图必须同步
+
+`docs/miniprogram/pages/个人中心.md` 是个人中心的**唯一产品说明真源**。预览右侧面板、协作说明、状态截图都以此为准。
+
+## 何时必须做
+
+凡改动个人中心**可见行为 / 文案 / 布局 / 状态分支**（含预览 HTML/JS、小程序 `pages/profile`、相关 API 回传影响的 UI），收尾前必须完成下面清单。纯重构、改注释、不改用户可见结果时可跳过截图，但仍须核对文档是否已过时。
+
+## 必做清单
+
+1. **先改文档再改（或同轮改完）实现**：`个人中心.md` 中的状态说明、表格、按钮文案、弹窗文案、路径说明与线上/预览**完全一致**，禁止文档留旧说法。
+2. **状态截图**：任一状态的界面变化后，重跑  
+   `python3 scripts/shot-profile-states.py`  
+   （需本地预览 `8765` 可用；截图写入 `docs/miniprogram/pages/images/profile/`）。  
+   当前需覆盖：`state-guest`（未登录，预览 `?guest=1`）、`state-none` / `pending` / `rejected`（含 dialog）/ `approved` / `disabled`（含 dialog）。
+3. **文档内嵌图与描述对齐**：§2 各状态小节下的 `![...](./images/profile/...)` 与正文描述对应；§3 / §4 的交叉引用不要链到过时小节。
+4. **同步预览侧文档**：`python3 preview/build-pages.py`，确保 `preview/docs/...` 与截图一并更新。
+5. **变更记录**：在 `个人中心.md` §7 追加一行（日期 + 改了什么）。
+
+## 一致性标准
+
+- 文案逐字一致（含兜底句「您的英雄身份当前不可用，可联系客服处理」等）。
+- 有/无某区块（三统计、服务中心、申请引导、绿标）与文档表格一致。
+- 截图必须能一眼对上文档该状态的描述；不要只改代码不重拍。
+
+## 禁止
+
+- 只改预览/小程序、不改 `个人中心.md`
+- 文档写了新规则、截图仍是旧 UI
+- 用手改 PNG 冒充截图脚本结果（除非脚本不可用且已注明临时）

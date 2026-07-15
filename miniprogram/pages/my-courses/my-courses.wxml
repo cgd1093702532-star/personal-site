@@ -11,7 +11,7 @@
 
   <view class="my-courses__list">
     <block wx:for="{{currentList}}" wx:key="course_id">
-      <view class="my-courses__card">
+      <view class="my-courses__card" data-id="{{item.course_id}}" bindtap="onViewDetail">
         <view class="my-courses__card-head">
           <text class="my-courses__title">{{item.title}}</text>
           <text wx:if="{{item.listTab === 'ended'}}" class="my-courses__badge">已结束</text>
@@ -23,6 +23,14 @@
           <view class="my-courses__bar">
             <view class="my-courses__bar-inner" style="width: {{item.progress}}%;"></view>
           </view>
+        </view>
+        <view class="my-courses__actions">
+          <view
+            class="my-courses__btn"
+            data-id="{{item.course_id}}"
+            data-title="{{item.title}}"
+            catchtap="onViewMembers"
+          >已报名成员</view>
         </view>
       </view>
     </block>

@@ -120,15 +120,27 @@ def load_seed() -> dict[str, Any]:
 
 
 def seed_if_empty(conn: sqlite3.Connection) -> bool:
+    # 已初始化标记：允许清空 heroes 后不再被 seed 自动回填
+    if conn.execute("SELECT 1 FROM app_state WHERE key = '_db_seeded' LIMIT 1").fetchone():
+        return False
     row = conn.execute("SELECT COUNT(*) AS c FROM heroes").fetchone()
     if row and row["c"] > 0:
+        conn.execute(
+            "INSERT OR REPLACE INTO app_state (key, payload, updated_at) VALUES ('_db_seeded', ?, ?)",
+            (json.dumps(True, ensure_ascii=False), _now()),
+        )
         return False
     apply_seed(conn, load_seed())
+    conn.execute(
+        "INSERT OR REPLACE INTO app_state (key, payload, updated_at) VALUES ('_db_seeded', ?, ?)",
+        (json.dumps(True, ensure_ascii=False), _now()),
+    )
     return True
 
 
 def apply_seed(conn: sqlite3.Connection, seed: dict[str, Any]) -> None:
     ts = _now()
+    conn.execute("DELETE FROM heroes")
     heroes = seed.get("heroes") or {}
     for hero_id, payload in heroes.items():
         conn.execute(
@@ -240,6 +252,11 @@ def reset_db() -> None:
     conn = connect()
     init_schema(conn)
     apply_seed(conn, load_seed())
+    conn.execute(
+        "INSERT OR REPLACE INTO app_state (key, payload, updated_at) VALUES ('_db_seeded', ?, ?)",
+        (json.dumps(True, ensure_ascii=False), _now()),
+    )
+    conn.commit()
     conn.close()
 
 
@@ -284,14 +301,25 @@ def create_hero(payload: dict[str, Any]) -> dict[str, Any]:
         "hero_id": hero_id,
         "supplier_id": supplier_id,
         "name": (payload.get("name") or "").strip(),
+        "real_name": (payload.get("real_name") or "").strip(),
+        "id_card": (payload.get("id_card") or "").strip(),
         "phone": (payload.get("phone") or "").strip(),
-        "city": (payload.get("city") or "").strip(),
+        "city": (payload.get("city") or payload.get("address") or "").strip(),
+        "address": (payload.get("address") or payload.get("city") or "").strip(),
+        "bank_account": (payload.get("bank_account") or "").strip(),
         "certification": (payload.get("certification") or "").strip(),
+        "certification_images": payload.get("certification_images") or [],
         "years_exp": payload.get("years_exp") if payload.get("years_exp") is not None else "",
         "project_types": types,
         "avatar_img": payload.get("avatar_img") or "hero-1.jpg",
         "bio": (payload.get("bio") or payload.get("about_me") or "").strip(),
         "about_me": (payload.get("bio") or payload.get("about_me") or "").strip(),
+        "teaching_philosophy": (payload.get("teaching_philosophy") or "").strip(),
+        "event_experience": (payload.get("event_experience") or "").strip(),
+        "social_contribution": (payload.get("social_contribution") or "").strip(),
+        "teaching_images": payload.get("teaching_images") or [],
+        "event_images": payload.get("event_images") or [],
+        "social_images": payload.get("social_images") or [],
         "enabled": payload.get("enabled", True) is not False,
         "audit_status": payload.get("audit_status") or "approved",
         "reviewer": payload.get("reviewer") or "小李",
@@ -300,12 +328,13 @@ def create_hero(payload: dict[str, Any]) -> dict[str, Any]:
         "applied_at": payload.get("applied_at") or now_iso,
         "rating": payload.get("rating", 5.0),
         "student_count": payload.get("student_count", 0),
-        "honors_count": 0,
+        "honors_count": len(payload.get("honor_titles") or payload.get("past_honors") or []),
         "honor_titles": payload.get("honor_titles") or [],
         "cert_badges": [payload.get("certification")] if payload.get("certification") else [],
-        "past_honors": [],
-        "moments": [],
-        "certificates": [],
+        "past_honors": payload.get("past_honors") or [],
+        "moments": payload.get("moments") or [],
+        "custom_sections": payload.get("custom_sections") or [],
+        "certificates": payload.get("certificates") or [],
     }
     if not hero["name"]:
         raise ValueError("name_required")
@@ -410,6 +439,16 @@ def list_my_recruitments(tab: str, user_id: str = DEFAULT_USER_ID) -> list[dict[
             if rid and rid not in seen:
                 item = {**item, "hero_id": "1"}
                 items.append(item)
+    # 演示兜底：当前英雄尚无「我的招募」时，回落展示种子演示数据（hero_id=1）
+    if not items and str(hero_id) != "1":
+        demo = list_recruitments(scope=f"mine_{tab}", hero_id="1")
+        if not demo:
+            demo = [
+                i
+                for i in list_recruitments(scope=f"mine_{tab}")
+                if not i.get("hero_id") or str(i.get("hero_id")) == "1"
+            ]
+        items = [{**i, "hero_id": hero_id} for i in demo]
     return sort_mine_recruitments(items, tab)
 
 
@@ -538,7 +577,11 @@ def submit_hero_application(user_id: str, payload: dict[str, Any]) -> dict[str, 
         raise ValueError("already_approved")
 
     app_id = f"app-{int(ts * 1000)}"
-    body = {**payload, "submitted_at": payload.get("submitted_at") or datetime.fromtimestamp(ts).isoformat()}
+    body = {
+        **payload,
+        "channel": payload.get("channel") or "自主申请",
+        "submitted_at": payload.get("submitted_at") or datetime.fromtimestamp(ts).isoformat(),
+    }
     conn.execute(
         """
         INSERT INTO hero_applications
@@ -554,39 +597,147 @@ def submit_hero_application(user_id: str, payload: dict[str, Any]) -> dict[str, 
     return get_hero_application(app_id) or {}
 
 
+def get_pending_profile_change(
+    hero_id: str | None, conn: sqlite3.Connection | None = None
+) -> dict[str, Any] | None:
+    """同一英雄最多一条 pending；取最新提交。"""
+    if not hero_id:
+        return None
+    own = conn is None
+    if own:
+        conn = connect()
+        init_schema(conn)
+    row = conn.execute(
+        """
+        SELECT * FROM profile_change_requests
+        WHERE hero_id = ? AND status = 'pending'
+        ORDER BY submitted_at DESC
+        LIMIT 1
+        """,
+        (str(hero_id),),
+    ).fetchone()
+    if own:
+        conn.close()
+    return _profile_change_row_to_dict(row) if row else None
+
+
+def has_pending_profile_change(hero_id: str | None, conn: sqlite3.Connection | None = None) -> bool:
+    return get_pending_profile_change(hero_id, conn) is not None
+
+
+def _apply_status_payload(
+    *,
+    status: str,
+    application_id: str | None = None,
+    reject_reason: str | None = None,
+    hero_id: str | None = None,
+    application: dict[str, Any] | None = None,
+    pending_profile_change: dict[str, Any] | None = None,
+    hero_enabled: bool = True,
+    disable_reason: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "status": status,
+        "application_id": application_id,
+        "reject_reason": reject_reason,
+        "hero_id": hero_id,
+        "application": application,
+        "profile_change_pending": bool(pending_profile_change),
+        "pending_profile_change": pending_profile_change,
+        "hero_enabled": bool(hero_enabled),
+        "disable_reason": disable_reason or "",
+    }
+
+
+def _hero_enablement(hero_id: str | None) -> tuple[bool, str]:
+    if not hero_id:
+        return True, ""
+    hero = get_hero(str(hero_id))
+    if not hero:
+        return True, ""
+    enabled = hero.get("enabled") is not False
+    reason = str(hero.get("disable_reason") or "").strip()
+    return enabled, reason
+
+
 def get_hero_apply_status(user_id: str = DEFAULT_USER_ID) -> dict[str, Any]:
     conn = connect()
     init_schema(conn)
     seed_if_empty(conn)
     latest = _latest_application(conn, user_id)
-    conn.close()
-
     if latest:
         app = _application_row_to_dict(latest)
-        return {
-            "status": app["status"],
-            "application_id": app["application_id"],
-            "reject_reason": app.get("reject_reason"),
-            "hero_id": app.get("hero_id"),
-            "application": app,
-        }
+        status = app["status"]
+        hero_id = app.get("hero_id")
+        # 已批准但英雄记录已被删：视为未认证并回写
+        if status == "approved" and hero_id:
+            hero_row = conn.execute(
+                "SELECT hero_id FROM heroes WHERE hero_id = ?",
+                (hero_id,),
+            ).fetchone()
+            if not hero_row:
+                conn.execute(
+                    "DELETE FROM hero_applications WHERE application_id = ?",
+                    (app["application_id"],),
+                )
+                conn.commit()
+                _sync_mock_hero_role_for_user(user_id, conn)
+                latest = _latest_application(conn, user_id)
+                conn.close()
+                if latest:
+                    app2 = _application_row_to_dict(latest)
+                    hid2 = app2.get("hero_id")
+                    pending2 = (
+                        get_pending_profile_change(hid2)
+                        if app2["status"] == "approved"
+                        else None
+                    )
+                    enabled2, disable2 = (
+                        _hero_enablement(hid2) if app2["status"] == "approved" else (True, "")
+                    )
+                    return _apply_status_payload(
+                        status=app2["status"],
+                        application_id=app2["application_id"],
+                        reject_reason=app2.get("reject_reason"),
+                        hero_id=hid2,
+                        application=app2,
+                        pending_profile_change=pending2,
+                        hero_enabled=enabled2,
+                        disable_reason=disable2,
+                    )
+                return _apply_status_payload(status="none")
+        pending_change = (
+            get_pending_profile_change(hero_id, conn) if status == "approved" else None
+        )
+        conn.close()
+        enabled, disable_reason = (
+            _hero_enablement(hero_id) if status == "approved" else (True, "")
+        )
+        return _apply_status_payload(
+            status=status,
+            application_id=app["application_id"],
+            reject_reason=app.get("reject_reason"),
+            hero_id=hero_id,
+            application=app,
+            pending_profile_change=pending_change,
+            hero_enabled=enabled,
+            disable_reason=disable_reason,
+        )
+    conn.close()
 
     role = get_app_state("mock_hero_role") or "none"
     if role in ("approved", "pending", "rejected"):
-        return {
-            "status": role,
-            "application_id": None,
-            "reject_reason": None,
-            "hero_id": "1" if role == "approved" else None,
-            "application": None,
-        }
-    return {
-        "status": "none",
-        "application_id": None,
-        "reject_reason": None,
-        "hero_id": None,
-        "application": None,
-    }
+        hero_id = "1" if role == "approved" else None
+        pending = get_pending_profile_change(hero_id) if hero_id else None
+        enabled, disable_reason = _hero_enablement(hero_id) if hero_id else (True, "")
+        return _apply_status_payload(
+            status=role,
+            hero_id=hero_id,
+            pending_profile_change=pending,
+            hero_enabled=enabled,
+            disable_reason=disable_reason,
+        )
+    return _apply_status_payload(status="none")
 
 
 def list_hero_applications(
@@ -629,7 +780,7 @@ def list_hero_applications(
                 "channel": app.get("channel") or "自主申请",
                 "reviewer": app.get("reviewer") or "",
                 "status": app["status"],
-                "status_label": {"pending": "待审核", "approved": "通过", "rejected": "驳回"}.get(
+                "status_label": {"pending": "待审核", "approved": "审核通过", "rejected": "审核驳回"}.get(
                     app["status"], app["status"]
                 ),
                 "submitted_at": app.get("submitted_at"),
@@ -654,27 +805,55 @@ def get_hero_application(application_id: str) -> dict[str, Any] | None:
 
 def _hero_payload_from_application(app: dict[str, Any], hero_id: str) -> dict[str, Any]:
     types = app.get("project_types") or []
+    honors_raw = app.get("honors") or ""
+    honor_titles = [s.strip() for s in re.split(r"[,，、;；\n]", honors_raw) if s.strip()][:2]
+    certificates = app.get("certificates") or []
+    if not certificates:
+        images = app.get("certification_images") or []
+        if images:
+            certificates = [
+                {"name": f"证书{i + 1}", "image": img}
+                for i, img in enumerate(images[:10])
+                if img
+            ]
+        else:
+            try:
+                cert_count = max(0, int(app.get("cert_count") or 0))
+            except (TypeError, ValueError):
+                cert_count = 0
+            if cert_count > 0:
+                certificates = [
+                    {"name": f"证书{i + 1}", "image": "cert.jpg"}
+                    for i in range(min(10, cert_count))
+                ]
     return {
         "hero_id": hero_id,
-        "name": app.get("name", ""),
+        "name": app.get("name") or app.get("nickname") or "",
+        "nickname": app.get("nickname") or app.get("name") or "",
         "phone": app.get("phone", ""),
+        "id_card": app.get("id_card", ""),
         "project_types": types,
         "city": app.get("city", ""),
+        "address": app.get("address") or app.get("city") or "",
         "certification": app.get("certification", ""),
         "years_exp": app.get("years_exp", ""),
-        "honors": app.get("honors", ""),
+        "honors": honors_raw,
         "bio": app.get("bio", ""),
         "about_me": app.get("bio", ""),
         "rating": 5.0,
         "student_count": 0,
-        "honors_count": 0,
+        "honors_count": len(honor_titles),
         "avatar_img": "hero-1.jpg",
-        "honor_titles": [],
+        "honor_titles": honor_titles or ([app.get("certification")] if app.get("certification") else []),
         "cert_badges": [app.get("certification")] if app.get("certification") else [],
         "past_honors": [],
         "moments": [],
-        "certificates": [],
+        "certificates": certificates,
         "application_id": app.get("application_id"),
+        "enabled": True,
+        "audit_status": "approved",
+        "channel": app.get("channel") or "自主申请",
+        "applied_at": app.get("submitted_at") or "",
     }
 
 
@@ -731,8 +910,28 @@ def reject_hero_application(application_id: str, reason: str = "") -> dict[str, 
     conn.commit()
     conn.close()
 
-    set_app_state("mock_hero_role", "none")
+    set_app_state("mock_hero_role", "rejected")
     return get_hero_application(application_id) or {}
+
+
+def _sync_mock_hero_role_for_user(user_id: str, conn: sqlite3.Connection | None = None) -> None:
+    """按该用户最新申请回写 mock_hero_role；无申请则未认证。"""
+    own = conn is None
+    if own:
+        conn = connect()
+        init_schema(conn)
+    latest = _latest_application(conn, user_id)
+    if own:
+        conn.close()
+    if latest:
+        st = latest["status"]
+        if st in ("approved", "pending", "rejected"):
+            set_app_state("mock_hero_role", st)
+        else:
+            set_app_state("mock_hero_role", "none")
+        return
+    set_app_state("mock_hero_role", "")
+    set_app_state("hero_apply_form", None)
 
 
 def withdraw_hero_application(user_id: str = DEFAULT_USER_ID) -> bool:
@@ -764,21 +963,8 @@ def delete_hero_application(application_id: str) -> bool:
         conn.execute("DELETE FROM heroes WHERE hero_id = ?", (hero_id,))
     conn.execute("DELETE FROM hero_applications WHERE application_id = ?", (application_id,))
     conn.commit()
-
-    latest = _latest_application(conn, user_id)
+    _sync_mock_hero_role_for_user(user_id, conn)
     conn.close()
-
-    if latest:
-        st = latest["status"]
-        if st == "approved":
-            set_app_state("mock_hero_role", "approved")
-        elif st == "pending":
-            set_app_state("mock_hero_role", "pending")
-        else:
-            set_app_state("mock_hero_role", "none")
-    else:
-        set_app_state("mock_hero_role", "")
-        set_app_state("hero_apply_form", None)
     return True
 
 
@@ -983,8 +1169,8 @@ def list_admin_heroes(*, q: str | None = None) -> list[dict[str, Any]]:
             "enabled": bool(enabled),
             "status_label": "启用" if enabled else "禁用",
             "audit_status": audit,
-            "audit_status_label": {"pending": "待审核", "approved": "通过", "rejected": "驳回"}.get(
-                audit, "通过"
+            "audit_status_label": {"pending": "待审核", "approved": "审核通过", "rejected": "审核驳回"}.get(
+                audit, "审核通过"
             ),
             "reviewer": reviewer if reviewer is not None else "",
             "reviewed_at": hero.get("reviewed_at") or "",
@@ -1005,22 +1191,67 @@ def list_admin_heroes(*, q: str | None = None) -> list[dict[str, Any]]:
     return items
 
 
-def set_hero_enabled(hero_id: str, enabled: bool) -> dict[str, Any] | None:
+def set_hero_enabled(
+    hero_id: str, enabled: bool, reason: str | None = None
+) -> dict[str, Any] | None:
     hero = get_hero(hero_id)
     if not hero:
         return None
-    return update_hero(hero_id, {"enabled": bool(enabled)})
+    patch: dict[str, Any] = {"enabled": bool(enabled)}
+    if enabled:
+        patch["disable_reason"] = ""
+    else:
+        text = (reason or "").strip()
+        if not text:
+            raise ValueError("disable_reason_required")
+        patch["disable_reason"] = text
+    return update_hero(hero_id, patch)
+
+
+def withdraw_profile_change(hero_id: str) -> bool:
+    """C 端撤回资料变更待审：删除该英雄唯一 pending 记录。"""
+    item = get_pending_profile_change(hero_id)
+    if not item:
+        return False
+    change_id = item.get("change_id")
+    if not change_id:
+        return False
+    conn = connect()
+    init_schema(conn)
+    cur = conn.execute(
+        "DELETE FROM profile_change_requests WHERE change_id = ? AND status = 'pending'",
+        (change_id,),
+    )
+    conn.commit()
+    deleted = cur.rowcount > 0
+    conn.close()
+    return deleted
 
 
 def delete_hero(hero_id: str) -> bool:
+    """删除供方；连带删除关联入驻申请，并回写小程序认证状态为未认证（无其余申请时）。"""
     conn = connect()
     init_schema(conn)
     row = conn.execute("SELECT hero_id FROM heroes WHERE hero_id = ?", (hero_id,)).fetchone()
-    if not row:
+    app_rows = conn.execute(
+        "SELECT application_id, user_id FROM hero_applications WHERE hero_id = ?",
+        (hero_id,),
+    ).fetchall()
+    if not row and not app_rows:
         conn.close()
         return False
-    conn.execute("DELETE FROM heroes WHERE hero_id = ?", (hero_id,))
+
+    user_ids = {str(r["user_id"] or DEFAULT_USER_ID) for r in app_rows}
+    # M1 预览默认用户：删除已入驻供方后也需同步认证态
+    user_ids.add(DEFAULT_USER_ID)
+
+    conn.execute("DELETE FROM hero_applications WHERE hero_id = ?", (hero_id,))
+    if row:
+        conn.execute("DELETE FROM heroes WHERE hero_id = ?", (hero_id,))
     conn.commit()
+
+    for uid in user_ids:
+        _sync_mock_hero_role_for_user(uid, conn)
     conn.close()
     return True
 
@@ -1321,6 +1552,29 @@ def list_reviews(
     return items
 
 
+def list_my_account_reviews(
+    user_id: str = DEFAULT_USER_ID,
+    *,
+    include_hidden: bool = False,
+) -> list[dict[str, Any]]:
+    """当前账号相关评价：我发出的，或作为认证供方收到的（与后台评价列表同源）。"""
+    hero_id = resolve_user_hero_id(user_id)
+    items = list_reviews(include_hidden=include_hidden)
+    uid = str(user_id or "")
+    hid = str(hero_id or "") if hero_id else ""
+    result: list[dict[str, Any]] = []
+    for item in items:
+        status = item.get("status") or "visible"
+        if status == "deleted":
+            continue
+        if str(item.get("user_id") or "") == uid:
+            result.append(item)
+            continue
+        if hid and str(item.get("hero_id") or "") == hid:
+            result.append(item)
+    return result
+
+
 def create_review(body: dict[str, Any]) -> dict[str, Any]:
     ts = _now()
     rid = body.get("review_id") or body.get("id") or f"rv-{int(ts * 1000)}"
@@ -1504,35 +1758,71 @@ def _profile_change_row_to_dict(row: sqlite3.Row) -> dict[str, Any]:
 
 
 def submit_profile_change(hero_id: str, patch: dict[str, Any], change_type: str = "profile") -> dict[str, Any]:
+    """提交资料变更。同一英雄仅保留一条 pending：再次提交时覆盖 after。"""
     hero = get_hero(hero_id)
     if not hero:
         raise LookupError("hero_not_found")
     ts = _now()
-    change_id = f"pc-{int(ts * 1000)}"
     before = {k: hero.get(k) for k in patch.keys()}
-    payload = {
-        "change_id": change_id,
-        "hero_id": hero_id,
-        "hero_name": hero.get("name"),
-        "change_type": change_type,
-        "change_type_label": {"profile": "资料变更", "honors": "荣誉变更", "certs": "证书变更"}.get(
-            change_type, change_type
-        ),
-        "before": before,
-        "after": patch,
-        "submitted_at": datetime.fromtimestamp(ts).isoformat(timespec="seconds"),
-        "status": "pending",
-    }
+    submitted_at = datetime.fromtimestamp(ts).isoformat(timespec="seconds")
+    change_type_label = {"profile": "资料变更", "honors": "荣誉变更", "certs": "证书变更"}.get(
+        change_type, change_type
+    )
+
     conn = connect()
     init_schema(conn)
-    conn.execute(
+    existing = conn.execute(
         """
-        INSERT INTO profile_change_requests
-        (change_id, hero_id, status, payload, reject_reason, submitted_at, reviewed_at, updated_at)
-        VALUES (?, ?, 'pending', ?, NULL, ?, NULL, ?)
+        SELECT change_id FROM profile_change_requests
+        WHERE hero_id = ? AND status = 'pending'
+        ORDER BY submitted_at DESC
+        LIMIT 1
         """,
-        (change_id, hero_id, json.dumps(payload, ensure_ascii=False), ts, ts),
-    )
+        (str(hero_id),),
+    ).fetchone()
+
+    if existing:
+        change_id = existing["change_id"]
+        payload = {
+            "change_id": change_id,
+            "hero_id": hero_id,
+            "hero_name": hero.get("name"),
+            "change_type": change_type,
+            "change_type_label": change_type_label,
+            "before": before,
+            "after": patch,
+            "submitted_at": submitted_at,
+            "status": "pending",
+        }
+        conn.execute(
+            """
+            UPDATE profile_change_requests
+            SET payload = ?, reject_reason = NULL, submitted_at = ?, reviewed_at = NULL, updated_at = ?
+            WHERE change_id = ?
+            """,
+            (json.dumps(payload, ensure_ascii=False), ts, ts, change_id),
+        )
+    else:
+        change_id = f"pc-{int(ts * 1000)}"
+        payload = {
+            "change_id": change_id,
+            "hero_id": hero_id,
+            "hero_name": hero.get("name"),
+            "change_type": change_type,
+            "change_type_label": change_type_label,
+            "before": before,
+            "after": patch,
+            "submitted_at": submitted_at,
+            "status": "pending",
+        }
+        conn.execute(
+            """
+            INSERT INTO profile_change_requests
+            (change_id, hero_id, status, payload, reject_reason, submitted_at, reviewed_at, updated_at)
+            VALUES (?, ?, 'pending', ?, NULL, ?, NULL, ?)
+            """,
+            (change_id, hero_id, json.dumps(payload, ensure_ascii=False), ts, ts),
+        )
     conn.commit()
     conn.close()
     return get_profile_change(change_id) or payload

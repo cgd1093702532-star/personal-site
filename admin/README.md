@@ -1,55 +1,18 @@
 # 管理后台（Admin）
 
-> Web 管理端 · 与 `miniprogram/` **完全分离**
+> **以 `preview/admin/` 为准。** 本目录不再维护 Vue 脚手架。
 
-## 目录
+## 当前能力（仅认证治理）
 
-```
-admin/
-├── README.md              # 本文件
-├── package.json
-└── src/
-    ├── pages/             # 页面组件（每页一个 .vue）
-    │   ├── Dashboard.vue
-    │   ├── Heroes.vue
-    │   ├── Recruitments.vue
-    │   ├── Signups.vue
-    │   ├── Reviews.vue
-    │   ├── Users.vue
-    │   ├── Settings.vue
-    │   └── ProfileChanges.vue
-    └── router/
-        └── routes.js      # 路由与需求文档对照
-```
-
-## 页面 ↔ 需求文档
-
-| 源码 | 需求文档 |
+| 页面 | 预览路径 |
 |------|----------|
-| `src/pages/Dashboard.vue` | [docs/admin/pages/仪表盘.md](../docs/admin/pages/仪表盘.md) |
-| `src/pages/Heroes.vue` | [docs/admin/pages/英雄管理.md](../docs/admin/pages/英雄管理.md) |
-| `src/pages/Recruitments.vue` | [docs/admin/pages/招募管理.md](../docs/admin/pages/招募管理.md) |
-| `src/pages/Signups.vue` | [docs/admin/pages/报名管理.md](../docs/admin/pages/报名管理.md) |
-| `src/pages/Reviews.vue` | [docs/admin/pages/评价管理.md](../docs/admin/pages/评价管理.md) |
-| `src/pages/Users.vue` | [docs/admin/pages/用户管理.md](../docs/admin/pages/用户管理.md) |
-| `src/pages/Settings.vue` | [docs/admin/pages/系统配置.md](../docs/admin/pages/系统配置.md) |
-| `src/pages/ProfileChanges.vue` | [docs/admin/pages/主页变更审核.md](../docs/admin/pages/主页变更审核.md) |
+| 供方列表 / 申请审核 | `preview/admin/heroes.html` |
+| 创建/编辑供方 | `preview/admin/supplier-edit.html` |
+| 主页变更审核 | `preview/admin/profile-changes.html` |
+| 用户启停 | `preview/admin/users.html` |
 
-总索引：[docs/PAGES.md](../docs/PAGES.md)
+本地预览：`http://127.0.0.1:8765/admin/heroes.html`
 
-## 技术栈（待 M1 启动时确认）
+需求文档：`docs/admin/pages/`（运营页文档已废弃，见该目录 README）
 
-建议：Vue 3 + Vite + Element Plus。当前各 `.vue` 为 **M1 占位**，尚未初始化构建工具。
-
-## 开发
-
-```bash
-# 待框架初始化后：
-cd admin
-npm install
-npm run dev
-```
-
-## API
-
-与小程序共用后端，前缀 `/api/admin/*`，详见 `docs/PRD.md`。
+设计说明：`docs/superpowers/specs/2026-07-14-admin-auth-only-mock-design.md`

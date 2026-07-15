@@ -22,6 +22,11 @@
   const createBtn = document.getElementById('suppliers-create');
   const batchReviewBtn = document.getElementById('suppliers-batch-review');
   const checkAll = document.getElementById('suppliers-check-all');
+  const paginationEl = document.getElementById('suppliers-pagination');
+  const paginationTotal = document.getElementById('suppliers-pagination-total');
+  const paginationPages = document.getElementById('suppliers-pagination-pages');
+  const pagePrevBtn = document.getElementById('suppliers-page-prev');
+  const pageNextBtn = document.getElementById('suppliers-page-next');
 
   const reviewModal = document.getElementById('heroes-review-modal');
   const reviewBody = document.getElementById('heroes-review-body');
@@ -37,9 +42,11 @@
   const deleteDesc = document.getElementById('heroes-delete-desc');
 
   const IMG_BASE = '../assets/images/';
-  const AUDIT_LABEL = { pending: '待审核', approved: '通过', rejected: '驳回' };
+  const AUDIT_LABEL = { pending: '待审核', approved: '审核通过', rejected: '审核驳回' };
+  const PAGE_SIZE = 10;
 
   let currentTab = 'all';
+  let currentPage = 1;
   let allRows = [];
   let selectedId = null;
   let deleteTargetId = null;
@@ -80,6 +87,26 @@
     return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   }
 
+  function maskPhone(phone) {
+    const raw = String(phone || '').replace(/\s+/g, '');
+    if (!raw) return '—';
+    if (/^1\d{10}$/.test(raw)) return `${raw.slice(0, 3)}****${raw.slice(-4)}`;
+    if (raw.length >= 7) return `${raw.slice(0, 3)}****${raw.slice(-4)}`;
+    return raw;
+  }
+
+  function maskIdCard(idCard) {
+    const raw = String(idCard || '').trim().toUpperCase();
+    if (!raw) return '—';
+    if (/^\d{17}[\dX]$/.test(raw)) return `${raw.slice(0, 6)}********${raw.slice(-4)}`;
+    if (/^\d{15}$/.test(raw)) return `${raw.slice(0, 6)}*****${raw.slice(-4)}`;
+    if (raw.length >= 10) {
+      const keep = Math.min(6, Math.floor(raw.length / 3));
+      return `${raw.slice(0, keep)}${'*'.repeat(Math.max(4, raw.length - keep - 4))}${raw.slice(-4)}`;
+    }
+    return raw;
+  }
+
   function formatYears(value) {
     if (value == null || value === '') return '—';
     const raw = String(value);
@@ -116,7 +143,7 @@
   }
 
   function emptyRowHtml(message) {
-    return `<tr><td colspan="14" class="admin-table__empty">
+    return `<tr><td colspan="13" class="admin-table__empty">
       <div class="admin-empty">
         <div class="admin-empty__icon" aria-hidden="true">
           <svg viewBox="0 0 120 90" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -140,19 +167,18 @@
       supplier_id: hero.supplier_id || '',
       name: hero.name || '',
       phone: hero.phone || '',
+      id_card: hero.id_card || '',
       avatar_img: hero.avatar_img || '',
       project_types: hero.project_types || [],
       project_types_display: hero.project_types_display || (hero.project_types || []).join('、') || '—',
-      city: hero.city || '—',
       certification: hero.certification || '—',
-      years_exp: hero.years_exp,
       enabled: hero.enabled !== false,
       audit_status: audit,
-      audit_label: AUDIT_LABEL[audit] || hero.audit_status_label || '通过',
+      audit_label: AUDIT_LABEL[audit] || hero.audit_status_label || '审核通过',
       reviewer: hero.reviewer != null ? hero.reviewer : audit === 'pending' ? '' : '小李',
       reviewed_at: hero.reviewed_at || '',
       channel: hero.channel != null ? hero.channel : audit === 'pending' ? '' : '后台创建',
-      applied_at: hero.applied_at || '',
+      created_at: hero.created_at || hero.applied_at || '',
       profile_pending: false,
     };
   }
@@ -167,19 +193,18 @@
       supplier_id: '',
       name: app.name || '',
       phone: app.phone || '',
+      id_card: app.id_card || '',
       avatar_img: app.avatar_img || '',
       project_types: app.project_types || [],
       project_types_display: app.project_types_display || (app.project_types || []).join('、') || '—',
-      city: app.city || '—',
       certification: app.certification || '—',
-      years_exp: app.years_exp,
       enabled: audit === 'approved',
       audit_status: audit,
       audit_label: AUDIT_LABEL[audit] || app.status_label || audit,
       reviewer: app.reviewer || (audit === 'pending' ? '' : '小李'),
       reviewed_at: app.reviewed_at || '',
       channel: app.channel || '自主申请',
-      applied_at: app.submitted_at || '',
+      created_at: app.created_at || app.submitted_at || '',
       profile_pending: false,
     };
   }
@@ -241,8 +266,13 @@
       const display = row.project_types_display || '';
       if (!types.includes(filters.projectType) && !display.includes(filters.projectType)) return false;
     }
-    if (filters.enabled === 'enabled' && !row.enabled) return false;
-    if (filters.enabled === 'disabled' && row.enabled) return false;
+    // 入驻待审申请尚无启用态，Tab 下不按「供方状态」过滤
+    const skipEnabled =
+      currentTab === 'apply-pending' || (row.kind === 'application' && row.audit_status === 'pending');
+    if (!skipEnabled) {
+      if (filters.enabled === 'enabled' && !row.enabled) return false;
+      if (filters.enabled === 'disabled' && row.enabled) return false;
+    }
     if (filters.auditStatus && row.audit_status !== filters.auditStatus) return false;
     return true;
   }
@@ -278,32 +308,95 @@
     checkAll.indeterminate = checked > 0 && checked < boxes.length;
   }
 
+  function filteredRows() {
+    return allRows.filter((row) => matchTab(row) && matchFilters(row));
+  }
+
+  function pageCount(total) {
+    return Math.max(1, Math.ceil(total / PAGE_SIZE));
+  }
+
+  function clampPage(total) {
+    const pages = pageCount(total);
+    if (currentPage > pages) currentPage = pages;
+    if (currentPage < 1) currentPage = 1;
+  }
+
+  function goToPage(page) {
+    currentPage = page;
+    renderTable();
+  }
+
+  function renderPagination(total) {
+    if (!paginationEl) return;
+    clampPage(total);
+    const pages = pageCount(total);
+    paginationEl.hidden = false;
+    if (paginationTotal) paginationTotal.textContent = `共 ${total} 条`;
+    if (pagePrevBtn) pagePrevBtn.disabled = currentPage <= 1 || total === 0;
+    if (pageNextBtn) pageNextBtn.disabled = currentPage >= pages || total === 0;
+    if (!paginationPages) return;
+    const buttons = [];
+    for (let i = 1; i <= pages; i += 1) {
+      const active = i === currentPage ? ' is-active' : '';
+      buttons.push(
+        `<button type="button" class="admin-pagination__btn${active}" data-page="${i}" ${
+          i === currentPage ? 'aria-current="page"' : ''
+        }>${i}</button>`,
+      );
+    }
+    paginationPages.innerHTML = total === 0 ? '' : buttons.join('');
+    paginationPages.querySelectorAll('[data-page]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const page = Number(btn.dataset.page) || 1;
+        if (page === currentPage) return;
+        goToPage(page);
+      });
+    });
+  }
+
   function renderTable() {
     if (!tbody) return;
     if (checkAll) {
       checkAll.checked = false;
       checkAll.indeterminate = false;
     }
-    const items = allRows.filter((row) => matchTab(row) && matchFilters(row));
+    const items = filteredRows();
+    clampPage(items.length);
+    renderPagination(items.length);
     if (!items.length) {
       tbody.innerHTML = emptyRowHtml('暂无数据');
       return;
     }
-    tbody.innerHTML = items
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageItems = items.slice(start, start + PAGE_SIZE);
+    tbody.innerHTML = pageItems
       .map((row) => {
         const id = displaySupplierId(row);
-        const enabledLabel = row.enabled ? '启用' : '禁用';
         const auditClass =
           row.audit_status === 'pending'
             ? 'pending'
             : row.audit_status === 'rejected'
               ? 'rejected'
               : 'approved';
-        const ops =
-          row.kind === 'application' && row.audit_status === 'pending'
-            ? `<button type="button" class="admin-link" data-detail="${escapeHtml(row.row_key)}">详情</button>
-               <button type="button" class="admin-link" data-review="${escapeHtml(row.application_id)}">审核</button>`
-            : `<button type="button" class="admin-link" data-detail="${escapeHtml(row.row_key)}">详情</button>`;
+        const pendingApp = row.kind === 'application' && row.audit_status === 'pending';
+        const canToggleVisibility = row.kind === 'hero';
+        const visibilityLabel = row.enabled ? '禁用' : '启用';
+        const ops = [
+          `<button type="button" class="admin-link" data-detail="${escapeHtml(row.row_key)}">查看</button>`,
+          pendingApp
+            ? `<button type="button" class="admin-link" data-approve="${escapeHtml(row.application_id)}">通过</button>`
+            : '',
+          pendingApp
+            ? `<button type="button" class="admin-link" data-reject="${escapeHtml(row.application_id)}">驳回</button>`
+            : '',
+          canToggleVisibility
+            ? `<button type="button" class="admin-link" data-toggle-visibility="${escapeHtml(row.row_key)}">${visibilityLabel}</button>`
+            : '',
+          `<button type="button" class="admin-link admin-link--danger" data-delete-row="${escapeHtml(row.row_key)}">删除</button>`,
+        ]
+          .filter(Boolean)
+          .join('\n             ');
         return `<tr data-key="${escapeHtml(row.row_key)}">
           <td class="admin-table__check">
             <input type="checkbox" data-row-check value="${escapeHtml(row.row_key)}" aria-label="选择 ${escapeHtml(row.name || id)}" />
@@ -314,20 +407,18 @@
               ${avatarHtml(row)}
               <div class="admin-supplier-info__meta">
                 <span class="admin-supplier-info__name">${escapeHtml(row.name || '—')}</span>
-                <span class="admin-supplier-info__phone">${escapeHtml(row.phone || '—')}</span>
               </div>
             </div>
           </td>
+          <td>${escapeHtml(maskPhone(row.phone))}</td>
+          <td>${escapeHtml(maskIdCard(row.id_card))}</td>
           <td>${escapeHtml(row.project_types_display || '—')}</td>
-          <td>${escapeHtml(row.city || '—')}</td>
           <td>${escapeHtml(row.certification || '—')}</td>
-          <td>${escapeHtml(formatYears(row.years_exp))}</td>
-          <td>${escapeHtml(enabledLabel)}</td>
+          <td>${escapeHtml(row.channel || '—')}</td>
           <td><span class="admin-badge admin-badge--${auditClass}">${escapeHtml(row.audit_label)}</span></td>
-          <td>${escapeHtml(row.reviewer || '')}</td>
-          <td>${escapeHtml(formatTime(row.reviewed_at))}</td>
-          <td>${escapeHtml(row.channel || '')}</td>
-          <td>${escapeHtml(formatTime(row.applied_at))}</td>
+          <td>${escapeHtml(row.reviewer || '—')}</td>
+          <td>${escapeHtml(formatTime(row.reviewed_at) || '—')}</td>
+          <td>${escapeHtml(formatTime(row.created_at) || '—')}</td>
           <td class="admin-cell-ops">${ops}</td>
         </tr>`;
       })
@@ -336,8 +427,17 @@
     tbody.querySelectorAll('[data-detail]').forEach((btn) => {
       btn.addEventListener('click', () => openDetail(btn.dataset.detail));
     });
-    tbody.querySelectorAll('[data-review]').forEach((btn) => {
-      btn.addEventListener('click', () => showReview(btn.dataset.review, 'approve'));
+    tbody.querySelectorAll('[data-approve]').forEach((btn) => {
+      btn.addEventListener('click', () => showReview(btn.dataset.approve, 'approve'));
+    });
+    tbody.querySelectorAll('[data-reject]').forEach((btn) => {
+      btn.addEventListener('click', () => showReview(btn.dataset.reject, 'reject'));
+    });
+    tbody.querySelectorAll('[data-toggle-visibility]').forEach((btn) => {
+      btn.addEventListener('click', () => toggleVisibility(btn.dataset.toggleVisibility));
+    });
+    tbody.querySelectorAll('[data-delete-row]').forEach((btn) => {
+      btn.addEventListener('click', () => openDeleteModal(btn.dataset.deleteRow));
     });
     tbody.querySelectorAll('input[data-row-check]').forEach((box) => {
       box.addEventListener('change', syncCheckAllState);
@@ -345,16 +445,52 @@
     syncCheckAllState();
   }
 
-  async function loadSuppliers() {
+  async function toggleVisibility(rowKey) {
+    const row = findRow(rowKey);
+    if (!row || row.kind !== 'hero' || !row.hero_id) return;
+    const db = await getDb();
+    if (!db) {
+      window.alert('本地 API 不可用');
+      return;
+    }
+    const nextEnabled = !row.enabled;
+    try {
+      if (nextEnabled) {
+        await db.updateHero(row.hero_id, { enabled: true, disable_reason: '' });
+      } else {
+        const reason = window.prompt('请填写禁用原因（必填）');
+        if (reason == null) return;
+        const text = String(reason).trim();
+        if (!text) {
+          window.alert('禁用原因必填');
+          return;
+        }
+        await db.updateHero(row.hero_id, { enabled: false, disable_reason: text });
+      }
+      row.enabled = nextEnabled;
+      renderTable();
+    } catch (err) {
+      window.alert(`${nextEnabled ? '启用' : '禁用'}失败：${err.message}`);
+    }
+  }
+
+  let loadSeq = 0;
+
+  async function loadSuppliers(options = {}) {
+    const silent = !!options.silent;
     const db = await getDb();
     if (!db || !tbody) return;
-    tbody.innerHTML = emptyRowHtml('加载中…');
+    const seq = ++loadSeq;
+    if (!silent || !allRows.length) {
+      tbody.innerHTML = emptyRowHtml('加载中…');
+    }
     try {
       const [heroes, applications, profileChanges] = await Promise.all([
         db.listAdminHeroes(),
         db.listApplications({}),
         db.listProfileChanges({ status: 'pending' }).catch(() => []),
       ]);
+      if (seq !== loadSeq) return;
       const profilePendingIds = new Set(
         (profileChanges || []).map((item) => String(item.hero_id)).filter(Boolean),
       );
@@ -362,6 +498,7 @@
       updateTabCounts();
       renderTable();
     } catch (err) {
+      if (seq !== loadSeq) return;
       tbody.innerHTML = emptyRowHtml(`加载失败：${escapeHtml(err.message)}`);
     }
   }
@@ -411,6 +548,26 @@
     if (reviewModal?.hidden !== false && heroModal?.hidden !== false) document.body.style.overflow = '';
   }
 
+  function openDeleteModal(rowKey) {
+    const row = findRow(rowKey);
+    if (!row || !deleteModal) return;
+    if (row.kind === 'application') {
+      deleteTargetId = row.application_id;
+      deleteTargetKind = 'application';
+      if (deleteDesc) {
+        deleteDesc.textContent = `确定要删除该入驻申请（${row.name || row.application_id}）吗？删除后不可恢复！`;
+      }
+    } else {
+      deleteTargetId = row.hero_id;
+      deleteTargetKind = 'hero';
+      if (deleteDesc) {
+        deleteDesc.textContent = `确定要删除该供方（${row.name || row.hero_id}）吗？删除后不可恢复！`;
+      }
+    }
+    deleteModal.hidden = false;
+    document.body.style.overflow = 'hidden';
+  }
+
   function closeAllModals() {
     closeDeleteModal();
     closeReviewModal();
@@ -420,6 +577,15 @@
   function notifyHeroesUpdated() {
     try {
       localStorage.setItem('hero_plaza_heroes_updated', String(Date.now()));
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function notifyApplicationsUpdated() {
+    try {
+      localStorage.setItem('hero_plaza_applications_updated', String(Date.now()));
+      window.dispatchEvent(new CustomEvent('hero_plaza_applications_updated'));
     } catch (_) {
       /* ignore */
     }
@@ -605,6 +771,7 @@
         await db.rejectApplication(selectedId, reason);
         window.alert('已驳回');
         closeReviewModal();
+        notifyApplicationsUpdated();
         loadSuppliers();
       } catch (err) {
         window.alert(`驳回失败：${err.message}`);
@@ -634,10 +801,13 @@
         closeDeleteModal();
         if (heroEditId === id) closeHeroModal();
         notifyHeroesUpdated();
+        notifyApplicationsUpdated();
       } else {
         await db.deleteApplication(id);
         closeDeleteModal();
         if (selectedId === id) closeReviewModal();
+        notifyApplicationsUpdated();
+        notifyHeroesUpdated();
       }
       loadSuppliers();
     } catch (err) {
@@ -650,6 +820,7 @@
       tabs.forEach((t) => t.classList.remove('is-active'));
       tab.classList.add('is-active');
       currentTab = tab.dataset.tab || 'all';
+      currentPage = 1;
       closeAllModals();
       renderTable();
     });
@@ -663,20 +834,34 @@
     el?.addEventListener('keydown', (e) => {
       if (e.key !== 'Enter') return;
       readFilters();
+      currentPage = 1;
       renderTable();
     });
   });
 
   searchBtn?.addEventListener('click', () => {
     readFilters();
+    currentPage = 1;
     closeAllModals();
     renderTable();
   });
 
   resetBtn?.addEventListener('click', () => {
     resetFilters();
+    currentPage = 1;
     closeAllModals();
     renderTable();
+  });
+
+  pagePrevBtn?.addEventListener('click', () => {
+    if (currentPage <= 1) return;
+    goToPage(currentPage - 1);
+  });
+
+  pageNextBtn?.addEventListener('click', () => {
+    const total = filteredRows().length;
+    if (currentPage >= pageCount(total)) return;
+    goToPage(currentPage + 1);
   });
 
   exportBtn?.addEventListener('click', () => {
@@ -740,15 +925,14 @@
   syncSelectPlaceholders();
   loadSuppliers();
 
-  function refreshIfVisible() {
-    if (document.hidden) return;
-    loadSuppliers();
-  }
-  window.addEventListener('focus', refreshIfVisible);
+  // 勿监听 window focus：从其它窗口点回时，focus 会先于 click 触发并重渲染表格，导致第一次点击无效。
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) refreshIfVisible();
+    if (!document.hidden) loadSuppliers({ silent: true });
   });
   window.addEventListener('storage', (e) => {
-    if (e.key === 'hero_plaza_heroes_updated') loadSuppliers();
+    if (e.key === 'hero_plaza_heroes_updated' || e.key === 'hero_plaza_applications_updated') {
+      loadSuppliers({ silent: true });
+    }
   });
+  window.addEventListener('hero_plaza_applications_updated', () => loadSuppliers({ silent: true }));
 })();

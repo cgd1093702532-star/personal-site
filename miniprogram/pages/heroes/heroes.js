@@ -1,20 +1,12 @@
-const mock = require('../../utils/mock.js');
 const data = require('../../utils/data.js');
 
 Page({
   data: {
     keyword: '',
-    projectTypes: mock.PROJECT_TYPES,
-    sortOptions: mock.SORT_OPTIONS,
-    yearsOptions: mock.YEARS_OPTIONS,
-    activeType: '全部',
-    activeSort: 'default',
-    activeYears: '全部',
-    filterVisible: false,
-    filterActive: false,
-    filterCount: 0,
     heroes: [],
     loading: false,
+    /** plaza | search | '' */
+    emptyKind: '',
   },
 
   _searchTimer: null,
@@ -36,13 +28,10 @@ Page({
     this.loadHeroes().finally(() => wx.stopPullDownRefresh());
   },
 
-  updateFilterActive() {
-    const { activeType, activeSort, activeYears } = this.data;
-    let filterCount = 0;
-    if (activeType !== '全部') filterCount += 1;
-    if (activeSort !== 'default') filterCount += 1;
-    if (activeYears !== '全部') filterCount += 1;
-    this.setData({ filterActive: filterCount > 0, filterCount });
+  resolveEmptyKind(list) {
+    if (list && list.length) return '';
+    const keyword = (this.data.keyword || '').trim();
+    return keyword ? 'search' : 'plaza';
   },
 
   loadHeroes() {
@@ -51,19 +40,26 @@ Page({
     return data
       .getHeroes({
         keyword: this.data.keyword,
-        project_type: this.data.activeType,
-        sort_by: this.data.activeSort,
-        years_range: this.data.activeYears,
+        project_type: '全部',
+        sort_by: 'default',
+        years_range: '全部',
       })
       .then((list) => {
         if (seq !== this._loadSeq) return;
-        this.setData({ heroes: list || [], loading: false });
-        this.updateFilterActive();
+        const heroes = list || [];
+        this.setData({
+          heroes,
+          loading: false,
+          emptyKind: this.resolveEmptyKind(heroes),
+        });
       })
       .catch(() => {
         if (seq !== this._loadSeq) return;
-        this.setData({ heroes: [], loading: false });
-        this.updateFilterActive();
+        this.setData({
+          heroes: [],
+          loading: false,
+          emptyKind: this.resolveEmptyKind([]),
+        });
       });
   },
 
@@ -71,7 +67,8 @@ Page({
     const keyword = e.detail.value;
     this.setData({ keyword });
     if (this._searchTimer) clearTimeout(this._searchTimer);
-    this._searchTimer = setTimeout(() => this.loadHeroes(), 300);
+    // 实时查询：下一帧拉取，避免同一次输入重复请求
+    this._searchTimer = setTimeout(() => this.loadHeroes(), 0);
   },
 
   onSearchConfirm() {
@@ -81,43 +78,17 @@ Page({
 
   onSearchClear() {
     if (this._searchTimer) clearTimeout(this._searchTimer);
+    try {
+      wx.hideKeyboard();
+    } catch (_) {
+      /* ignore */
+    }
     this.setData({ keyword: '' }, () => this.loadHeroes());
   },
 
-  onFilterOpen() {
-    this.setData({ filterVisible: true });
-  },
-
-  onFilterClose() {
-    this.setData({ filterVisible: false });
-  },
-
-  onFilterReset() {
-    this.setData(
-      { activeType: '全部', activeSort: 'default', activeYears: '全部' },
-      () => this.loadHeroes(),
-    );
-  },
-
-  noop() {},
-
-  onFilterTap(e) {
-    const { type } = e.currentTarget.dataset;
-    this.setData({ activeType: type }, () => this.loadHeroes());
-  },
-
-  onSortTap(e) {
-    const { sort } = e.currentTarget.dataset;
-    this.setData({ activeSort: sort }, () => this.loadHeroes());
-  },
-
-  onYearsTap(e) {
-    const { years } = e.currentTarget.dataset;
-    this.setData({ activeYears: years }, () => this.loadHeroes());
-  },
-
   onHeroTap(e) {
-    const { id } = e.currentTarget.dataset;
+    const id = e.detail && e.detail.hero_id;
+    if (!id) return;
     wx.navigateTo({ url: `/pages/hero-detail/hero-detail?id=${id}` });
   },
 });

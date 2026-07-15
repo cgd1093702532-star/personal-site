@@ -77,8 +77,8 @@ function applyLists(page, lists) {
     lists,
     activeTab,
     tabs: [
-      { key: 'active', label: '进行中', count: lists.active.length, display: formatTabDisplay('进行中', lists.active.length) },
-      { key: 'ended', label: '已结束', count: lists.ended.length, display: formatTabDisplay('已结束', lists.ended.length) },
+      { key: 'active', label: '招募', count: lists.active.length, display: formatTabDisplay('招募', lists.active.length) },
+      { key: 'ended', label: '招募已结束', count: lists.ended.length, display: formatTabDisplay('招募已结束', lists.ended.length) },
     ],
     currentList: lists[activeTab] || lists.active,
     emptyState: getEmptyState(activeTab),
@@ -88,8 +88,8 @@ function applyLists(page, lists) {
 Page({
   data: {
     tabs: [
-      { key: 'active', label: '进行中', count: 0, display: '进行中' },
-      { key: 'ended', label: '已结束', count: 0, display: '已结束' },
+      { key: 'active', label: '招募', count: 0, display: '招募' },
+      { key: 'ended', label: '招募已结束', count: 0, display: '招募已结束' },
     ],
     activeTab: 'active',
     lists: { active: [], ended: [], draft: [] },

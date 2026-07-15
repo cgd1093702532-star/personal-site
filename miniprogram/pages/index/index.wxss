@@ -40,12 +40,17 @@
   align-items: center;
   gap: 8rpx;
   height: 48rpx;
-  padding: 0 24rpx;
-  background: var(--color-overlay-light);
-  border-radius: var(--radius-pill);
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
   font-size: var(--text-caption);
   color: var(--color-text-inverse);
-  backdrop-filter: blur(8rpx);
+  backdrop-filter: none;
+}
+
+.home-banner__pin {
+  font-size: 22rpx;
+  line-height: 1;
 }
 
 .home-banner__dot {
@@ -106,9 +111,9 @@
 .home-nav__icon {
   width: 96rpx;
   height: 96rpx;
-  border-radius: var(--radius-circle);
-  background: var(--color-primary);
-  box-shadow: 0 0 8rpx rgba(0, 0, 0, 0.08);
+  border-radius: 50%;
+  background: #0c3c86;
+  box-shadow: 0 8rpx 24rpx rgba(12, 60, 134, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;

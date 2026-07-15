@@ -26,27 +26,50 @@
   </view>
 
   <view class="recruit-detail__body">
-    <category-tag label="{{item.typeLabel}}" variant="{{item.type === 'event' ? 'event' : 'activity'}}" />
-    <text class="recruit-detail__title">{{item.title}}</text>
-    <view class="recruit-detail__meta">
-      <image class="recruit-detail__meta-icon" src="/assets/icons/time.png" mode="aspectFit" />
-      <text>{{item.timeDisplay}}</text>
+    <view class="recruit-detail__card recruit-detail__card--summary">
+      <category-tag label="{{item.typeLabel}}" variant="{{item.type === 'event' ? 'event' : 'activity'}}" />
+      <text class="recruit-detail__title">{{item.title}}</text>
+      <view class="recruit-detail__tags" wx:if="{{displayTags.length}}">
+        <text class="recruit-detail__tag" wx:for="{{displayTags}}" wx:key="*this">{{item}}</text>
+      </view>
+      <view class="recruit-detail__price-row">
+        <view class="recruit-detail__price">
+          <text class="recruit-detail__price-symbol">¥</text>
+          <text class="recruit-detail__price-num">{{feeInt}}</text>
+          <text class="recruit-detail__price-dec">.{{feeDec}}</text>
+        </view>
+        <button class="recruit-detail__share" open-type="share" hover-class="recruit-detail__share--active">
+          <image class="recruit-detail__share-icon" src="/assets/icons/share.png" mode="aspectFit" />
+        </button>
+      </view>
     </view>
-    <view class="recruit-detail__meta">
-      <image class="recruit-detail__meta-icon" src="/assets/icons/location.png" mode="aspectFit" />
-      <text>{{item.location}}</text>
+    <view class="recruit-detail__vip" bindtap="onVipTap">
+      <view class="recruit-detail__vip-left">
+        <image class="recruit-detail__vip-icon" src="/assets/icons/vip-v.png" mode="aspectFit" />
+        <text class="recruit-detail__vip-text">VIP会员卡 · 可享5大权益</text>
+      </view>
+      <text class="recruit-detail__vip-cta">立即尊享 ›</text>
     </view>
-    <view class="recruit-detail__publisher">
-      <text class="recruit-detail__publisher-label">发布</text>
-      <text class="recruit-detail__publisher-name">{{item.hero_name}}</text>
+    <view class="recruit-detail__card recruit-detail__meta-card">
+      <view class="recruit-detail__meta-row">
+        <image class="recruit-detail__meta-icon" src="/assets/icons/time.png" mode="aspectFit" />
+        <text class="recruit-detail__meta-text">{{item.timeDisplay}}</text>
+      </view>
+      <view class="recruit-detail__meta-row recruit-detail__meta-row--loc" bindtap="onLocationTap">
+        <image class="recruit-detail__meta-icon" src="/assets/icons/location.png" mode="aspectFit" />
+        <text class="recruit-detail__meta-text">{{item.location}}</text>
+        <text class="recruit-detail__meta-arrow">›</text>
+      </view>
+      <view class="recruit-detail__meta-row" bindtap="onOrganizerTap">
+        <image class="recruit-detail__meta-icon" src="/assets/icons/landmark.png" mode="aspectFit" />
+        <text class="recruit-detail__meta-text">{{item.hero_name}}主办</text>
+      </view>
+      <view class="recruit-detail__field">
+        <text class="recruit-detail__field-label">备注</text>
+        <text class="recruit-detail__field-value">{{item.remark || '—'}}</text>
+      </view>
     </view>
-
-    <view class="recruit-detail__progress">
-      <text>已报名 {{item.signed}} / {{item.total}} 人</text>
-      <view class="recruit-detail__bar"><view class="recruit-detail__bar-inner" style="width: {{progress}}%;"></view></view>
-    </view>
-
-    <view class="recruit-detail__section">
+    <view class="recruit-detail__card recruit-detail__card--detail">
       <text class="recruit-detail__label">活动详情</text>
       <text class="recruit-detail__desc">{{item.description}}</text>
       <view class="recruit-detail__dim" wx:if="{{item.organizer_profile.credentials}}">
@@ -74,7 +97,16 @@
   </view>
 
   <view class="recruit-detail__footer">
-    <text class="recruit-detail__price">¥{{item.fee}}<text class="recruit-detail__unit">/人</text></text>
+    <view class="recruit-detail__footer-nav">
+      <view class="recruit-detail__footer-link" bindtap="onGoHome">
+        <image class="recruit-detail__footer-icon" src="/assets/icons/tab-home.png" mode="aspectFit" />
+        <text>首页</text>
+      </view>
+      <view class="recruit-detail__footer-link" bindtap="onCustomerService">
+        <image class="recruit-detail__footer-icon" src="/assets/icons/chat.png" mode="aspectFit" />
+        <text>客服</text>
+      </view>
+    </view>
     <view class="recruit-detail__btn {{footerDisabled ? 'recruit-detail__btn--disabled' : ''}}" bindtap="onFooterTap">{{footerLabel}}</view>
   </view>
 </view>
@@ -102,6 +134,18 @@
     <view class="recruit-modal__actions">
       <view class="recruit-modal__cancel" bindtap="onCloseForm">取消</view>
       <view class="recruit-modal__submit" bindtap="onSubmit">提交</view>
+    </view>
+  </view>
+</view>
+
+<view wx:if="{{showInitiateConfirm}}" class="profile-dialog" catchtouchmove="noop">
+  <view class="profile-dialog__mask" bindtap="onCloseInitiateConfirm"></view>
+  <view class="profile-dialog__panel">
+    <text class="profile-dialog__title">确认发起赛事招募</text>
+    <text class="profile-dialog__body">确认发起赛事招募后，在我的页>服务中心>我的招募中查看。</text>
+    <view class="profile-dialog__actions">
+      <view class="profile-dialog__btn" bindtap="onCloseInitiateConfirm">取消</view>
+      <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onConfirmInitiate">确认开始招募</view>
     </view>
   </view>
 </view>

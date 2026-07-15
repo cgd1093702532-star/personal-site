@@ -36,11 +36,22 @@ Page({
   },
 
   loadData() {
+    const events = (mock.events || [])
+      .filter((e) => e && !e._skip)
+      .slice(0, 3)
+      .map((e) => ({
+        ...e,
+        time: e.time || e.timeDisplay || '',
+        feeDisplay:
+          e.feeDisplay ||
+          (e.fee != null ? String(e.fee).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''),
+        typeLabel: e.typeLabel || (e.type === 'activity' ? '活动' : '赛事'),
+      }));
     this.setData({
       banner: mock.banner,
       shortNav: mock.shortNav,
       membership: mock.membership,
-      events: mock.events,
+      events,
       courses: mock.courses,
       products: mock.products,
       news: mock.news,

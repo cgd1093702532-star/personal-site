@@ -10,21 +10,22 @@
 }
 
 .tag--event {
-  background: var(--color-accent);
-  color: var(--color-text-primary);
+  background: #fecf13;
+  color: #222;
 }
 
 .tag--activity {
-  background: var(--color-activity);
-  color: var(--color-text-inverse);
+  background: #f47528;
+  color: #fff;
 }
 
 .tag--course {
-  background: var(--color-course-tag-bg);
-  color: var(--color-course-tag);
+  background: #5ecf9a;
+  color: #fff;
 }
 
 .tag--skill {
-  background: var(--color-text-inverse);
-  color: var(--color-text-tag);
+  background: #fff;
+  color: #222;
+  border: 1rpx solid #e5e8eb;
 }

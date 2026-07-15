@@ -1,0 +1,50 @@
+---
+description: 需求真源与预览右侧文档必须一致（符号链接，禁止拷贝漂移）
+alwaysApply: true
+---
+
+# 铁律：需求文档 ↔ 右侧预览必须一致
+
+用户看右侧「需求说明」时，**必须与** `docs/miniprogram/pages/*.md` 真源逐字一致。
+
+## 机制（已改为符号链接）
+
+| 位置 | 角色 |
+|------|------|
+| `docs/miniprogram/pages/` | **唯一真源**（含 `images/`） |
+| `preview/docs/miniprogram/pages` | **符号链接** → 真源，禁止再做成拷贝目录 |
+
+因此：你改真源 md 后，预览 fetch 到的就是同一份文件；**不应再出现「md 改了、右侧还是旧文案」**。
+
+## 左侧页面导航（有文档的页）
+
+| 位置 | 角色 |
+|------|------|
+| `preview/page_catalog.py` | **页面目录真源**（分组 + html↔md） |
+| `preview/assets/preview-page-nav.json` | build 生成，禁止手改 |
+| 左侧导航 UI | 只展示目录内页面；与手机预览、右侧文档三方联动 |
+
+新增带需求文档的预览页时：在 `page_catalog.py` 对应分组追加一行 → `python3 preview/build-pages.py` → `python3 scripts/check-preview-page-nav.py` 须 OK。
+
+删除 `docs/miniprogram/pages/` 下某需求 md 后：左侧导航会自动去掉对应页（build 过滤 + 预览加载时再按文件是否存在过滤）；目录里可稍后清理失效行。
+
+## 改文档后必做
+
+1. 只改 `docs/miniprogram/pages/`（不要手改 `preview/docs/`）
+2. 若刚克隆 / 链接丢失：跑 `python3 preview/build-pages.py`（会重建符号链接并刷新左侧导航 JSON）
+3. 核对：
+   - `python3 scripts/check-docs-preview-sync.py`（须 `OK ... symlink`）
+   - `python3 scripts/check-preview-page-nav.py`（须 `OK preview-page-nav`）
+4. 让用户**强制刷新**浏览器（避免旧 md / JSON 缓存）；截图 URL 仍带 `?v=`
+
+## 表格陷阱
+
+- 单元格内**禁止半角 `|`**（竖线用全角 `｜`）
+- 分点用 `<br>` 换行（见 `doc-table-linebreaks.mdc`）
+
+## 禁止
+
+- 把 `preview/docs/.../pages` 恢复成普通拷贝目录
+- 手改 `preview-page-nav.json` 或漏改 `page_catalog.py` 导致左侧导航漏页
+- 未核对就声称「预览已与文档一致」
+- 让用户自己对比右侧预览与 md

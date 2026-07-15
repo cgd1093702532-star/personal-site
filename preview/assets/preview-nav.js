@@ -6,6 +6,7 @@
 
   const PAGE_SCRIPT_ATTR = 'data-preview-page-script';
   const NAV_SCRIPT = 'preview-nav.js';
+  const DOC_ASIDE_SCRIPT = 'preview-doc-aside.js';
   const STACK_KEY = 'preview-nav-stack';
   let navigating = false;
   let navStack = [];
@@ -118,7 +119,9 @@
   function collectScripts(doc) {
     return [...doc.querySelectorAll('script')].filter((node) => {
       const src = node.getAttribute('src') || '';
-      return !src.includes(NAV_SCRIPT);
+      // 导航与右侧文档面板常驻，勿在 SPA 切换时重复注入
+      if (src.includes(NAV_SCRIPT) || src.includes(DOC_ASIDE_SCRIPT)) return false;
+      return true;
     });
   }
 
@@ -182,6 +185,29 @@
       applyTransition(nextShell, transition);
       document.title = doc.title;
 
+      const nextDoc =
+        doc.body?.getAttribute('data-preview-doc') ||
+        doc.querySelector('.device')?.getAttribute('data-preview-doc') ||
+        '';
+      const nextScope =
+        doc.body?.getAttribute('data-preview-doc-scope') ||
+        doc.querySelector('.device')?.getAttribute('data-preview-doc-scope') ||
+        '';
+      if (nextDoc) {
+        document.body.setAttribute('data-preview-doc', nextDoc);
+        document.querySelector('.device')?.setAttribute('data-preview-doc', nextDoc);
+      } else {
+        document.body.removeAttribute('data-preview-doc');
+        document.querySelector('.device')?.removeAttribute('data-preview-doc');
+      }
+      if (nextScope) {
+        document.body.setAttribute('data-preview-doc-scope', nextScope);
+        document.querySelector('.device')?.setAttribute('data-preview-doc-scope', nextScope);
+      } else {
+        document.body.removeAttribute('data-preview-doc-scope');
+        document.querySelector('.device')?.removeAttribute('data-preview-doc-scope');
+      }
+
       if (!fromPopstate) {
         const normalized = normalizeUrl(url);
         if (replace) {
@@ -204,7 +230,11 @@
       }
 
       await runPageScripts(doc);
-      window.dispatchEvent(new CustomEvent('preview:navigate', { detail: { url, transition } }));
+      window.dispatchEvent(
+        new CustomEvent('preview:navigate', {
+          detail: { url, transition, previewDoc: nextDoc || '', previewDocScope: nextScope || '' },
+        }),
+      );
     } catch (err) {
       console.warn('[PreviewNav] fallback to full navigation:', err);
       window.location.href = url;

@@ -1,103 +1,171 @@
 <view class="page page--tab profile">
-  <view class="profile-user">
-    <view class="profile-user__head">
-      <view class="profile-user__avatar cover-placeholder"></view>
-      <view class="profile-user__info">
-        <text class="profile-user__name">{{user.nickname}}</text>
-        <view class="profile-user__meta">
-          <text class="profile-user__member">{{user.member}}</text>
-          <text wx:if="{{!isHero}}" class="profile-user__cert profile-user__cert--none">未认证</text>
-          <view wx:else class="profile-user__cert profile-user__cert--hero profile-user__cert--tap" bindtap="onHeroCertSuccess">
-            <text class="profile-user__cert-text">已认证英雄</text>
+  <view class="profile-page">
+    <view class="profile-user">
+      <view class="profile-user__head">
+        <view class="profile-user__avatar cover-placeholder"></view>
+        <view class="profile-user__info">
+          <text class="profile-user__name">{{user.nickname}}</text>
+          <view class="profile-user__meta">
+            <text class="profile-user__member">{{user.member}}</text>
+            <text wx:if="{{!isHero}}" class="profile-user__cert profile-user__cert--none">未认证</text>
+            <view wx:else class="profile-user__cert profile-user__cert--hero">
+              <text class="profile-user__cert-text">已认证英雄</text>
+            </view>
+          </view>
+        </view>
+        <view class="profile-user__msg" bindtap="onMessages" hover-class="profile-user__msg--active">
+          <image class="profile-user__msg-icon" src="/assets/icons/chat.png" mode="aspectFit" />
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{isHero}}" class="profile-vip" bindtap="onVipCard">
+      <view class="profile-vip__title">航海家<text class="profile-vip__title-gold">权益卡</text></view>
+      <text class="profile-vip__cta">立即开通 ›</text>
+    </view>
+
+    <view wx:if="{{!heroActive}}" class="profile-hero-cta {{heroPending ? 'profile-hero-cta--pending' : ''}} {{(heroRejected || heroDisabled) ? 'profile-hero-cta--rejected' : ''}}">
+      <text class="profile-hero-cta__hint">{{ctaHint}}</text>
+      <view class="profile-hero-cta__btn" bindtap="onApplyHero">{{ctaBtn}}</view>
+    </view>
+
+    <view class="profile-assets">
+      <view class="profile-assets__item" bindtap="onMallAsset" data-name="积分">
+        <text class="profile-assets__num">{{mall.points}}</text>
+        <text class="profile-assets__label">积分</text>
+      </view>
+      <view class="profile-assets__item" bindtap="onMallAsset" data-name="赠品">
+        <text class="profile-assets__num">{{mall.gifts}}</text>
+        <text class="profile-assets__label">赠品</text>
+      </view>
+      <view class="profile-assets__item" bindtap="onMallAsset" data-name="优惠券/码">
+        <text class="profile-assets__num">{{mall.coupons}}</text>
+        <text class="profile-assets__label">优惠券/码</text>
+      </view>
+    </view>
+
+    <view class="profile-orders">
+      <view class="profile-orders__head">
+        <text class="profile-orders__title">我的订单</text>
+        <text class="profile-orders__more">全部订单 ›</text>
+      </view>
+      <view class="profile-orders__grid">
+        <view class="profile-orders__item">
+          <image class="profile-orders__icon" src="/assets/icons/order-pay.png" mode="aspectFit" />
+          <text class="profile-orders__label">待付款</text>
+        </view>
+        <view class="profile-orders__item">
+          <image class="profile-orders__icon" src="/assets/icons/order-ship.png" mode="aspectFit" />
+          <text class="profile-orders__label">待发货</text>
+        </view>
+        <view class="profile-orders__item">
+          <image class="profile-orders__icon" src="/assets/icons/order-receive.png" mode="aspectFit" />
+          <text class="profile-orders__label">待使用/待收货</text>
+        </view>
+        <view class="profile-orders__item">
+          <image class="profile-orders__icon" src="/assets/icons/order-refund.png" mode="aspectFit" />
+          <text class="profile-orders__label">退款/售后</text>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{!heroDisabled}}" class="profile-hero-center">
+      <text class="profile-section__title">服务中心</text>
+      <view class="profile-hero-shortcuts">
+        <view class="profile-hero-shortcuts__row">
+          <view class="profile-hero-shortcuts__item" bindtap="onPublishEntry">
+            <image class="profile-hero-shortcuts__icon" src="/assets/icons/publish.png" mode="aspectFit" />
+            <text class="profile-hero-shortcuts__label">发布招募/课程</text>
+          </view>
+          <view class="profile-hero-shortcuts__item" bindtap="onMyRecruitments">
+            <image class="profile-hero-shortcuts__icon" src="/assets/icons/list.png" mode="aspectFit" />
+            <text class="profile-hero-shortcuts__label">我的招募</text>
+          </view>
+          <view class="profile-hero-shortcuts__item" bindtap="onMyCourses">
+            <image class="profile-hero-shortcuts__icon" src="/assets/icons/book.png" mode="aspectFit" />
+            <text class="profile-hero-shortcuts__label">我的课程</text>
+          </view>
+          <view class="profile-hero-shortcuts__item" bindtap="onHeroProfile">
+            <text wx:if="{{profileChangePending}}" class="profile-hero-shortcuts__badge">审核中</text>
+            <image class="profile-hero-shortcuts__icon" src="/assets/icons/user.png" mode="aspectFit" />
+            <text class="profile-hero-shortcuts__label">修改资料</text>
           </view>
         </view>
       </view>
     </view>
-    <view class="profile-user__stats" wx:if="{{isHero}}">
-      <view class="profile-user__stat profile-user__stat--tap" bindtap="onMyStudents">
-        <text class="profile-user__stat-num">{{hero.student_count}}</text>
-        <text class="profile-user__stat-label">学员</text>
-      </view>
-      <view class="profile-user__stat profile-user__stat--tap" bindtap="onMyRatings">
-        <text class="profile-user__stat-num">{{hero.rating}}</text>
-        <text class="profile-user__stat-label">评分</text>
-      </view>
-      <view class="profile-user__stat profile-user__stat--tap" bindtap="onMyCourses">
-        <text class="profile-user__stat-num">{{hero.course_count}}</text>
-        <text class="profile-user__stat-label">课程</text>
-      </view>
-    </view>
-  </view>
 
-  <view wx:if="{{!isHero}}" class="profile-hero-cta {{heroPending ? 'profile-hero-cta--pending' : ''}} {{heroRejected ? 'profile-hero-cta--rejected' : ''}}">
-    <text class="profile-hero-cta__hint">{{ctaHint}}</text>
-    <view class="profile-hero-cta__btn" bindtap="onApplyHero">{{ctaBtn}}</view>
-  </view>
-
-  <view class="profile-orders">
-    <view class="profile-orders__head">
-      <text class="profile-orders__title">我的订单</text>
-      <text class="profile-orders__more">全部订单 ›</text>
-    </view>
-    <view class="profile-orders__grid">
-      <view class="profile-orders__item">
-        <image class="profile-orders__icon" src="/assets/icons/order-pay.png" mode="aspectFit" />
-        <text class="profile-orders__label">待付款</text>
-      </view>
-      <view class="profile-orders__item">
-        <image class="profile-orders__icon" src="/assets/icons/order-ship.png" mode="aspectFit" />
-        <text class="profile-orders__label">待发货</text>
-      </view>
-      <view class="profile-orders__item">
-        <image class="profile-orders__icon" src="/assets/icons/order-receive.png" mode="aspectFit" />
-        <text class="profile-orders__label">待使用/待收货</text>
-      </view>
-      <view class="profile-orders__item">
-        <image class="profile-orders__icon" src="/assets/icons/order-refund.png" mode="aspectFit" />
-        <text class="profile-orders__label">退款/售后</text>
-      </view>
-    </view>
-  </view>
-
-  <view wx:if="{{isHero}}" class="profile-hero-center">
-    <text class="profile-section__title">服务中心</text>
-    <view class="profile-hero-shortcuts">
-      <view class="profile-hero-shortcuts__row">
-        <view class="profile-hero-shortcuts__item" bindtap="onMyRecruitments">
-          <image class="profile-hero-shortcuts__icon" src="/assets/icons/list.png" mode="aspectFit" />
-          <text class="profile-hero-shortcuts__label">我的招募</text>
+    <view class="profile-section">
+      <view class="profile-section__card">
+        <text class="profile-section__title profile-section__title--in-card">我的服务</text>
+        <view class="profile-menu__item" bindtap="onShoppingCart">
+          <view class="profile-menu__icon">
+            <image class="icon icon--md" src="/assets/icons/shopping.png" mode="aspectFit" />
+          </view>
+          <view class="profile-menu__body">
+            <text class="profile-menu__title">购物车</text>
+          </view>
+          <text class="profile-menu__arrow">›</text>
         </view>
-        <view class="profile-hero-shortcuts__item" bindtap="onMyCourses">
-          <image class="profile-hero-shortcuts__icon" src="/assets/icons/book.png" mode="aspectFit" />
-          <text class="profile-hero-shortcuts__label">我的课程</text>
+        <view class="profile-menu__item" bindtap="onShippingAddress">
+          <view class="profile-menu__icon">
+            <image class="icon icon--md" src="/assets/icons/location.png" mode="aspectFit" />
+          </view>
+          <view class="profile-menu__body">
+            <text class="profile-menu__title">收货地址</text>
+          </view>
+          <text class="profile-menu__arrow">›</text>
         </view>
-        <view class="profile-hero-shortcuts__item" bindtap="onHeroProfile">
-          <image class="profile-hero-shortcuts__icon" src="/assets/icons/user.png" mode="aspectFit" />
-          <text class="profile-hero-shortcuts__label">英雄资料</text>
+        <view class="profile-menu__item" bindtap="onCustomerService">
+          <view class="profile-menu__icon">
+            <image class="icon icon--md" src="/assets/icons/chat.png" mode="aspectFit" />
+          </view>
+          <view class="profile-menu__body">
+            <text class="profile-menu__title">在线客服</text>
+          </view>
+          <text class="profile-menu__arrow">›</text>
+        </view>
+        <view class="profile-menu__item" bindtap="onAccountSettings">
+          <view class="profile-menu__icon">
+            <image class="icon icon--md" src="/assets/icons/user.png" mode="aspectFit" />
+          </view>
+          <view class="profile-menu__body">
+            <text class="profile-menu__title">账号设置</text>
+          </view>
+          <text class="profile-menu__arrow">›</text>
         </view>
       </view>
     </view>
   </view>
 
-  <view class="profile-section">
-    <text class="profile-section__title">我的活动</text>
-    <view class="profile-menu__item" bindtap="onMySignups">
-      <view class="profile-menu__icon">
-        <image class="icon icon--md" src="/assets/icons/list.png" mode="aspectFit" />
+  <view wx:if="{{showRejectDialog}}" class="profile-dialog" catchtouchmove="noop">
+    <view class="profile-dialog__mask" bindtap="onCloseRejectDialog"></view>
+    <view class="profile-dialog__panel">
+      <text class="profile-dialog__title">申请失败</text>
+      <text class="profile-dialog__body">{{rejectReason}}</text>
+      <view class="profile-dialog__actions">
+        <view class="profile-dialog__btn" bindtap="onCloseRejectDialog">取消</view>
+        <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onEditRejectedApply">去修改</view>
       </view>
-      <view class="profile-menu__body">
-        <text class="profile-menu__title">我的报名</text>
-      </view>
-      <text class="profile-menu__arrow">›</text>
     </view>
-    <view class="profile-menu__item" bindtap="onMyReviews">
-      <view class="profile-menu__icon">
-        <image class="icon icon--md" src="/assets/icons/star.png" mode="aspectFit" />
+  </view>
+
+  <view wx:if="{{showDisableDialog}}" class="profile-dialog" catchtouchmove="noop">
+    <view class="profile-dialog__mask" bindtap="onCloseDisableDialog"></view>
+    <view class="profile-dialog__panel">
+      <text class="profile-dialog__title">教练身份禁用</text>
+      <text class="profile-dialog__body">{{disableReason}}</text>
+      <view class="profile-dialog__actions">
+        <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onCloseDisableDialog">知道了</view>
       </view>
-      <view class="profile-menu__body">
-        <text class="profile-menu__title">我的评价</text>
-      </view>
-      <text class="profile-menu__arrow">›</text>
+    </view>
+  </view>
+
+  <view wx:if="{{showPublishSheet}}" class="profile-action-sheet" catchtouchmove="noop">
+    <view class="profile-action-sheet__mask" bindtap="onClosePublishSheet"></view>
+    <view class="profile-action-sheet__panel">
+      <view class="profile-action-sheet__item" bindtap="onPublishRecruitment">发布赛事招募</view>
+      <view class="profile-action-sheet__item" bindtap="onPublishCourse">申请课程</view>
+      <view class="profile-action-sheet__item profile-action-sheet__item--cancel" bindtap="onClosePublishSheet">取消</view>
     </view>
   </view>
 </view>

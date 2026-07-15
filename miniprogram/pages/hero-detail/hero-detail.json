@@ -2,6 +2,7 @@
   "navigationBarTitleText": "英雄详情",
   "usingComponents": {
     "image-viewer": "/components/image-viewer/image-viewer",
-    "hero-share": "/components/hero-share/hero-share"
+    "hero-share": "/components/hero-share/hero-share",
+    "event-card": "/components/event-card/event-card"
   }
 }

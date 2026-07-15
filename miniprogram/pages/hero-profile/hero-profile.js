@@ -1,6 +1,6 @@
 const data = require('../../utils/data.js');
 
-const MY_HERO_ID = '1';
+const FALLBACK_HERO_ID = '1';
 const BIO_STORAGE = 'hero-profile-edit-bio';
 const BIO_RESULT = 'hero-profile-edit-bio-result';
 const MAX_PHOTOS = 9;
@@ -41,9 +41,25 @@ function withMediaIds(list, prefix) {
   });
 }
 
+function yearsLabel(years) {
+  const raw = String(years || '').trim();
+  if (!raw) return '';
+  if (/年/.test(raw)) return /经验/.test(raw) ? raw : `${raw}经验`;
+  return `${raw}年经验`;
+}
+
+function buildSubtitle(hero) {
+  const types = (hero.project_types || []).join(' · ');
+  const years = yearsLabel(hero.years_exp);
+  if (types && years) return `${types} · ${years}`;
+  return types || years;
+}
+
 Page({
   data: {
     hero: null,
+    heroId: FALLBACK_HERO_ID,
+    subtitle: '',
     detailTags: [],
     stars: [],
     aboutMe: '',
@@ -66,6 +82,7 @@ Page({
     dragMomentIndex: -1,
     dragCertIndex: -1,
     maxPhotos: MAX_PHOTOS,
+    submitting: false,
   },
 
   onLoad() {
@@ -73,49 +90,93 @@ Page({
   },
 
   onShow() {
-    this.loadHero();
+    try {
+      const result = wx.getStorageSync(BIO_RESULT);
+      if (result !== '' && result != null) {
+        wx.removeStorageSync(BIO_RESULT);
+        this.setData({ aboutMe: result });
+        return;
+      }
+    } catch (e) {
+      /* ignore */
+    }
+    if (!this.data.hero) this.loadHero();
   },
 
-  persistProfile(extra) {
-    const patch = {
+  buildPatch() {
+    return {
       about_me: this.data.aboutMe,
       past_honors: this.data.honors.map(({ id, ...h }) => h),
       honors_count: this.data.honors.length,
-      moments: this.data.moments.map((m) => (m.isLocal ? m.url : m.url)),
+      moments: this.data.moments.map((m) => m.url),
       certificates: this.data.certificates.map((c) => ({
         name: c.name,
         image: c.image,
       })),
-      ...extra,
     };
-    return data.updateHero(MY_HERO_ID, patch).catch(() => {
-      wx.showToast({ title: '保存失败', icon: 'none' });
-    });
+  },
+
+  resolveHeroId() {
+    return data
+      .getHeroApplyStatus()
+      .then((status) => {
+        if (status?.status === 'approved') {
+          const id = status.hero_id || status.application?.hero_id;
+          if (id) return String(id);
+        }
+        return FALLBACK_HERO_ID;
+      })
+      .catch(() => FALLBACK_HERO_ID);
   },
 
   loadHero() {
-    data.getHeroById(MY_HERO_ID).then((hero) => {
-      if (!hero) {
-        wx.showToast({ title: '资料加载失败', icon: 'none' });
-        return;
-      }
-      const moments = withMediaIds(hero.moments, 'moment');
-      const certificates = withMediaIds(hero.certificates, 'cert');
-      this.setData({
-        hero,
-        detailTags: buildDetailTags(hero),
-        stars: buildStars(hero.rating),
-        aboutMe: hero.about_me || '',
-        honors: withHonorIds(hero.past_honors),
-        moments,
-        certificates,
-        momentUrls: moments.map((m) => m.url),
-        certUrls: certificates.map((c) => c.image),
+    this.resolveHeroId().then((heroId) => {
+      this._heroId = heroId;
+      return data.getHeroById(heroId).then((hero) => {
+        if (!hero) {
+          wx.showToast({ title: '资料加载失败', icon: 'none' });
+          return;
+        }
+        const moments = withMediaIds(hero.moments, 'moment');
+        const certificates = withMediaIds(hero.certificates, 'cert');
+        this.setData({
+          hero: {
+            ...hero,
+            name: hero.nickname || hero.name || '',
+          },
+          heroId,
+          subtitle: buildSubtitle(hero),
+          detailTags: buildDetailTags(hero),
+          stars: buildStars(hero.rating),
+          aboutMe: hero.about_me || hero.bio || '',
+          honors: withHonorIds(hero.past_honors),
+          moments,
+          certificates,
+          momentUrls: moments.map((m) => m.url),
+          certUrls: certificates.map((c) => c.image),
+        });
       });
     });
   },
 
   noop() {},
+
+  onSubmitChange() {
+    if (this.data.submitting) return;
+    const heroId = this._heroId || this.data.heroId || FALLBACK_HERO_ID;
+    this.setData({ submitting: true });
+    data
+      .submitProfileChange(heroId, this.buildPatch(), 'profile')
+      .then(() => {
+        wx.showToast({ title: '已提交审核', icon: 'success' });
+      })
+      .catch(() => {
+        wx.showToast({ title: '提交失败，请检查本地 API', icon: 'none' });
+      })
+      .finally(() => {
+        this.setData({ submitting: false });
+      });
+  },
 
   onEditAbout() {
     wx.setStorageSync(BIO_STORAGE, this.data.aboutMe);
@@ -156,7 +217,6 @@ Page({
         if (!res.confirm) return;
         const honors = this.data.honors.filter((_, i) => i !== index);
         this.setData({ honors });
-        this.persistProfile();
         wx.showToast({ title: '已删除', icon: 'success' });
       },
     });
@@ -188,7 +248,6 @@ Page({
     if (mode === 'edit' && index >= 0) next[index] = item;
     else next.push(item);
     this.setData({ honors: next, 'honorForm.visible': false });
-    this.persistProfile();
     wx.showToast({ title: '已保存', icon: 'success' });
   },
 
@@ -213,7 +272,6 @@ Page({
           moments,
           momentUrls: moments.map((m) => m.url),
         });
-        this.persistProfile();
       },
     });
   },
@@ -222,7 +280,6 @@ Page({
     const { index } = e.currentTarget.dataset;
     const moments = this.data.moments.filter((_, i) => i !== index);
     this.setData({ moments, momentUrls: moments.map((m) => m.url) });
-    this.persistProfile();
   },
 
   onMomentLongPress(e) {
@@ -242,7 +299,6 @@ Page({
       const [item] = moments.splice(from, 1);
       moments.splice(to, 0, item);
       this.setData({ moments, momentUrls: moments.map((m) => m.url) });
-      this.persistProfile();
     }
     this.setData({ dragMomentIndex: -1 });
   },
@@ -271,7 +327,6 @@ Page({
           certificates,
           certUrls: certificates.map((c) => c.image),
         });
-        this.persistProfile();
       },
     });
   },
@@ -280,7 +335,6 @@ Page({
     const { index } = e.currentTarget.dataset;
     const certificates = this.data.certificates.filter((_, i) => i !== index);
     this.setData({ certificates, certUrls: certificates.map((c) => c.image) });
-    this.persistProfile();
   },
 
   onCertLongPress(e) {
@@ -300,7 +354,6 @@ Page({
       const [item] = certificates.splice(from, 1);
       certificates.splice(to, 0, item);
       this.setData({ certificates, certUrls: certificates.map((c) => c.image) });
-      this.persistProfile();
     }
     this.setData({ dragCertIndex: -1 });
   },

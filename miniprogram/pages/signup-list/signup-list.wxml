@@ -1,8 +1,26 @@
-<view class="page sub-page">
-  <text class="sub-page__head">{{recruitTitle}}</text>
+<view class="page signup-list" wx:if="{{isCourseMode}}">
+  <view class="signup-member">
+    <text class="signup-member__head">{{pageTitle}}</text>
+    <view class="signup-member__list">
+      <view class="signup-member__item" wx:for="{{list}}" wx:key="id">
+        <image class="signup-member__avatar" src="{{item.avatar}}" mode="aspectFill" />
+        <view class="signup-member__body">
+          <text class="signup-member__name">{{item.nickname}}</text>
+          <text class="signup-member__phone">{{item.phone}}</text>
+          <text class="signup-member__time">{{item.signedAtText}}</text>
+        </view>
+      </view>
+      <view wx:if="{{list.length === 0}}" class="signup-member__empty">暂无已报名成员</view>
+    </view>
+  </view>
+</view>
+
+<view class="page sub-page" wx:else>
+  <text class="sub-page__head">{{pageTitle}}</text>
   <view class="sub-page__item" wx:for="{{list}}" wx:key="id">
     <text class="sub-page__title">{{item.name}} · {{item.phone}}</text>
     <text class="sub-page__meta">{{item.time}} · {{item.status}}</text>
     <view wx:if="{{item.status === '待确认'}}" class="sub-page__btn" data-id="{{item.id}}" bindtap="onConfirm">确认</view>
   </view>
+  <view wx:if="{{list.length === 0}}" class="signup-member__empty">暂无报名人员</view>
 </view>

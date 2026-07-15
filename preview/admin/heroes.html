@@ -30,6 +30,7 @@
               <option value="冲浪">冲浪</option>
               <option value="皮划艇">皮划艇</option>
               <option value="游艇">游艇</option>
+              <option value="活动">活动</option>
             </select>
           </div>
         </div>
@@ -49,8 +50,8 @@
             <select id="filter-audit-status" class="admin-select admin-select--placeholder">
               <option value="" selected>请选择</option>
               <option value="pending">待审核</option>
-              <option value="approved">通过</option>
-              <option value="rejected">驳回</option>
+              <option value="approved">审核通过</option>
+              <option value="rejected">审核驳回</option>
             </select>
           </div>
         </div>
@@ -88,25 +89,32 @@
                 <th class="admin-table__check">
                   <input type="checkbox" id="suppliers-check-all" aria-label="全选" />
                 </th>
-                <th>供方id</th>
-                <th>供方信息</th>
+                <th>供方ID</th>
+                <th>供方头像和昵称</th>
+                <th>手机号</th>
+                <th>身份证号</th>
                 <th>项目类型</th>
-                <th>常驻城市</th>
                 <th>资质等级</th>
-                <th>从业年限</th>
-                <th>状态</th>
-                <th>审核状态</th>
+                <th>申请渠道</th>
+                <th>入驻审核状态</th>
                 <th>审核人员</th>
                 <th>审核时间</th>
-                <th>申请渠道</th>
-                <th>申请时间</th>
+                <th>创建时间</th>
                 <th class="admin-table__ops">操作</th>
               </tr>
             </thead>
             <tbody id="suppliers-tbody">
-              <tr><td colspan="14" class="admin-table__empty">加载中…</td></tr>
+              <tr><td colspan="13" class="admin-table__empty">加载中…</td></tr>
             </tbody>
           </table>
+        </div>
+        <div class="admin-pagination" id="suppliers-pagination" hidden>
+          <span class="admin-pagination__total" id="suppliers-pagination-total">共 0 条</span>
+          <div class="admin-pagination__controls" role="navigation" aria-label="分页">
+            <button type="button" class="admin-pagination__btn" id="suppliers-page-prev" aria-label="上一页">‹</button>
+            <div class="admin-pagination__pages" id="suppliers-pagination-pages"></div>
+            <button type="button" class="admin-pagination__btn" id="suppliers-page-next" aria-label="下一页">›</button>
+          </div>
         </div>
       </div>
     </div>

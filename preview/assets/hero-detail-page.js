@@ -1,44 +1,10 @@
 /** 英雄详情 · 按 id 渲染，UGC 个人主页风格 */
 (async function () {
-  const COURSES_BY_HERO = {
-    1: ['c1'],
-    2: ['c1'],
-    3: ['c2', 'c3'],
-    4: ['c1'],
-  };
-
-  const COURSE_CATALOG = {
-    c1: {
-      course_id: 'c1',
-      title: 'ASA101-103培训课',
-      timeDisplay: '7月26日 09:00 - 16:30',
-      location: '滴水湖二号码头',
-      fee: 1280,
-      cover_image: 'course.jpg',
-    },
-    c2: {
-      course_id: 'c2',
-      title: '桨板入门体验课',
-      timeDisplay: '7月18日 10:00 - 12:00',
-      location: '太湖桨板营地',
-      fee: 198,
-      cover_image: 'course.jpg',
-    },
-    c3: {
-      course_id: 'c3',
-      title: '潜水基础课程',
-      timeDisplay: '8月10日 09:00 - 17:00',
-      location: '三亚开放水域基地',
-      fee: 2680,
-      cover_image: 'course.jpg',
-    },
-  };
-
   function resolveCourses(hero, heroId) {
-    if (hero.courses && hero.courses.length) return hero.courses;
-    return (COURSES_BY_HERO[heroId] || [])
-      .map((cid) => COURSE_CATALOG[cid])
-      .filter(Boolean);
+    const fromHero = Array.isArray(hero.courses) ? hero.courses : [];
+    if (fromHero.length) return fromHero;
+    const staticCourses = window.HEROES_DATA?.[heroId]?.courses;
+    return Array.isArray(staticCourses) ? staticCourses : [];
   }
 
   function recruitCover(item) {
@@ -53,6 +19,16 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  /** 经验年限展示：选项全文 +「经验」；区间用 —；避免「年年经验」 */
+  function formatYearsExpDisplay(yearsExp) {
+    const raw = String(yearsExp ?? '').trim();
+    if (!raw) return '';
+    let s = raw.replace(/[~～－–—−‐‑﹣]/g, '—').replace(/-/g, '—').replace(/\s*—\s*/g, '—');
+    if (/经验/.test(s)) return s.replace(/执教经验/g, '经验');
+    if (/年/.test(s)) return `${s}经验`;
+    return `${s}年经验`;
   }
 
   /** 荣誉图标：图片路径 / emoji / 默认奖牌 */
@@ -90,8 +66,17 @@
   if (!hero && window.HEROES_DATA) {
     hero = window.HEROES_DATA[id];
   }
-  if (!hero) {
-    root.innerHTML = '<div class="heroes-empty-state" style="display:flex;padding:40px 16px"><div>教练不存在</div></div>';
+  if (!hero || hero.enabled === false) {
+    root.innerHTML =
+      '<div class="hero-detail-missing">' +
+      '<div class="hero-detail-missing__icon" aria-hidden="true">' +
+      '<img src="../assets/icons/empty.png" alt="" width="40" height="40">' +
+      '</div>' +
+      '<div class="hero-detail-missing__title">教练不存在</div>' +
+      '<div class="hero-detail-missing__hint">该教练不存在，可重新返回广场浏览</div>' +
+      '</div>';
+    const titleEl = document.getElementById('navbar-hero-title');
+    if (titleEl) titleEl.textContent = '英雄详情';
     return;
   }
 
@@ -109,11 +94,12 @@
     })
     .join('');
 
-  const subtitle = `${(hero.project_types || []).join(' · ')} · ${hero.years_exp || ''}年经验`;
+  const subtitle = `${(hero.project_types || []).join(' · ')} · ${formatYearsExpDisplay(hero.years_exp)}`;
   const honors = (hero.past_honors || [])
     .map((h) => {
       const name = escapeHtml(h.name || '');
-      const iconHtml = honorIconHtml(h.icon);
+      // 荣誉成就统一奖牌图标
+      const iconHtml = honorIconHtml('');
       return (
         `<div class="hero-detail__honor">` +
         iconHtml +
@@ -125,15 +111,10 @@
     .join('');
 
   const imgBase = '../assets/images/';
-  const momentUrls = (hero.moments || []).slice(0, 10).map((img) => `${imgBase}${img}`);
   const certUrls = (hero.certificates || []).slice(0, 10).map((c) => {
     const item = typeof c === 'string' ? { name: '资质证书', image: c } : c;
     return `${imgBase}${item.image}`;
   });
-
-  const moments = momentUrls
-    .map((url) => `<div class="hero-detail__gallery-item hero-detail__thumb" data-url="${url}" role="button" tabindex="0"><img src="${url}" alt="个人展示"></div>`)
-    .join('');
 
   const certs = (hero.certificates || [])
     .slice(0, 10)
@@ -151,8 +132,50 @@
     return `¥${r.fee}/人`;
   }
 
+  function parseRecruitDate(iso) {
+    if (!iso) return null;
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  /** 报名起止，参考图样式：7月12日 09:30 – 16:00 */
+  function formatSignupTimeRange(startAt, endAt) {
+    const start = parseRecruitDate(startAt);
+    const end = parseRecruitDate(endAt);
+    if (!start) return startAt || '';
+    const pad = (n) => String(n).padStart(2, '0');
+    const dayPart = `${start.getMonth() + 1}月${start.getDate()}日`;
+    const startClock = `${pad(start.getHours())}:${pad(start.getMinutes())}`;
+    if (!end) return `${dayPart} ${startClock}`;
+    const sameDay =
+      start.getFullYear() === end.getFullYear() &&
+      start.getMonth() === end.getMonth() &&
+      start.getDate() === end.getDate();
+    const endClock = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
+    if (sameDay) return `${dayPart} ${startClock} – ${endClock}`;
+    return `${dayPart} ${startClock} – ${end.getMonth() + 1}月${end.getDate()}日 ${endClock}`;
+  }
+
+  function formatRecruitSignup(signed, total) {
+    const s = Number(signed);
+    const t = Number(total);
+    if (Number.isFinite(s) && Number.isFinite(t)) {
+      return `招募名额：${s}/${t}`;
+    }
+    if (Number.isFinite(s)) {
+      return `招募名额：${s}/不限`;
+    }
+    return '';
+  }
+
   const RECRUIT_PREVIEW_LIMIT = 2;
-  const allRecruitments = hero.recruitments || [];
+  const heroRecruitments = Array.isArray(hero.recruitments) ? hero.recruitments : [];
+  const staticRecruitments = window.HEROES_DATA?.[id]?.recruitments;
+  const allRecruitments = heroRecruitments.length
+    ? heroRecruitments
+    : Array.isArray(staticRecruitments)
+      ? staticRecruitments
+      : [];
   const recruitNeedExpand = allRecruitments.length > RECRUIT_PREVIEW_LIMIT;
 
   const recruitments = allRecruitments
@@ -161,29 +184,40 @@
       const isActivity = r.type === 'activity';
       const typeLabel = r.typeLabel || (isActivity ? '活动' : '赛事');
       const tagClass = isActivity ? 'tag--activity' : 'tag--event';
-      const dotClass = isActivity ? ' event-card__dot--activity' : '';
-      const timeText = r.time || r.timeDisplay || '';
+      const signupStart = r.signup_start_at || r.start_at;
+      const signupEnd = r.signup_end_at || r.end_at;
+      const signupTime =
+        r.signupTimeDisplay ||
+        formatSignupTimeRange(signupStart, signupEnd) ||
+        r.timeDisplay ||
+        r.time ||
+        '';
+      const locationPrefix = isActivity ? '活动地点：' : '赛事地点：';
+      const locationText =
+        r.locationDisplay || `${locationPrefix}${r.location || ''}`;
+      const signupText =
+        r.signupDisplay || formatRecruitSignup(r.signed, r.total);
       const collapsed =
         recruitNeedExpand && index >= RECRUIT_PREVIEW_LIMIT
-          ? ' event-card--collapsed'
+          ? ' hero-detail__activity-card--collapsed'
           : '';
       return (
-        `<a class="event-card event-card--hero${collapsed} nav-forward" href="recruitment-detail.html?id=${r.recruit_id}">` +
-        `<div class="event-card__bg"><img src="${imgBase}${cover}" alt="${escapeHtml(r.title || '')}"></div>` +
-        `<div class="event-card__scrim"></div>` +
-        `<div class="event-card__top">` +
-        `<span class="event-card__time"><i class="event-card__dot${dotClass}" aria-hidden="true"></i>${escapeHtml(timeText)}</span>` +
-        `</div>` +
-        `<div class="event-card__bottom">` +
-        `<div class="event-card__info">` +
+        `<a class="hero-detail__activity-card${collapsed} nav-forward" href="recruitment-detail.html?id=${r.recruit_id}">` +
+        `<div class="hero-detail__activity-main">` +
+        `<div class="hero-detail__activity-thumb"><img src="${imgBase}${cover}" alt=""></div>` +
+        `<div class="hero-detail__activity-body">` +
+        `<div class="hero-detail__activity-title-row">` +
+        `<div class="hero-detail__activity-title">${escapeHtml(r.title || '')}</div>` +
         `<span class="tag ${tagClass}">${typeLabel}</span>` +
-        `<div class="event-card__title">${escapeHtml(r.title || '')}</div>` +
-        `<div class="event-card__meta">${escapeHtml(r.location || '')}</div>` +
         `</div>` +
-        `<div class="event-card__footer">` +
-        `<span class="event-card__price">${formatRecruitFee(r)}</span>` +
-        `<span class="event-card__btn">立即报名</span>` +
-        `</div></div></a>`
+        `<div class="hero-detail__activity-meta">${escapeHtml(signupTime)}</div>` +
+        `<div class="hero-detail__activity-meta">${escapeHtml(locationText)}</div>` +
+        `<div class="hero-detail__activity-fee">${formatRecruitFee(r)}</div>` +
+        `</div></div>` +
+        `<div class="hero-detail__activity-footer">` +
+        `<span class="hero-detail__activity-signup">${escapeHtml(signupText)}</span>` +
+        `<span class="hero-detail__activity-btn">立即报名</span>` +
+        `</div></a>`
       );
     })
     .join('');
@@ -196,27 +230,49 @@
     ? `<div class="hero-detail__block"><div class="hero-detail__label-row"><div class="hero-detail__label">活动与赛事</div><div class="hero-detail__label-extra">共${allRecruitments.length}个</div></div><div class="hero-detail__recruit-list">${recruitments}${recruitExpandBtn}</div></div>`
     : '';
 
-  const heroCourses = resolveCourses(hero, id);
+  const COURSE_PREVIEW_LIMIT = 2;
+  const allCourses = resolveCourses(hero, id);
+  const courseNeedExpand = allCourses.length > COURSE_PREVIEW_LIMIT;
 
-  const courses = heroCourses
-    .map((c) => {
+  const courses = allCourses
+    .map((c, index) => {
       const cover = c.cover_image || 'course.jpg';
+      const signupTime = c.signupTimeDisplay || c.timeDisplay || c.time || '';
+      const locationText =
+        c.locationDisplay || `课程地点：${c.location || ''}`;
+      const signupText =
+        c.signupDisplay || formatRecruitSignup(c.signed, c.total);
+      const collapsed =
+        courseNeedExpand && index >= COURSE_PREVIEW_LIMIT
+          ? ' hero-detail__activity-card--collapsed'
+          : '';
       return (
-        `<a class="hero-detail__course-card nav-forward" href="course-detail.html?id=${c.course_id}">` +
-        `<div class="hero-detail__course-thumb"><img src="${imgBase}${cover}" alt="${c.title}"></div>` +
-        `<div class="hero-detail__course-body">` +
-        `<div class="hero-detail__recruit-title">${c.title}</div>` +
-        `<div class="hero-detail__recruit-meta">${c.timeDisplay}</div>` +
-        `<div class="hero-detail__recruit-meta">课程地点：${c.location}</div>` +
-        `<div class="hero-detail__recruit-bottom">` +
-        `<span class="hero-detail__recruit-fee">¥${c.fee}/人</span>` +
-        `</div></div></a>`
+        `<a class="hero-detail__activity-card${collapsed} nav-forward" href="course-detail.html?id=${c.course_id}">` +
+        `<div class="hero-detail__activity-main">` +
+        `<div class="hero-detail__activity-thumb"><img src="${imgBase}${cover}" alt=""></div>` +
+        `<div class="hero-detail__activity-body">` +
+        `<div class="hero-detail__activity-title-row">` +
+        `<div class="hero-detail__activity-title">${escapeHtml(c.title || '')}</div>` +
+        `<span class="tag tag--course">课程</span>` +
+        `</div>` +
+        `<div class="hero-detail__activity-meta">${escapeHtml(signupTime)}</div>` +
+        `<div class="hero-detail__activity-meta">${escapeHtml(locationText)}</div>` +
+        `<div class="hero-detail__activity-fee">${formatRecruitFee(c)}</div>` +
+        `</div></div>` +
+        `<div class="hero-detail__activity-footer">` +
+        `<span class="hero-detail__activity-signup">${escapeHtml(signupText)}</span>` +
+        `<span class="hero-detail__activity-btn">立即报名</span>` +
+        `</div></a>`
       );
     })
     .join('');
 
-  const courseBlock = heroCourses.length
-    ? `<div class="hero-detail__block"><div class="hero-detail__label-row"><div class="hero-detail__label">我的课程</div><div class="hero-detail__label-extra">共${heroCourses.length}门</div></div>${courses}</div>`
+  const courseExpandBtn = courseNeedExpand
+    ? `<button type="button" class="hero-detail__recruit-expand" id="hero-course-expand">展开全部（${allCourses.length - COURSE_PREVIEW_LIMIT}）</button>`
+    : '';
+
+  const courseBlock = allCourses.length
+    ? `<div class="hero-detail__block"><div class="hero-detail__label-row"><div class="hero-detail__label">我的课程</div><div class="hero-detail__label-extra">共${allCourses.length}门</div></div><div class="hero-detail__course-list">${courses}${courseExpandBtn}</div></div>`
     : '';
 
   function showToast(msg, type) {
@@ -253,7 +309,12 @@
   }
 
   function navigateApplyPage(role) {
-    const target = role === 'pending' ? 'hero-apply-submitted.html' : 'hero-apply.html';
+    const params = new URLSearchParams({
+      from: 'hero-detail',
+      hero_id: String(id),
+    });
+    const page = role === 'pending' ? 'hero-apply-submitted.html' : 'hero-apply.html';
+    const target = `${page}?${params.toString()}`;
     if (window.PreviewNav?.navigateTo) {
       window.PreviewNav.navigateTo(target, 'forward');
     } else {
@@ -266,27 +327,30 @@
     document.getElementById('hero-detail-reject-dialog')?.remove();
   }
 
-  function showRejectReasonDialog(reason) {
+  function showRejectedDialog() {
     closeRejectDialog();
-    const text = (reason || '').trim() || '暂无驳回原因';
     const dialog = document.createElement('div');
     dialog.id = 'hero-detail-reject-dialog';
     dialog.className = 'profile-dialog';
     dialog.innerHTML =
       `<div class="profile-dialog__mask" data-dialog-close></div>` +
       `<div class="profile-dialog__panel" role="dialog" aria-modal="true" aria-labelledby="hero-detail-reject-title">` +
-      `<div class="profile-dialog__title" id="hero-detail-reject-title">申请失败</div>` +
-      `<div class="profile-dialog__body">${text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` +
+      `<div class="profile-dialog__title" id="hero-detail-reject-title">温馨提示</div>` +
+      `<div class="profile-dialog__body">您提交的申请被驳回，请前往处理</div>` +
       `<div class="profile-dialog__actions">` +
       `<button type="button" class="profile-dialog__btn profile-dialog__btn--cancel" data-dialog-close>取消</button>` +
-      `<button type="button" class="profile-dialog__btn profile-dialog__btn--primary" data-dialog-edit>去修改</button>` +
+      `<button type="button" class="profile-dialog__btn profile-dialog__btn--primary" data-dialog-handle>去处理</button>` +
       `</div></div>`;
     const shell = root.closest('.mobile-shell') || document.body;
     shell.appendChild(dialog);
     dialog.addEventListener('click', (e) => {
-      if (e.target.closest('[data-dialog-edit]')) {
+      if (e.target.closest('[data-dialog-handle]')) {
         closeRejectDialog();
-        navigateApplyPage('none');
+        if (window.PreviewNav?.navigateTo) {
+          window.PreviewNav.navigateTo('profile.html', 'forward');
+        } else {
+          window.location.href = 'profile.html';
+        }
         return;
       }
       if (e.target.closest('[data-dialog-close]')) closeRejectDialog();
@@ -357,6 +421,31 @@
         `</div></div>`
       : '';
 
+  const personal = hero.personal_showcase;
+  const personalItems = Array.isArray(personal?.items) ? personal.items.slice(0, 10) : [];
+  const personalUrls = personalItems.map((item) => `${imgBase}${item.image || item || 'event.jpg'}`);
+  const personalBlock =
+    personalItems.length
+      ? `<div class="hero-detail__block"><div class="hero-race">` +
+        `<div class="hero-race__head">` +
+        `<img class="hero-race__icon" src="../assets/icons/image.png" alt="">` +
+        `<span class="hero-race__title">个人展示</span></div>` +
+        `<div class="hero-race__intro">${escapeHtml(personal.intro || '')}</div>` +
+        `<div class="hero-race__grid">` +
+        personalItems
+          .map((item, index) => {
+            const img = item.image || item || 'event.jpg';
+            const url = `${imgBase}${img}`;
+            return (
+              `<div class="hero-race__grid-item hero-detail__thumb" data-url="${url}" role="button" tabindex="0">` +
+              `<img src="${url}" alt="${escapeHtml(item.title || `展示${index + 1}`)}">` +
+              `</div>`
+            );
+          })
+          .join('') +
+        `</div></div></div>`
+      : '';
+
   root.innerHTML = `<div class="hero-detail">
   <div class="hero-profile">
     <div class="hero-profile__cover"></div>
@@ -373,13 +462,13 @@
       </div>
     </div>
   </div>
-  <div class="hero-detail__block"><div class="hero-detail__label">关于我</div><div class="hero-detail__bio">${hero.about_me}</div></div>
+  <div class="hero-detail__block"><div class="hero-detail__label">关于我</div><div class="hero-detail__bio">${escapeHtml(String(hero.about_me || '').slice(0, 200))}</div></div>
   <div class="hero-detail__block"><div class="hero-detail__label">荣誉成就</div>${honors}</div>
-  <div class="hero-detail__block"><div class="hero-detail__label">资质证书</div><div class="hero-detail__cert-scroll">${certs}</div></div>
+  <div class="hero-detail__block"><div class="hero-cert"><div class="hero-cert__head"><img class="hero-cert__icon" src="../assets/icons/medal.png" alt=""><span class="hero-cert__title">资质证书</span></div><div class="hero-detail__cert-scroll">${certs}</div></div></div>
   ${teachingBlock}
   ${raceBlock}
-  <div class="hero-detail__block"><div class="hero-detail__label">个人展示</div><div class="hero-detail__gallery">${moments}</div></div>
   ${socialBlock}
+  ${personalBlock}
   ${recruitBlock}
   ${courseBlock}
   <div class="hero-detail__bottom-spacer hero-detail__bottom-spacer--cta"></div>
@@ -398,14 +487,26 @@
     });
   }
 
-  bindGallery('.hero-detail__gallery .hero-detail__thumb', momentUrls);
+  bindGallery('.hero-race__grid .hero-detail__thumb', personalUrls);
   bindGallery('.hero-detail__cert-scroll .hero-detail__thumb', certUrls);
 
   document.getElementById('hero-recruit-expand')?.addEventListener('click', (e) => {
     e.preventDefault();
-    root.querySelectorAll('.event-card--collapsed').forEach((el) => {
-      el.classList.remove('event-card--collapsed');
-    });
+    root
+      .querySelectorAll('.hero-detail__recruit-list .hero-detail__activity-card--collapsed')
+      .forEach((el) => {
+        el.classList.remove('hero-detail__activity-card--collapsed');
+      });
+    e.currentTarget.remove();
+  });
+
+  document.getElementById('hero-course-expand')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    root
+      .querySelectorAll('.hero-detail__course-list .hero-detail__activity-card--collapsed')
+      .forEach((el) => {
+        el.classList.remove('hero-detail__activity-card--collapsed');
+      });
     e.currentTarget.remove();
   });
 
@@ -432,11 +533,11 @@
       return;
     }
     if (role === 'pending') {
-      navigateApplyPage('pending');
+      showToast('您的申请在审核中，无需重复提交');
       return;
     }
     if (role === 'rejected') {
-      showRejectReasonDialog(status.reject_reason);
+      showRejectedDialog();
       return;
     }
     navigateApplyPage('none');

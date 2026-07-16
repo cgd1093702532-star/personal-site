@@ -2,6 +2,9 @@
 (function () {
   const PREVIEW_SMS_CODE = '666666';
   const imgBase = '../assets/images/';
+  const pageParams = new URLSearchParams(window.location.search);
+  const returnFrom = pageParams.get('from') || '';
+  const returnHeroId = pageParams.get('hero_id') || '';
   const yearsOptions = ['1-3年', '3-5年', '5-10年', '10年+'];
   const certOptions = ['国家级教练', '省级教练', 'ACA认证', 'ISA认证', '其他'];
   const PRESET_CERT_LIST = certOptions.filter((item) => item !== '其他');
@@ -771,10 +774,17 @@
       } catch (_) {
         /* ignore */
       }
+      const submittedParams = new URLSearchParams();
+      if (returnFrom === 'hero-detail') {
+        submittedParams.set('from', 'hero-detail');
+        if (returnHeroId) submittedParams.set('hero_id', returnHeroId);
+      }
+      const submittedQuery = submittedParams.toString();
+      const submittedTarget = `hero-apply-submitted.html${submittedQuery ? `?${submittedQuery}` : ''}`;
       if (window.PreviewNav?.navigateTo) {
-        window.PreviewNav.navigateTo('hero-apply-submitted.html', 'forward', { replace: true });
+        window.PreviewNav.navigateTo(submittedTarget, 'forward', { replace: true });
       } else {
-        window.location.href = 'hero-apply-submitted.html';
+        window.location.href = submittedTarget;
       }
     } catch (err) {
       const code = err?.payload?.error || err?.message || '';

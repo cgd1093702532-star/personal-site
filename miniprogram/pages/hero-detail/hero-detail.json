@@ -3,6 +3,6 @@
   "usingComponents": {
     "image-viewer": "/components/image-viewer/image-viewer",
     "hero-share": "/components/hero-share/hero-share",
-    "event-card": "/components/event-card/event-card"
+    "category-tag": "/components/category-tag/category-tag"
   }
 }

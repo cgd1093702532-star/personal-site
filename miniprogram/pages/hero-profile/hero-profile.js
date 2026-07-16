@@ -44,8 +44,9 @@ function withMediaIds(list, prefix) {
 function yearsLabel(years) {
   const raw = String(years || '').trim();
   if (!raw) return '';
-  if (/年/.test(raw)) return /经验/.test(raw) ? raw : `${raw}经验`;
-  return `${raw}年经验`;
+  let s = raw.replace(/[~～－–—−‐‑﹣]/g, '—').replace(/-/g, '—').replace(/\s*—\s*/g, '—');
+  if (/年/.test(s)) return /经验/.test(s) ? s : `${s}经验`;
+  return `${s}年经验`;
 }
 
 function buildSubtitle(hero) {

@@ -58,17 +58,21 @@
   const DEFAULT_RECRUIT_SIGNUPS = [
     {
       id: 'rs1',
+      nickname: '张三',
       name: '张三',
       phone: '13800001111',
-      time: '2026-07-08 10:20',
+      avatar: 'avatar-user.jpg',
+      signed_at: '2026-07-08T10:20:00',
       status: '待确认',
       title: '企业家杯月赛',
     },
     {
       id: 'rs2',
+      nickname: '李四',
       name: '李四',
       phone: '13900002222',
-      time: '2026-07-07 16:05',
+      avatar: 'avatar-user.jpg',
+      signed_at: '2026-07-07T16:05:00',
       status: '已确认',
       title: '企业家杯月赛',
     },
@@ -117,6 +121,7 @@
       avatar: avatarSrc(raw.avatar || raw.avatar_img || ''),
       signedAtText: formatSignedAt(raw.signed_at || raw.created_at || raw.time),
       signed_at: raw.signed_at || raw.created_at || raw.time || '',
+      status: raw.status || '',
     };
   }
 
@@ -148,83 +153,79 @@
     if (!items.length) {
       items = DEFAULT_RECRUIT_SIGNUPS.filter((s) => !title || title === '招募报名' || s.title === title);
     }
-    return items;
+    return sortBySignedAtDesc(items.map(normalizeMember));
   }
 
-  function renderCourseMembers(title, list) {
-    const head = escapeHtml(title || '课程报名');
-    const nav = document.getElementById('navbar-signup-title');
-    if (nav) nav.textContent = '已报名成员';
-    document.title = `${head} · 已报名成员`;
-
-    const rows = list.length
-      ? list
-          .map(
-            (item) =>
-              `<article class="signup-member__item">` +
-              `<img class="signup-member__avatar" src="${escapeHtml(item.avatar)}" alt="">` +
-              `<div class="signup-member__body">` +
-              `<div class="signup-member__name">${escapeHtml(item.nickname)}</div>` +
-              `<div class="signup-member__phone">${escapeHtml(item.phone)}</div>` +
-              `<div class="signup-member__time">${escapeHtml(item.signedAtText)}</div>` +
-              `</div></article>`,
-          )
-          .join('')
-      : `<div class="signup-member__empty">暂无已报名成员</div>`;
-
-    root.innerHTML =
-      `<div class="signup-member">` +
-      `<div class="signup-member__head">${head}</div>` +
-      `<div class="signup-member__list">${rows}</div>` +
-      `</div>`;
+  function renderMemberRows(list, { showConfirm }) {
+    if (!list.length) {
+      return `<div class="signup-member__empty">${showConfirm ? '暂无报名人员' : '暂无已报名成员'}</div>`;
+    }
+    return list
+      .map((item) => {
+        const status =
+          showConfirm && item.status
+            ? `<div class="signup-member__status">${escapeHtml(item.status)}</div>`
+            : '';
+        const action =
+          showConfirm && item.status === '待确认'
+            ? `<button type="button" class="signup-member__confirm" data-confirm="${escapeHtml(item.id)}">确认</button>`
+            : '';
+        return (
+          `<article class="signup-member__item" data-id="${escapeHtml(item.id)}">` +
+          `<img class="signup-member__avatar" src="${escapeHtml(item.avatar)}" alt="">` +
+          `<div class="signup-member__body">` +
+          `<div class="signup-member__name">${escapeHtml(item.nickname)}</div>` +
+          `<div class="signup-member__phone">${escapeHtml(item.phone)}</div>` +
+          `<div class="signup-member__time">${escapeHtml(item.signedAtText)}</div>` +
+          status +
+          `</div>` +
+          action +
+          `</article>`
+        );
+      })
+      .join('');
   }
 
-  function renderRecruitList(title, list) {
-    const head = escapeHtml(title || '招募报名');
-    root.innerHTML =
-      `<div class="sub-page signup-list-preview">` +
-      `<div class="sub-page__head">${head}</div>` +
-      (list.length
-        ? list
-            .map(
-              (item) =>
-                `<div class="sub-page__item" data-id="${escapeHtml(item.id)}">` +
-                `<div class="sub-page__title">${escapeHtml(item.name)} · ${escapeHtml(item.phone)}</div>` +
-                `<div class="sub-page__meta">${escapeHtml(item.time || item.signedAtText || '')} · ${escapeHtml(item.status || '')}</div>` +
-                (item.status === '待确认'
-                  ? `<button type="button" class="sub-page__btn" data-confirm="${escapeHtml(item.id)}">确认</button>`
-                  : '') +
-                `</div>`,
-            )
-            .join('')
-        : `<div class="signup-member__empty">暂无报名人员</div>`) +
-      `</div>`;
-
+  function bindConfirmActions() {
     root.querySelectorAll('[data-confirm]').forEach((btn) => {
       btn.addEventListener('click', () => {
         if (window.PreviewToast) window.PreviewToast.show('已确认', 'success');
         else window.alert('已确认');
-        btn.closest('.sub-page__item')?.querySelector('.sub-page__meta')?.replaceChildren(
-          document.createTextNode(
-            `${btn.closest('.sub-page__item')?.querySelector('.sub-page__meta')?.textContent?.replace(/·.*/, '') || ''}· 已确认`.replace(
-              /\s*·\s*/,
-              ' · ',
-            ),
-          ),
-        );
+        const item = btn.closest('.signup-member__item');
+        const statusEl = item?.querySelector('.signup-member__status');
+        if (statusEl) statusEl.textContent = '已确认';
         btn.remove();
       });
     });
   }
 
+  function renderMemberPage(title, list, { navTitle, showConfirm }) {
+    const head = escapeHtml(title || (showConfirm ? '招募报名' : '课程报名'));
+    const nav = document.getElementById('navbar-signup-title');
+    if (nav) nav.textContent = navTitle;
+    document.title = `${title || navTitle} · ${navTitle}`;
+    root.innerHTML =
+      `<div class="signup-member">` +
+      `<div class="signup-member__head">${head}</div>` +
+      `<div class="signup-member__list">${renderMemberRows(list, { showConfirm })}</div>` +
+      `</div>`;
+    if (showConfirm) bindConfirmActions();
+  }
+
   async function init() {
     if (courseId) {
       const list = await loadCourseMembers(courseId);
-      renderCourseMembers(recruitTitle || '课程报名', list);
+      renderMemberPage(recruitTitle || '课程报名', list, {
+        navTitle: '已报名成员',
+        showConfirm: false,
+      });
       return;
     }
     const list = await loadRecruitSignups(recruitTitle);
-    renderRecruitList(recruitTitle || '招募报名', list);
+    renderMemberPage(recruitTitle || '招募报名', list, {
+      navTitle: '报名人员',
+      showConfirm: true,
+    });
   }
 
   init();

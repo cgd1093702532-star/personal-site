@@ -213,6 +213,8 @@ Page({
 
   onLoad(options) {
     this._heroId = null;
+    this._returnFrom = options?.from || '';
+    this._returnHeroId = options?.hero_id || '';
     this._showcaseSectionSeq = 1;
     const isEdit = options?.mode === 'edit';
     this.setData({
@@ -982,7 +984,13 @@ Page({
       .submitHeroApply(application)
       .then(() => {
         wx.setStorageSync('mock_hero_role', 'pending');
-        wx.redirectTo({ url: '/pages/hero-apply-submitted/hero-apply-submitted' });
+        const returnQuery =
+          this._returnFrom === 'hero-detail'
+            ? `?from=hero-detail&hero_id=${encodeURIComponent(this._returnHeroId || '1')}`
+            : '';
+        wx.redirectTo({
+          url: `/pages/hero-apply-submitted/hero-apply-submitted${returnQuery}`,
+        });
       })
       .catch((err) => {
         const code = (err && err.message) || '';

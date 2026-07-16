@@ -21,7 +21,8 @@ alwaysApply: false
    当前需覆盖：`state-guest`（未登录，预览 `?guest=1`）、`state-none` / `pending` / `rejected`（含 dialog）/ `approved` / `disabled`（含 dialog）。
 3. **文档内嵌图与描述对齐**：§2 各状态小节下的 `![...](./images/profile/...)` 与正文描述对应；§3 / §4 的交叉引用不要链到过时小节。
 4. **同步预览侧文档**：`python3 preview/build-pages.py`，确保 `preview/docs/...` 与截图一并更新。
-5. **变更记录**：在 `个人中心.md` §7 追加一行（日期 + 改了什么）。
+5. **同步总览大全**：若改了弹框/Toast，按 `preview-overview-gallery-sync.mdc` 更新（可合并到当天一次，或最迟在推 GitHub 前做完）。
+6. **变更记录**：在 `个人中心.md` §7 追加一行（日期 + 改了什么）。
 
 ## 一致性标准
 

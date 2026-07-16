@@ -1,0 +1,80 @@
+{
+  "description": "需求文档配图登记表。右侧预览依赖 Markdown 的 ![alt](path)；若被收成纯文字，检查脚本可修复，预览也会按 alt 兜底出图。",
+  "entries": [
+    {
+      "doc": "英雄详情.md",
+      "alt": "教练不存在空态",
+      "src": "./images/hero-detail/state-missing.png"
+    },
+    {
+      "doc": "英雄详情.md",
+      "alt": "个人展示 · 视频（单条 + 右下角时长）",
+      "src": "./images/hero-detail/personal-showcase-video.png"
+    },
+    {
+      "doc": "英雄详情.md",
+      "alt": "英雄详情底栏 · 未认证状态",
+      "src": "./images/hero-detail/footer-unverified.png"
+    },
+    {
+      "doc": "英雄详情.md",
+      "alt": "英雄详情底栏 · 已认证状态",
+      "src": "./images/hero-detail/footer-approved.png"
+    },
+    {
+      "doc": "英雄广场.md",
+      "alt": "搜索无结果",
+      "src": "./images/heroes/state-search-empty.png"
+    },
+    {
+      "doc": "英雄广场.md",
+      "alt": "广场暂无数据",
+      "src": "./images/heroes/state-plaza-empty.png"
+    },
+    {
+      "doc": "英雄广场.md",
+      "alt": "搜索有结果 · 结果提示",
+      "src": "./images/heroes/state-search-result-hint.png"
+    },
+    {
+      "doc": "个人中心.md",
+      "alt": "未登录状态预览",
+      "src": "./images/profile/state-guest.png"
+    },
+    {
+      "doc": "个人中心.md",
+      "alt": "未申请状态预览",
+      "src": "./images/profile/state-none.png"
+    },
+    {
+      "doc": "个人中心.md",
+      "alt": "审核中状态预览",
+      "src": "./images/profile/state-pending.png"
+    },
+    {
+      "doc": "个人中心.md",
+      "alt": "已驳回状态预览",
+      "src": "./images/profile/state-rejected.png"
+    },
+    {
+      "doc": "个人中心.md",
+      "alt": "已驳回 · 查看原因弹窗",
+      "src": "./images/profile/state-rejected-dialog.png"
+    },
+    {
+      "doc": "个人中心.md",
+      "alt": "已认证可用状态预览",
+      "src": "./images/profile/state-approved.png"
+    },
+    {
+      "doc": "个人中心.md",
+      "alt": "禁用状态预览",
+      "src": "./images/profile/state-disabled.png"
+    },
+    {
+      "doc": "个人中心.md",
+      "alt": "禁用 · 查看原因弹窗",
+      "src": "./images/profile/state-disabled-dialog.png"
+    }
+  ]
+}

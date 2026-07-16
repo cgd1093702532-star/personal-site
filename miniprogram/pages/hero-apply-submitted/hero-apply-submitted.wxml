@@ -7,6 +7,6 @@
     <text class="apply-submitted__desc">预计 1-7 个工作日完成审核，审核通过后会发送通知告知。</text>
   </view>
   <view class="apply-submitted__footer">
-    <view class="apply-submitted__btn" bindtap="onBackProfile">返回个人中心</view>
+    <view class="apply-submitted__btn" bindtap="onBack">{{backText}}</view>
   </view>
 </view>

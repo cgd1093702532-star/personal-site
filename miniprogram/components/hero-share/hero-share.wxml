@@ -1,19 +1,12 @@
 <view class="share-sheet" wx:if="{{visible}}" catchtouchmove="noop">
   <view class="share-sheet__mask" bindtap="onClose"></view>
   <view class="share-sheet__panel" catchtap="noop">
-    <text class="share-sheet__title">分享到</text>
     <view class="share-sheet__options">
       <button class="share-sheet__option share-sheet__option--btn" open-type="share" bindtap="onClose">
-        <view class="share-sheet__icon-wrap">
-          <image class="share-sheet__icon" src="/assets/icons/chat.png" mode="aspectFit" />
-        </view>
-        <text class="share-sheet__label">分享给好友</text>
+        <text class="share-sheet__label">分享好友</text>
       </button>
       <view class="share-sheet__option" bindtap="onPosterTap">
-        <view class="share-sheet__icon-wrap">
-          <image class="share-sheet__icon" src="/assets/icons/image.png" mode="aspectFit" />
-        </view>
-        <text class="share-sheet__label">分享海报</text>
+        <text class="share-sheet__label">海报</text>
       </view>
     </view>
     <view class="share-sheet__cancel" bindtap="onClose">取消</view>
@@ -22,11 +15,21 @@
 
 <view class="poster-modal" wx:if="{{posterVisible}}" catchtouchmove="noop">
   <view class="poster-modal__mask" bindtap="onClosePoster"></view>
-  <view class="poster-modal__body" catchtap="noop">
-    <image class="poster-modal__img" src="{{posterPath}}" mode="widthFix" show-menu-by-longpress />
-    <view class="poster-modal__actions">
-      <view class="poster-modal__btn" bindtap="onSavePoster">保存到相册</view>
-      <view class="poster-modal__btn poster-modal__btn--primary" bindtap="onSharePosterImage">分享给好友</view>
+  <view class="poster-modal__body" bindtap="onClosePoster">
+    <image class="poster-modal__img" src="{{posterPath}}" mode="widthFix" show-menu-by-longpress catchtap="noop" />
+    <view class="poster-modal__actions" catchtap="noop">
+      <view class="poster-modal__btn" bindtap="onSharePosterImage">
+        <view class="poster-modal__action-icon poster-modal__action-icon--share">
+          <image src="/assets/icons/chat.png" mode="aspectFit" />
+        </view>
+        <text>分享给好友</text>
+      </view>
+      <view class="poster-modal__btn" bindtap="onSavePoster">
+        <view class="poster-modal__action-icon poster-modal__action-icon--save">
+          <image src="/assets/icons/image.png" mode="aspectFit" />
+        </view>
+        <text>保存海报</text>
+      </view>
     </view>
   </view>
 </view>

@@ -131,7 +131,7 @@ HERO_DETAIL_1 = {
     "name": "小哥",
     "avatar_img": "hero-1.jpg",
     "rating": 4.9,
-    "years_exp": 15,
+    "years_exp": "10-15年",
     "student_count": 128,
     "honors_count": 3,
     "project_types": ["帆船", "游艇"],
@@ -186,6 +186,21 @@ HERO_DETAIL_1 = {
             "推动航海教育普及",
             "培养新一代航海人才",
             "倡导海洋环境保护理念",
+        ],
+    },
+    "personal_showcase": {
+        "intro": "小哥教练的个人展示，记录教学与航海日常中的精彩瞬间：",
+        "items": [
+            {"title": "帆船教学现场", "image": "hero-1.jpg"},
+            {"title": "学员出海练习", "image": "hero-2.jpg"},
+            {"title": "赛事训练日", "image": "event.jpg"},
+            {"title": "课程合影", "image": "course.jpg"},
+            {"title": "码头整备瞬间", "image": "recruit-cover.jpg"},
+            {"title": "湖上航行", "image": "banner.jpg"},
+            {"title": "亲子体验", "image": "news-1.jpg"},
+            {"title": "证书展示", "image": "cert.jpg"},
+            {"title": "团队合练", "image": "hero-1.jpg"},
+            {"title": "赛后复盘", "image": "event.jpg"},
         ],
     },
 }
@@ -267,7 +282,9 @@ ALL_HEROES = {
         "years_exp": 8,
         "student_count": 86,
         "honors_count": 2,
-        "enabled": True,
+        # 演示详情 §2.2：广场列表仍可见，详情按已禁用/删除处理
+        "enabled": False,
+        "stale_list_demo": True,
         "project_types": ["皮划艇", "桨板"],
         "honor_titles": ["省级皮划艇教练", "8年执教经验"],
         "cert_badges": ["省级教练", "ACA认证", "救生员证"],
@@ -292,6 +309,8 @@ COURSE_CATALOG = {
         "timeDisplay": "7月26日 09:00 - 16:30",
         "location": "滴水湖二号码头",
         "fee": 1280,
+        "signed": 10,
+        "total": 16,
         "cover_image": "course.jpg",
     },
     "c2": {
@@ -300,6 +319,8 @@ COURSE_CATALOG = {
         "timeDisplay": "7月18日 10:00 - 12:00",
         "location": "太湖桨板营地",
         "fee": 198,
+        "signed": 5,
+        "total": 12,
         "cover_image": "course.jpg",
     },
     "c3": {
@@ -308,6 +329,8 @@ COURSE_CATALOG = {
         "timeDisplay": "8月10日 09:00 - 17:00",
         "location": "三亚开放水域基地",
         "fee": 2680,
+        "signed": 3,
+        "total": 8,
         "cover_image": "course.jpg",
     },
     "c4": {
@@ -316,6 +339,8 @@ COURSE_CATALOG = {
         "timeDisplay": "7月19日 09:30 - 11:30",
         "location": "淀山湖皮划艇基地",
         "fee": 268,
+        "signed": 4,
+        "total": 10,
         "cover_image": "course.jpg",
     },
     "c5": {
@@ -324,6 +349,8 @@ COURSE_CATALOG = {
         "timeDisplay": "8月2日 09:00 - 16:00",
         "location": "金鸡湖帆船码头",
         "fee": 880,
+        "signed": 7,
+        "total": 12,
         "cover_image": "course.jpg",
     },
     "c6": {
@@ -332,6 +359,8 @@ COURSE_CATALOG = {
         "timeDisplay": "8月15日 08:30 - 17:00",
         "location": "青岛奥帆中心",
         "fee": 1680,
+        "signed": 5,
+        "total": 8,
         "cover_image": "course.jpg",
     },
 }
@@ -358,8 +387,9 @@ RECRUITMENTS_BY_HERO = {
             "location": "滴水湖二号码头",
             "fee": 500,
             "feeDisplay": "500",
-            "signed": 12,
-            "total": 20,
+            "signed": 0,
+            "total": 16,
+            "signupDisplay": "招募名额：0/16",
             "cover_image": "event.jpg",
             "time": "06/08 (周六) 09:00-16:00",
         },
@@ -374,8 +404,9 @@ RECRUITMENTS_BY_HERO = {
             "location": "滴水湖二号码头",
             "fee": 1280,
             "feeDisplay": "1,280",
-            "signed": 8,
-            "total": 16,
+            "signed": 3,
+            "total": None,
+            "signupDisplay": "招募名额：3/不限",
             "cover_image": "banner.jpg",
             "time": "06/08 (周六) 09:00-16:00",
         },
@@ -559,10 +590,15 @@ def format_recruit_time_range(start_at: str, end_at: str) -> str:
     return f"{start_part}-{end_part}"
 
 
-def format_recruit_signup(signed: int, total: int) -> str:
-    if signed >= total:
-        return f"已满 {total} 名，可继续报名"
-    return f"共招募 {total} 名，已报 {signed} 名"
+def format_recruit_signup(signed, total) -> str:
+    if total is None or total == "" or str(total).strip() in ("不限", "unlimited"):
+        return f"招募名额：{signed}/不限"
+    try:
+        total_n = int(total)
+        signed_n = int(signed)
+    except (TypeError, ValueError):
+        return f"招募名额：{signed}/{total}"
+    return f"招募名额：{signed_n}/{total_n}"
 
 
 def format_recruit_fee_display(fee) -> str:
@@ -582,13 +618,34 @@ for hero_id, items in RECRUITMENTS_BY_HERO.items():
             or item.get("timeDisplay")
             or format_recruit_time_range(item["start_at"], item["end_at"]),
             "feeDisplay": item.get("feeDisplay") or format_recruit_fee_display(item.get("fee")),
-            "signupDisplay": format_recruit_signup(item["signed"], item["total"]),
+            # 统一从人数真值生成，禁止旧 signupDisplay 把新格式覆盖回去
+            "signupDisplay": format_recruit_signup(item.get("signed"), item.get("total")),
         }
         for item in items
     ]
 
 for hero_id, course_ids in COURSES_BY_HERO.items():
-    ALL_HEROES[hero_id]["courses"] = [COURSE_CATALOG[cid] for cid in course_ids]
+    ALL_HEROES[hero_id]["courses"] = [
+        {
+            **COURSE_CATALOG[cid],
+            "feeDisplay": format_recruit_fee_display(COURSE_CATALOG[cid].get("fee")),
+            "signupDisplay": format_recruit_signup(
+                COURSE_CATALOG[cid].get("signed"),
+                COURSE_CATALOG[cid].get("total"),
+            ),
+        }
+        for cid in course_ids
+    ]
+
+# 防回退：详情页活动/赛事/课程必须保留统一卡片所需数据与文案
+for hero_id, hero in ALL_HEROES.items():
+    for item in [*(hero.get("recruitments") or []), *(hero.get("courses") or [])]:
+        signup_display = str(item.get("signupDisplay") or "")
+        if not signup_display.startswith("招募名额："):
+            raise ValueError(
+                f"hero {hero_id} item {item.get('recruit_id') or item.get('course_id')} "
+                f"signupDisplay 格式回退：{signup_display!r}"
+            )
 
 def truncate_label(text, max_len=6):
     s = str(text or "")
@@ -858,9 +915,12 @@ def render(
     _aside_ver = int(_aside_js.stat().st_mtime) if _aside_js.is_file() else 0
     _nav_js = ASSETS / "preview-page-nav.js"
     _nav_ver = int(_nav_js.stat().st_mtime) if _nav_js.is_file() else 0
+    _gallery_js = ASSETS / "preview-dialog-gallery.js"
+    _gallery_ver = int(_gallery_js.stat().st_mtime) if _gallery_js.is_file() else 0
     doc_script = (
         f'\n  <script src="../assets/preview-doc-aside.js?v={_aside_ver}"></script>'
         f'\n  <script src="../assets/preview-page-nav.js?v={_nav_ver}"></script>'
+        f'\n  <script src="../assets/preview-dialog-gallery.js?v={_gallery_ver}"></script>'
     )
     if "preview-doc-aside.js" in overlays:
         doc_script = ""
@@ -1230,8 +1290,10 @@ PLAZA_HEROES_MOCK_JS = r"""
 /** 英雄广场列表 mock（首页 / 广场页共用） */
 window.listPlazaHeroesMock = function listPlazaHeroesMock() {
   const data = window.HEROES_DATA || {};
-  return Object.keys(data).map(function (id) {
+  return Object.keys(data)
+    .map(function (id) {
     const h = data[id] || {};
+    if (h.enabled === false && !h.stale_list_demo) return null;
     const recruitments = Array.isArray(h.recruitments) ? h.recruitments : [];
     const courses = Array.isArray(h.courses) ? h.courses : [];
     const nested = [];
@@ -1257,6 +1319,7 @@ window.listPlazaHeroesMock = function listPlazaHeroesMock() {
       hero_id: id,
       id: id,
       enabled: h.enabled !== false,
+      stale_list_demo: !!h.stale_list_demo,
       name: h.name,
       nickname: h.nickname || h.name,
       avatar: h.avatar_img || h.avatar || '',
@@ -1274,7 +1337,8 @@ window.listPlazaHeroesMock = function listPlazaHeroesMock() {
       events: recruitments,
       courses: courses,
     };
-  });
+  })
+    .filter(Boolean);
 };
 """
 
@@ -1357,5 +1421,20 @@ _check = ROOT.parent / "scripts" / "check-preview-page-nav.py"
 _r = subprocess.run([sys.executable, str(_check)], cwd=str(ROOT.parent))
 if _r.returncode != 0:
     raise SystemExit(_r.returncode)
+
+_img_check = ROOT.parent / "scripts" / "check-doc-images.py"
+# 先自动修复「纯文字 / 粘连 alt」配图语法，再校验并写出预览兜底映射
+_r_fix = subprocess.run(
+    [sys.executable, str(_img_check), "--fix"],
+    cwd=str(ROOT.parent),
+)
+if _r_fix.returncode != 0:
+    raise SystemExit(_r_fix.returncode)
+_r2 = subprocess.run(
+    [sys.executable, str(_img_check), "--write-preview-map"],
+    cwd=str(ROOT.parent),
+)
+if _r2.returncode != 0:
+    raise SystemExit(_r2.returncode)
 
 print("ok", len(tab_pages) + len(sub_pages))

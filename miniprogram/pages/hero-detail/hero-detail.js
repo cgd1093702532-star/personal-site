@@ -14,10 +14,28 @@ function buildDetailTags(hero) {
   return tags.slice(0, 3);
 }
 
+function formatYearsExpDisplay(yearsExp) {
+  const raw = String(yearsExp ?? '').trim();
+  if (!raw) return '';
+  let s = raw.replace(/[~～－–—−‐‑﹣]/g, '—').replace(/-/g, '—').replace(/\s*—\s*/g, '—');
+  if (/经验/.test(s)) return s.replace(/执教经验/g, '经验');
+  if (/年/.test(s)) return `${s}经验`;
+  return `${s}年经验`;
+}
+
+function buildProfileSubtitle(hero) {
+  const types = (hero.project_types || []).join(' · ');
+  const years = formatYearsExpDisplay(hero.years_exp);
+  if (types && years) return `${types} · ${years}`;
+  return types || years || '';
+}
+
 Page({
   data: {
     hero: null,
+    missing: false,
     heroId: '',
+    profileSubtitle: '',
     detailTags: [],
     stars: [],
     recruitments: [],
@@ -25,7 +43,11 @@ Page({
     showRecruitExpand: false,
     recruitExpandCount: 0,
     courses: [],
+    coursesAll: [],
+    showCourseExpand: false,
+    courseExpandCount: 0,
     momentUrls: [],
+    personalShowcaseItems: [],
     certUrls: [],
     viewerVisible: false,
     viewerUrls: [],
@@ -39,32 +61,44 @@ Page({
   onLoad(options) {
     const heroId = options.id || '1';
     const hero = mock.getHeroById(heroId);
-    if (!hero) {
-      wx.showToast({ title: '教练不存在', icon: 'none' });
+    // 不存在或已禁用：对齐需求 §2.2，主体不渲染
+    if (!hero || hero.enabled === false) {
+      this.setData({ missing: true, hero: null, heroId });
+      wx.setNavigationBarTitle({ title: '英雄详情' });
       return;
     }
     wx.setNavigationBarTitle({ title: hero.name });
     wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
     const certUrls = (hero.certificates || []).map((c) => c.image);
-    const recruitPreviewLimit = 2;
+    const personalItems = ((hero.personal_showcase && hero.personal_showcase.items) || []).slice(0, 10);
+    const personalShowcaseItems = personalItems.map((item) => item.image || item);
+    const previewLimit = 2;
     const recruitmentsAll = mock.getRecruitmentsByHeroId(heroId);
-    const showRecruitExpand = recruitmentsAll.length > recruitPreviewLimit;
+    const showRecruitExpand = recruitmentsAll.length > previewLimit;
+    const coursesAll = mock.getCoursesByHeroId(heroId);
+    const showCourseExpand = coursesAll.length > previewLimit;
+    const aboutMe = String(hero.about_me || '').slice(0, 200);
     this.setData({
-      hero,
+      hero: { ...hero, about_me: aboutMe },
       heroId,
+      profileSubtitle: buildProfileSubtitle(hero),
       detailTags: buildDetailTags(hero),
       stars: buildStars(hero.rating),
       momentUrls: hero.moments || [],
+      personalShowcaseItems,
       certUrls,
       recruitmentsAll,
       recruitments: showRecruitExpand
-        ? recruitmentsAll.slice(0, recruitPreviewLimit)
+        ? recruitmentsAll.slice(0, previewLimit)
         : recruitmentsAll,
       showRecruitExpand,
       recruitExpandCount: showRecruitExpand
-        ? recruitmentsAll.length - recruitPreviewLimit
+        ? recruitmentsAll.length - previewLimit
         : 0,
-      courses: mock.getCoursesByHeroId(heroId),
+      coursesAll,
+      courses: showCourseExpand ? coursesAll.slice(0, previewLimit) : coursesAll,
+      showCourseExpand,
+      courseExpandCount: showCourseExpand ? coursesAll.length - previewLimit : 0,
     });
     this.refreshApplyBtn();
   },
@@ -121,6 +155,11 @@ Page({
     this.openViewer(this.data.momentUrls, current);
   },
 
+  onPreviewPersonal(e) {
+    const { current } = e.currentTarget.dataset;
+    this.openViewer(this.data.personalShowcaseItems, current);
+  },
+
   onPreviewCert(e) {
     const { current } = e.currentTarget.dataset;
     this.openViewer(this.data.certUrls, current);
@@ -147,6 +186,13 @@ Page({
     });
   },
 
+  onExpandCourses() {
+    this.setData({
+      courses: this.data.coursesAll,
+      showCourseExpand: false,
+    });
+  },
+
   onCourseTap(e) {
     const { id } = e.currentTarget.dataset;
     wx.navigateTo({ url: `/pages/course-detail/course-detail?id=${id}` });
@@ -160,17 +206,19 @@ Page({
         return;
       }
       if (status === 'pending') {
-        wx.navigateTo({ url: '/pages/hero-apply-submitted/hero-apply-submitted' });
-        return;
-      }
-      if (status === 'rejected') {
-        this.setData({
-          rejectReason: (res.reject_reason || '').trim() || '暂无驳回原因',
-          showRejectDialog: true,
+        wx.showToast({
+          title: '您的申请在审核中，无需重复提交',
+          icon: 'none',
         });
         return;
       }
-      wx.navigateTo({ url: '/pages/hero-apply/hero-apply' });
+      if (status === 'rejected') {
+        this.setData({ showRejectDialog: true });
+        return;
+      }
+      wx.navigateTo({
+        url: `/pages/hero-apply/hero-apply?from=hero-detail&hero_id=${this.data.heroId}`,
+      });
     });
   },
 
@@ -178,9 +226,9 @@ Page({
     this.setData({ showRejectDialog: false });
   },
 
-  onEditRejectedApply() {
+  onHandleRejectedApply() {
     this.setData({ showRejectDialog: false });
-    wx.navigateTo({ url: '/pages/hero-apply/hero-apply' });
+    wx.switchTab({ url: '/pages/profile/profile' });
   },
 
   noop() {},

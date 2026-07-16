@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": ".cursor/hooks/fix-doc-images.sh"
+      },
+      {
+        "command": ".cursor/hooks/track-overview-gallery.sh"
+      }
+    ]
+  }
+}

@@ -13,7 +13,7 @@
     </view>
   </view>
 
-  <view class="heroes-banner" wx:if="{{!keyword}}">
+  <view class="heroes-banner" wx:if="{{!keyword && heroes.length > 0}}">
     <image class="heroes-banner__img" src="/assets/images/heroes-banner.png" mode="aspectFill" />
   </view>
 

@@ -25,10 +25,11 @@
   function yearsHonor(hero) {
     const y = hero.years_exp;
     if (y == null || y === '') return '';
-    const s = String(y).trim();
+    let s = String(y).trim();
     if (!s) return '';
+    s = s.replace(/[~～－–—−‐‑﹣]/g, '—').replace(/-/g, '—').replace(/\s*—\s*/g, '—');
     if (/经验/.test(s)) return s.replace(/执教经验/, '经验');
-    if (/年/.test(s)) return s.includes('经验') ? s : `${s.replace(/年.*/, '年')}经验`;
+    if (/年/.test(s)) return s.includes('经验') ? s : `${s}经验`;
     return `${s}年经验`;
   }
 
@@ -230,7 +231,7 @@
   function loadFromMock() {
     const heroes =
       typeof window.listPlazaHeroesMock === 'function'
-        ? window.listPlazaHeroesMock().filter((h) => h && h.enabled !== false)
+        ? window.listPlazaHeroesMock().filter((h) => h && (h.enabled !== false || h.stale_list_demo))
         : [];
     if (!heroes.length) {
       // 无 mock 时保留 HTML 静态兜底

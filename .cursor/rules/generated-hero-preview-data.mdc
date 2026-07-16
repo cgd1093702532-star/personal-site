@@ -1,0 +1,13 @@
+---
+description: 英雄详情预览数据由 build-pages.py 生成，禁止只改生成文件造成回退
+alwaysApply: true
+---
+
+# 英雄详情生成数据防回退
+
+- `preview/assets/heroes-data.js` 是生成文件，真源是 `preview/build-pages.py`。
+- 修改英雄详情的活动、赛事、课程字段时，必须先改 `build-pages.py` 中的 `RECRUITMENTS_BY_HERO`、`COURSE_CATALOG`、`COURSES_BY_HERO` 或对应格式化函数。
+- 禁止只改 `heroes-data.js`；运行 `python3 preview/build-pages.py` 后改动必须仍存在。
+- 活动、赛事、课程卡片的人数文案统一为 `招募名额：已报/总额`，无上限为 `招募名额：已报/不限`。
+- 每位配置了课程的英雄必须在详情页保留「我的课程」及课程卡；API 无列表数据时回退到生成数据。
+- 改完必须重建并检查英雄 1–4：活动/赛事为统一横卡、课程存在、所有人数文案均以 `招募名额：` 开头。

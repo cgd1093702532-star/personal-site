@@ -1,10 +1,20 @@
-<view class="page hero-detail" wx:if="{{hero}}">
+<view class="page hero-detail hero-detail--missing" wx:if="{{missing}}">
+  <view class="hero-detail-missing">
+    <view class="hero-detail-missing__icon" aria-hidden="true">
+      <image class="hero-detail-missing__icon-img" src="/assets/icons/empty.png" mode="aspectFit" />
+    </view>
+    <text class="hero-detail-missing__title">教练不存在</text>
+    <text class="hero-detail-missing__hint">该教练不存在，可重新返回广场浏览</text>
+  </view>
+</view>
+
+<view class="page hero-detail" wx:elif="{{hero}}">
   <view class="hero-profile">
     <view class="hero-profile__cover"></view>
     <view class="hero-profile__main">
       <view class="hero-profile__avatar cover-placeholder"></view>
       <text class="hero-profile__name">{{hero.name}}</text>
-      <text class="hero-profile__subtitle">{{hero.project_types.join(' · ')}} · {{hero.years_exp}}年经验</text>
+      <text class="hero-profile__subtitle">{{profileSubtitle}}</text>
       <view class="hero-profile__rating">
         <view class="hero-profile__stars">
           <text
@@ -44,7 +54,7 @@
     <text class="hero-detail__label">荣誉成就</text>
     <view class="hero-detail__honor" wx:for="{{hero.past_honors}}" wx:key="name">
       <view class="hero-detail__honor-icon">
-        <image class="hero-detail__honor-icon-img" src="{{item.icon}}" mode="aspectFit" />
+        <image class="hero-detail__honor-icon-img" src="/assets/icons/medal.png" mode="aspectFit" />
       </view>
       <view class="hero-detail__honor-body">
         <text class="hero-detail__honor-name">{{item.name}}</text>
@@ -53,19 +63,24 @@
   </view>
 
   <view class="hero-detail__block" wx:if="{{hero.certificates.length}}">
-    <text class="hero-detail__label">资质证书</text>
-    <scroll-view class="hero-detail__cert-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
-      <view
-        class="hero-detail__cert-card"
-        wx:for="{{hero.certificates}}"
-        wx:key="name"
-        data-current="{{item.image}}"
-        bindtap="onPreviewCert"
-      >
-        <view class="hero-detail__cert-img cover-placeholder"></view>
-        <text class="hero-detail__cert-name">{{item.name}}</text>
+    <view class="hero-cert">
+      <view class="hero-cert__head">
+        <image class="hero-cert__icon" src="/assets/icons/medal.png" mode="aspectFit" />
+        <text class="hero-cert__title">资质证书</text>
       </view>
-    </scroll-view>
+      <scroll-view class="hero-detail__cert-scroll" scroll-x enable-flex show-scrollbar="{{false}}">
+        <view
+          class="hero-detail__cert-card"
+          wx:for="{{hero.certificates}}"
+          wx:key="name"
+          data-current="{{item.image}}"
+          bindtap="onPreviewCert"
+        >
+          <view class="hero-detail__cert-img cover-placeholder"></view>
+          <text class="hero-detail__cert-name">{{item.name}}</text>
+        </view>
+      </scroll-view>
+    </view>
   </view>
 
   <view class="hero-detail__block" wx:if="{{hero.teaching_philosophy && hero.teaching_philosophy.points.length}}">
@@ -105,19 +120,6 @@
     </view>
   </view>
 
-  <view class="hero-detail__block" wx:if="{{hero.moments.length}}">
-    <text class="hero-detail__label">个人展示</text>
-    <view class="hero-detail__gallery">
-      <view
-        class="hero-detail__gallery-item cover-placeholder"
-        wx:for="{{hero.moments}}"
-        wx:key="*this"
-        data-current="{{item}}"
-        bindtap="onPreviewMoment"
-      ></view>
-    </view>
-  </view>
-
   <view class="hero-detail__block" wx:if="{{hero.social_showcase && hero.social_showcase.points.length}}">
     <view class="hero-social">
       <view class="hero-social__head">
@@ -132,18 +134,60 @@
     </view>
   </view>
 
+  <view class="hero-detail__block" wx:if="{{personalShowcaseItems.length}}">
+    <view class="hero-race">
+      <view class="hero-race__head">
+        <image class="hero-race__icon" src="/assets/icons/image.png" mode="aspectFit" />
+        <text class="hero-race__title">个人展示</text>
+      </view>
+      <text class="hero-race__intro" wx:if="{{hero.personal_showcase.intro}}">{{hero.personal_showcase.intro}}</text>
+      <view class="hero-race__grid">
+        <view
+          class="hero-race__grid-item"
+          wx:for="{{personalShowcaseItems}}"
+          wx:key="*this"
+          data-current="{{item}}"
+          bindtap="onPreviewPersonal"
+        >
+          <view class="hero-race__grid-img cover-placeholder"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <view class="hero-detail__block" wx:if="{{recruitmentsAll.length}}">
     <view class="hero-detail__label-row">
       <text class="hero-detail__label">活动与赛事</text>
       <text class="hero-detail__label-extra">共{{recruitmentsAll.length}}个</text>
     </view>
     <view class="hero-detail__recruit-list">
-      <event-card
+      <view
+        class="hero-detail__activity-card"
         wx:for="{{recruitments}}"
         wx:key="recruit_id"
-        item="{{item}}"
-        bind:tap="onRecruitmentTap"
-      />
+        data-id="{{item.recruit_id}}"
+        bindtap="onRecruitmentTap"
+      >
+        <view class="hero-detail__activity-main">
+          <view class="hero-detail__activity-thumb cover-placeholder hero-detail__activity-thumb--{{index % 3}}"></view>
+          <view class="hero-detail__activity-body">
+            <view class="hero-detail__activity-title-row">
+              <text class="hero-detail__activity-title">{{item.title}}</text>
+              <category-tag
+                label="{{item.typeLabel}}"
+                variant="{{item.type === 'activity' ? 'activity' : 'event'}}"
+              />
+            </view>
+            <text class="hero-detail__activity-meta">{{item.signupTimeDisplay}}</text>
+            <text class="hero-detail__activity-meta">{{item.locationDisplay}}</text>
+            <text class="hero-detail__activity-fee">¥{{item.feeDisplay || item.fee}}/人</text>
+          </view>
+        </view>
+        <view class="hero-detail__activity-footer">
+          <text class="hero-detail__activity-signup">{{item.signupDisplay}}</text>
+          <view class="hero-detail__activity-btn">立即报名</view>
+        </view>
+      </view>
       <view
         wx:if="{{showRecruitExpand}}"
         class="hero-detail__recruit-expand"
@@ -152,27 +196,41 @@
     </view>
   </view>
 
-  <view class="hero-detail__block" wx:if="{{courses.length}}">
+  <view class="hero-detail__block" wx:if="{{coursesAll.length}}">
     <view class="hero-detail__label-row">
       <text class="hero-detail__label">我的课程</text>
-      <text class="hero-detail__label-extra">共{{courses.length}}门</text>
+      <text class="hero-detail__label-extra">共{{coursesAll.length}}门</text>
     </view>
-    <view
-      class="hero-detail__course-card"
-      wx:for="{{courses}}"
-      wx:key="course_id"
-      data-id="{{item.course_id}}"
-      bindtap="onCourseTap"
-    >
-      <view class="hero-detail__course-thumb cover-placeholder hero-detail__course-thumb--{{index % 3}}"></view>
-      <view class="hero-detail__course-body">
-        <text class="hero-detail__recruit-title">{{item.title}}</text>
-        <text class="hero-detail__recruit-meta">{{item.timeDisplay}}</text>
-        <text class="hero-detail__recruit-meta">课程地点：{{item.location}}</text>
-        <view class="hero-detail__recruit-bottom">
-          <text class="hero-detail__recruit-fee">¥{{item.fee}}/人</text>
+    <view class="hero-detail__course-list">
+      <view
+        class="hero-detail__activity-card"
+        wx:for="{{courses}}"
+        wx:key="course_id"
+        data-id="{{item.course_id}}"
+        bindtap="onCourseTap"
+      >
+        <view class="hero-detail__activity-main">
+          <view class="hero-detail__activity-thumb cover-placeholder hero-detail__activity-thumb--{{index % 3}}"></view>
+          <view class="hero-detail__activity-body">
+            <view class="hero-detail__activity-title-row">
+              <text class="hero-detail__activity-title">{{item.title}}</text>
+              <category-tag label="课程" variant="course" />
+            </view>
+            <text class="hero-detail__activity-meta">{{item.signupTimeDisplay}}</text>
+            <text class="hero-detail__activity-meta">{{item.locationDisplay}}</text>
+            <text class="hero-detail__activity-fee">¥{{item.feeDisplay || item.fee}}/人</text>
+          </view>
+        </view>
+        <view class="hero-detail__activity-footer">
+          <text class="hero-detail__activity-signup">{{item.signupDisplay}}</text>
+          <view class="hero-detail__activity-btn">立即报名</view>
         </view>
       </view>
+      <view
+        wx:if="{{showCourseExpand}}"
+        class="hero-detail__recruit-expand"
+        bindtap="onExpandCourses"
+      >展开全部（{{courseExpandCount}}）</view>
     </view>
   </view>
 
@@ -190,11 +248,11 @@
 <view wx:if="{{showRejectDialog}}" class="profile-dialog">
   <view class="profile-dialog__mask" bindtap="onCloseRejectDialog"></view>
   <view class="profile-dialog__panel" catchtap="noop">
-    <text class="profile-dialog__title">申请失败</text>
-    <text class="profile-dialog__body">{{rejectReason}}</text>
+    <text class="profile-dialog__title">温馨提示</text>
+    <text class="profile-dialog__body">您提交的申请被驳回，请前往处理</text>
     <view class="profile-dialog__actions">
       <view class="profile-dialog__btn profile-dialog__btn--cancel" bindtap="onCloseRejectDialog">取消</view>
-      <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onEditRejectedApply">去修改</view>
+      <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onHandleRejectedApply">去处理</view>
     </view>
   </view>
 </view>

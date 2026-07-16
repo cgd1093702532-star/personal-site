@@ -1,6 +1,7 @@
 const data = require('../../utils/data.js');
 
 const REASON_FALLBACK = '您的英雄身份当前不可用，可联系客服处理';
+const DISABLE_REASON_FALLBACK = '您的英雄身份不可用，具体原因可联系客服处理';
 
 const CTA = {
   none: {
@@ -16,7 +17,7 @@ const CTA = {
     btn: '查看原因',
   },
   disabled: {
-    hint: '您的英雄身份当前不可用，可联系客服处理',
+    hint: '您的英雄身份不可用，可联系客服处理',
     btn: '查看原因',
   },
 };
@@ -50,6 +51,11 @@ Page({
     return text || REASON_FALLBACK;
   },
 
+  disableReasonOrFallback(reason) {
+    const text = String(reason || '').trim();
+    return text || DISABLE_REASON_FALLBACK;
+  },
+
   loadProfile() {
     data.getHeroApplyStatus().then((res) => {
       const mockRole = res.status;
@@ -74,7 +80,7 @@ Page({
           heroRejected: false,
           profileChangePending: !disabled && !!res.profile_change_pending,
           rejectReason: '',
-          disableReason: this.reasonOrFallback(res.disable_reason),
+          disableReason: this.disableReasonOrFallback(res.disable_reason),
           ctaHint: disabled ? CTA.disabled.hint : CTA.none.hint,
           ctaBtn: disabled ? CTA.disabled.btn : CTA.none.btn,
           hero,
@@ -151,7 +157,7 @@ Page({
       const status = res.status;
       if (status === 'approved' && res.hero_enabled === false) {
         this.setData({
-          disableReason: this.reasonOrFallback(res.disable_reason),
+          disableReason: this.disableReasonOrFallback(res.disable_reason),
           showDisableDialog: true,
         });
         return;

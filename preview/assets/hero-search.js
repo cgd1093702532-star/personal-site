@@ -166,11 +166,13 @@
     return rows;
   }
 
-  function updateBannerVisibility() {
+  function updateBannerVisibility(hasList) {
     if (!banner) return;
     const searching = input.value.trim().length > 0;
-    banner.hidden = searching;
-    banner.style.display = searching ? 'none' : '';
+    // 搜索中、或列表加载失败/空数据：不显示 banner
+    const hide = searching || !hasList;
+    banner.hidden = hide;
+    banner.style.display = hide ? 'none' : '';
   }
 
   function updateClearButton() {
@@ -237,7 +239,7 @@
 
     updateClearButton();
     updateSearchStatus(keyword, visible.length);
-    updateBannerVisibility();
+    updateBannerVisibility(visible.length > 0);
     updateFilterBtn();
   }
 

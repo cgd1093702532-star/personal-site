@@ -5,10 +5,11 @@ function truncateLabel(text, maxLen = 6) {
 
 function yearsHonorText(yearsExp) {
   if (yearsExp == null || yearsExp === '') return '';
-  const y = String(yearsExp).trim();
+  let y = String(yearsExp).trim();
   if (!y) return '';
+  y = y.replace(/[~～－–—−‐‑﹣]/g, '—').replace(/-/g, '—').replace(/\s*—\s*/g, '—');
   if (/经验/.test(y)) return y.replace(/^(\d+)\s*年执教经验$/, '$1年经验').replace(/执教经验/, '经验');
-  if (/年/.test(y)) return y.includes('经验') ? y : `${y.replace(/年.*/, '年')}经验`;
+  if (/年/.test(y)) return y.includes('经验') ? y : `${y}经验`;
   return `${y}年经验`;
 }
 

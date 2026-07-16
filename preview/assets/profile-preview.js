@@ -5,6 +5,7 @@
 
   const imgBase = '../assets/images/';
   const REASON_FALLBACK = '您的英雄身份当前不可用，可联系客服处理';
+  const DISABLE_REASON_FALLBACK = '您的英雄身份不可用，具体原因可联系客服处理';
 
   function showToast(msg, type) {
     if (window.PreviewToast) window.PreviewToast.show(msg, type || 'none', 2000);
@@ -235,7 +236,7 @@
     let btn = '申请成为英雄';
     let cls = '';
     if (state.disabled) {
-      hint = '您的英雄身份当前不可用，可联系客服处理';
+      hint = '您的英雄身份不可用，可联系客服处理';
       btn = '查看原因';
       cls = ' profile-hero-cta--rejected';
     } else if (state.pending) {
@@ -288,11 +289,12 @@
     const dialog = document.createElement('div');
     dialog.id = 'profile-disable-dialog';
     dialog.className = 'profile-dialog';
+    const body = String(reason || '').trim() || DISABLE_REASON_FALLBACK;
     dialog.innerHTML = `
       <div class="profile-dialog__mask" data-dialog-close></div>
       <div class="profile-dialog__panel" role="dialog" aria-modal="true">
-        <div class="profile-dialog__title">教练身份禁用</div>
-        <div class="profile-dialog__body">${escapeHtml(reasonOrFallback(reason))}</div>
+        <div class="profile-dialog__title">英雄身份禁用</div>
+        <div class="profile-dialog__body">${escapeHtml(body)}</div>
         <div class="profile-dialog__actions">
           <button type="button" class="profile-dialog__btn profile-dialog__btn--primary" data-dialog-close>知道了</button>
         </div>

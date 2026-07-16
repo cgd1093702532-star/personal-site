@@ -152,7 +152,7 @@
   <view wx:if="{{showDisableDialog}}" class="profile-dialog" catchtouchmove="noop">
     <view class="profile-dialog__mask" bindtap="onCloseDisableDialog"></view>
     <view class="profile-dialog__panel">
-      <text class="profile-dialog__title">教练身份禁用</text>
+      <text class="profile-dialog__title">英雄身份禁用</text>
       <text class="profile-dialog__body">{{disableReason}}</text>
       <view class="profile-dialog__actions">
         <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onCloseDisableDialog">知道了</view>

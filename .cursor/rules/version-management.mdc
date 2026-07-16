@@ -20,10 +20,15 @@ alwaysApply: true
 ## 发布流程（必须按顺序）
 
 1. 完成网站修改，本地预览确认
-2. `git add` → `git commit`（commit message 说明变更）
-3. `git push origin main`，等待 GitHub Actions 部署成功
-4. 验证线上 URL 返回 HTTP 200：https://cgd1093702532-star.github.io/personal-site/
-5. **仅在线上确认成功后**：
+2. **推送前同步与检查（硬门槛）**  
+   - 若本窗口改过弹框/Toast：按 `preview-overview-gallery-sync.mdc` 更新总览大全（可合并当天多次改动一次做完）  
+   - `python3 scripts/check-overview-gallery-ready.py`（须 OK；有脏标记则先同步）  
+   - `python3 scripts/check-doc-images.py --fix` 再 `python3 scripts/check-doc-images.py`（须 OK）  
+   - 按需 `python3 preview/build-pages.py`
+3. `git add` → `git commit`（commit message 说明变更）
+4. `git push origin main`，等待 GitHub Actions 部署成功
+5. 验证线上 URL 返回 HTTP 200：https://cgd1093702532-star.github.io/personal-site/
+6. **仅在线上确认成功后**：
    - 按 SemVer 更新 `VERSION`
    - 在 `docs/版本发布日志.md` 顶部追加新版本条目（含日期、变更摘要、Git 标签、提交 hash）
    - `git tag vX.Y.Z` 并 `git push origin vX.Y.Z`
@@ -37,12 +42,13 @@ alwaysApply: true
 
 ## 禁止
 
+- 未做推送前同步/检查就 push（尤其总览大全、配图语法）
 - 未验证线上可访问就更新发布日志
 - 跳过 `VERSION` 或发布日志直接打 tag
 - 用户未要求时主动 push
 
 ## 用户常用指令
 
-- 「推送到 GitHub」→ 执行发布流程 2~5
+- 「推送到 GitHub」→ **先做流程第 2 步同步检查**，再执行 3~6
 - 「发布 v1.0.1」→ 使用指定版本号
 - 「查看版本日志」→ 读取 `docs/版本发布日志.md`

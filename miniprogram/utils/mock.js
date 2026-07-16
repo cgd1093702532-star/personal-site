@@ -28,13 +28,13 @@ const heroes = [
     avatar_img: 'hero-1.jpg',
     enabled: true,
     rating: 4.9,
-    project_types: ['浆板', '帆船'],
+    project_types: ['帆船', '游艇'],
     certification_level: 'ASA帆船认证教练',
     honor_titles: ['ASA帆船认证教练'],
     cert_badges: ['ASA认证', 'ACA认证', '救生员证'],
-    years_exp: 15,
+    years_exp: '10-15年',
     student_count: 128,
-    bio: 'ASA帆船认证教练，15年水上运动教学经验。',
+    bio: 'ASA帆船认证教练，10—15年水上运动教学经验。',
     honors_count: 3,
     recruitments: [
       { type: 'event', status: '招募中', title: '企业家杯月赛', target_id: 'r1', quota_text: '招募8人' },
@@ -114,7 +114,9 @@ const heroes = [
     nickname: '阿海',
     avatar: 'hero-1.jpg',
     avatar_img: 'hero-1.jpg',
-    enabled: true,
+    // 演示 §2.2：列表仍可能看到（进入广场时已拉到），详情按已删除/禁用处理
+    enabled: false,
+    stale_list_demo: true,
     rating: 4.7,
     project_types: ['皮划艇', '桨板'],
     certification_level: '省级教练',
@@ -188,6 +190,21 @@ const HERO_EXTRA = {
         '倡导海洋环境保护理念',
       ],
     },
+    personal_showcase: {
+      intro: '小哥教练的个人展示，记录教学与航海日常中的精彩瞬间：',
+      items: [
+        { title: '帆船教学现场', image: 'hero-1.jpg' },
+        { title: '学员出海练习', image: 'hero-2.jpg' },
+        { title: '赛事训练日', image: 'event.jpg' },
+        { title: '课程合影', image: 'course.jpg' },
+        { title: '码头整备瞬间', image: 'recruit-cover.jpg' },
+        { title: '湖上航行', image: 'banner.jpg' },
+        { title: '亲子体验', image: 'news-1.jpg' },
+        { title: '证书展示', image: 'cert.jpg' },
+        { title: '团队合练', image: 'hero-1.jpg' },
+        { title: '赛后复盘', image: 'event.jpg' },
+      ],
+    },
   },
   '2': {
     about_me:
@@ -197,6 +214,14 @@ const HERO_EXTRA = {
       { icon: '/assets/icons/boat.png', name: '浆板入门金牌讲师', summary: '入门课好评率领先' },
     ],
     moments: ['hero-2.jpg', 'event.jpg', 'course.jpg'],
+    personal_showcase: {
+      intro: '熊猫教练的个人展示：',
+      items: [
+        { title: '浆板教学', image: 'hero-2.jpg' },
+        { title: '湖畔体验课', image: 'event.jpg' },
+        { title: '课程现场', image: 'course.jpg' },
+      ],
+    },
     certificates: [
       { name: 'ASA帆船认证', image: 'cert.jpg' },
       { name: '救生员证', image: 'cert.jpg' },
@@ -211,6 +236,13 @@ const HERO_EXTRA = {
       { icon: '/assets/icons/surf.png', name: '桨板体验课讲师', summary: '亲子课口碑优秀' },
     ],
     moments: ['hero-1.jpg', 'course.jpg'],
+    personal_showcase: {
+      intro: 'Amy 教练的个人展示：',
+      items: [
+        { title: '桨板入门课', image: 'hero-1.jpg' },
+        { title: '潜水体验', image: 'course.jpg' },
+      ],
+    },
     certificates: [
       { name: 'PADI潜水证', image: 'cert.jpg' },
       { name: 'ACA桨板证', image: 'cert.jpg' },
@@ -225,6 +257,15 @@ const HERO_EXTRA = {
       { icon: '/assets/icons/wave.png', name: '冲浪入门推广人', summary: '推广冲浪安全教学' },
     ],
     moments: ['hero-2.jpg', 'hero-1.jpg', 'event.jpg', 'recruit-cover.jpg', 'course.jpg', 'news-1.jpg'],
+    personal_showcase: {
+      intro: '大伟教练的个人展示：',
+      items: [
+        { title: '竞技训练', image: 'hero-2.jpg' },
+        { title: '冲浪教学', image: 'hero-1.jpg' },
+        { title: '带队参赛', image: 'event.jpg' },
+        { title: '码头整备', image: 'recruit-cover.jpg' },
+      ],
+    },
     certificates: [
       { name: '国家级教练证', image: 'cert.jpg' },
       { name: '救生员证', image: 'cert.jpg' },
@@ -240,6 +281,14 @@ const HERO_EXTRA = {
       { icon: '/assets/icons/trophy.png', name: '城市巡游活动主理人', summary: '多次组织百人级巡游' },
     ],
     moments: ['hero-1.jpg', 'event.jpg', 'course.jpg'],
+    personal_showcase: {
+      intro: '阿海教练的个人展示：',
+      items: [
+        { title: '皮划艇巡游', image: 'hero-1.jpg' },
+        { title: '亲子体验课', image: 'event.jpg' },
+        { title: '桨板入门', image: 'course.jpg' },
+      ],
+    },
     certificates: [
       { name: '省级教练证', image: 'cert.jpg' },
       { name: '救生员证', image: 'cert.jpg' },
@@ -292,12 +341,13 @@ const events = [
     location: '滴水湖二号码头',
     fee: 500,
     feeDisplay: '500',
-    signed: 12,
-    total: 20,
+    signed: 0,
+    total: 16,
     status: 'recruiting',
     statusLabel: '招募中',
     time: '06/08 (周六) 09:00-16:00',
     timeDisplay: '06/08 (周六) 09:00-16:00',
+    signupDisplay: '招募名额：0/16',
     cover_images: ['recruit-cover.jpg'],
   },
   {
@@ -312,12 +362,13 @@ const events = [
     location: '滴水湖二号码头',
     fee: 1280,
     feeDisplay: '1,280',
-    signed: 8,
-    total: 16,
+    signed: 3,
+    total: null,
     status: 'recruiting',
     statusLabel: '报名中',
     time: '06/08 (周六) 09:00-16:00',
     timeDisplay: '06/08 (周六) 09:00-16:00',
+    signupDisplay: '招募名额：3/不限',
     cover_images: ['banner.jpg'],
     tags: ['亲子友好', '含装备', '小班教学'],
     description:
@@ -433,17 +484,17 @@ const events = [
     type: 'activity',
     typeLabel: '活动',
     title: '周末帆船体验营',
-    start_at: '2026-06-14T09:00:00',
-    end_at: '2026-06-14T16:00:00',
-    location: '滴水湖二号码头',
+    start_at: '2026-07-12T09:30:00',
+    end_at: '2026-07-12T16:00:00',
+    location: '滴水湖帆船基地',
     fee: 680,
     feeDisplay: '680',
-    signed: 9,
+    signed: 8,
     total: 16,
     status: 'recruiting',
     statusLabel: '招募中',
-    time: '06/14 (周日) 09:00-16:00',
-    timeDisplay: '06/14 (周日) 09:00-16:00',
+    time: '07/12 (周日) 09:30-16:00',
+    timeDisplay: '07/12 (周日) 09:30-16:00',
     cover_images: ['recruit-cover.jpg'],
   },
   {
@@ -779,11 +830,36 @@ function formatRecruitmentTimeRange(startAt, endAt) {
   return `${startPart}-${pad(end.getMonth() + 1)}/${pad(end.getDate())} ${pad(end.getHours())}:${pad(end.getMinutes())}`;
 }
 
-function formatRecruitmentSignup(signed, total) {
-  if (signed >= total) {
-    return `已满 ${total} 名，可继续报名`;
+/** 报名起止：与参考图一致，如「7月12日 09:30 – 16:00」 */
+function formatSignupTimeRange(startAt, endAt) {
+  const start = parseRecruitmentDate(startAt);
+  const end = parseRecruitmentDate(endAt);
+  if (!start) return startAt || '';
+  const pad = (n) => String(n).padStart(2, '0');
+  const dayPart = `${start.getMonth() + 1}月${start.getDate()}日`;
+  const startClock = `${pad(start.getHours())}:${pad(start.getMinutes())}`;
+  if (!end) return `${dayPart} ${startClock}`;
+  const sameDay =
+    start.getFullYear() === end.getFullYear() &&
+    start.getMonth() === end.getMonth() &&
+    start.getDate() === end.getDate();
+  const endClock = `${pad(end.getHours())}:${pad(end.getMinutes())}`;
+  if (sameDay) {
+    return `${dayPart} ${startClock} – ${endClock}`;
   }
-  return `共招募 ${total} 名，已报 ${signed} 名`;
+  return `${dayPart} ${startClock} – ${end.getMonth() + 1}月${end.getDate()}日 ${endClock}`;
+}
+
+function formatRecruitmentSignup(signed, total) {
+  const signedCount = Number(signed);
+  const totalCount = Number(total);
+  if (Number.isFinite(signedCount) && Number.isFinite(totalCount)) {
+    return `招募名额：${signedCount}/${totalCount}`;
+  }
+  if (Number.isFinite(signedCount)) {
+    return `招募名额：${signedCount}/不限`;
+  }
+  return '';
 }
 
 function coverImageSrc(path, prefix = '/assets/images/') {
@@ -840,13 +916,21 @@ function getRecruitmentsByHeroId(heroId) {
       const feeDisplay =
         e.feeDisplay ||
         (e.fee != null ? String(e.fee).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '');
+      const typeLabel = e.typeLabel || (e.type === 'activity' ? '活动' : '赛事');
+      const signupStart = e.signup_start_at || e.start_at;
+      const signupEnd = e.signup_end_at || e.end_at;
+      const signupTimeDisplay =
+        e.signupTimeDisplay || formatSignupTimeRange(signupStart, signupEnd);
+      const locationPrefix = e.type === 'activity' ? '活动地点：' : '赛事地点：';
       return {
         ...e,
-        typeLabel: e.typeLabel || (e.type === 'activity' ? '活动' : '赛事'),
+        typeLabel,
         time: timeDisplay,
         timeDisplay,
         feeDisplay,
-        signupDisplay: formatRecruitmentSignup(e.signed, e.total),
+        signupTimeDisplay,
+        locationDisplay: e.locationDisplay || `${locationPrefix}${e.location || ''}`,
+        signupDisplay: e.signupDisplay || formatRecruitmentSignup(e.signed, e.total),
         cover_image:
           e.cover_image ||
           (e.cover_images && e.cover_images.length ? e.cover_images[0] : 'recruit-cover.jpg'),
@@ -971,12 +1055,23 @@ function getCoursesByHeroId(heroId) {
     .map((r) => {
       const course = getCourseById(r.target_id);
       if (!course) return null;
+      const fee = course.price;
+      const feeDisplay =
+        fee != null ? String(fee).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '';
       return {
         course_id: course.id,
         title: course.title,
+        type: 'course',
+        typeLabel: '课程',
         timeDisplay: course.time,
+        signupTimeDisplay: course.time,
         location: course.location,
-        fee: course.price,
+        locationDisplay: `课程地点：${course.location || ''}`,
+        fee,
+        feeDisplay,
+        signed: course.signed,
+        total: course.total,
+        signupDisplay: formatRecruitmentSignup(course.signed, course.total),
         cover_image: course.cover_image || 'course',
       };
     })
@@ -1040,7 +1135,8 @@ function sortHeroes(list, sortBy) {
 }
 
 function getHeroes(filter = {}) {
-  let list = [...heroes].filter((h) => h && h.enabled !== false);
+  // stale_list_demo：演示「列表已加载后教练被禁用/删除」——广场仍可能出现，详情走「教练不存在」
+  let list = [...heroes].filter((h) => h && (h.enabled !== false || h.stale_list_demo));
   const {
     keyword = '',
     project_type = '全部',

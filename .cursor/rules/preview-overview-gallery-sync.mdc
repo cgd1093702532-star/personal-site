@@ -1,0 +1,36 @@
+---
+description: 弹框/Toast 变更同步总览大全；可当场做，或合并到每日/推 GitHub 前
+alwaysApply: true
+---
+
+# 铁律：总览大全与弹框/提示同步
+
+预览左侧「总览大全」：
+
+| 子项 | 真源 |
+|------|------|
+| 弹框总览 | `preview/assets/preview-dialog-gallery.js` → `DIALOG_ENTRIES` + `preview/assets/dialog-gallery/*.png` |
+| 提示总览 | 同文件 `TOAST_ENTRIES` |
+
+## 同步节奏（避免太频繁）
+
+| 时机 | 要求 |
+|------|------|
+| **推送到 GitHub 之前** | **必须**做完总览同步 + 检查（见 `version-management.mdc`），再 push。这是硬门槛。 |
+| **当天多次改弹框/Toast** | 可合并：不必每次改完都打断；当天至少同步 1 次，或留到推送前一次做完。 |
+| **单次任务只改弹框/Toast** | 仍建议本轮直接改完总览，少留脏状态。 |
+
+脏标记：改弹框/Toast 相关实现会写入 `.tools/.overview-gallery-dirty`；更新总览真源后清除。推送前若标记仍在，必须先同步。
+
+## 同步清单（做同步时一次做完）
+
+1. **弹框**：改 `DIALOG_ENTRIES`；增/改则补或重拍 `dialog-gallery/`（或复用 docs 弹窗图路径）；删则去条目与废弃图  
+2. **提示**：改 `TOAST_ENTRIES` 的 title / message / type  
+3. 跑：`python3 scripts/check-overview-gallery-ready.py`（须 OK）  
+4. 需要时强制刷新预览看「总览大全」
+
+## 禁止
+
+- 推 GitHub 时总览仍是旧文案/旧截图，或脏标记未清  
+- 只改业务弹框/Toast、长期不进总览（超过一次推送窗口）  
+- 依赖每次对话结束自动跟进（已取消，避免太吵）

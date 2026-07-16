@@ -178,8 +178,8 @@ function sortHeroesByPlazaContent(list, sortBy) {
 
 function applyHeroFilters(list, filter) {
   let result = Array.isArray(list) ? [...list] : [];
-  // 广场仅展示已认证且启用的教练
-  result = result.filter((h) => h && h.enabled !== false);
+  // 广场仅展示已认证且启用的教练；stale_list_demo 用于演示详情「教练不存在」
+  result = result.filter((h) => h && (h.enabled !== false || h.stale_list_demo));
   const f = filter || {};
   const keyword = f.keyword || '';
   const projectType = f.project_type || '全部';

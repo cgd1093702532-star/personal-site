@@ -75,24 +75,10 @@
       "title": "英雄中心",
       "pages": [
         {
-          "html": "hero-profile.html",
-          "doc": "我的英雄资料.md",
-          "label": "我的英雄资料",
-          "docUrl": "../docs/miniprogram/pages/我的英雄资料.md",
-          "scope": ""
-        },
-        {
           "html": "recruitment-create.html",
           "doc": "发布招募.md",
           "label": "发布招募",
           "docUrl": "../docs/miniprogram/pages/发布招募.md",
-          "scope": ""
-        },
-        {
-          "html": "course-create.html",
-          "doc": "发布课程.md",
-          "label": "发布课程",
-          "docUrl": "../docs/miniprogram/pages/发布课程.md",
           "scope": ""
         },
         {
@@ -110,38 +96,10 @@
           "scope": ""
         },
         {
-          "html": "my-students.html",
-          "doc": "我的学员.md",
-          "label": "我的学员",
-          "docUrl": "../docs/miniprogram/pages/我的学员.md",
-          "scope": ""
-        },
-        {
-          "html": "recruitment-edit.html",
-          "doc": "招募编辑.md",
-          "label": "招募编辑",
-          "docUrl": "../docs/miniprogram/pages/招募编辑.md",
-          "scope": ""
-        },
-        {
           "html": "signup-list.html",
           "doc": "报名人员列表.md",
           "label": "报名人员列表",
           "docUrl": "../docs/miniprogram/pages/报名人员列表.md",
-          "scope": ""
-        },
-        {
-          "html": "cert-edit.html",
-          "doc": "证书编辑.md",
-          "label": "证书编辑",
-          "docUrl": "../docs/miniprogram/pages/证书编辑.md",
-          "scope": ""
-        },
-        {
-          "html": "bio-edit.html",
-          "doc": "简介编辑.md",
-          "label": "简介编辑",
-          "docUrl": "../docs/miniprogram/pages/简介编辑.md",
           "scope": ""
         },
         {

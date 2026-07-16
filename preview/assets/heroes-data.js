@@ -3,7 +3,7 @@ window.HEROES_DATA = {
     "name": "小哥",
     "avatar_img": "hero-1.jpg",
     "rating": 4.9,
-    "years_exp": 15,
+    "years_exp": "10-15年",
     "student_count": 128,
     "honors_count": 3,
     "project_types": [
@@ -138,6 +138,51 @@ window.HEROES_DATA = {
         "倡导海洋环境保护理念"
       ]
     },
+    "personal_showcase": {
+      "intro": "小哥教练的个人展示，记录教学与航海日常中的精彩瞬间：",
+      "items": [
+        {
+          "title": "帆船教学现场",
+          "image": "hero-1.jpg"
+        },
+        {
+          "title": "学员出海练习",
+          "image": "hero-2.jpg"
+        },
+        {
+          "title": "赛事训练日",
+          "image": "event.jpg"
+        },
+        {
+          "title": "课程合影",
+          "image": "course.jpg"
+        },
+        {
+          "title": "码头整备瞬间",
+          "image": "recruit-cover.jpg"
+        },
+        {
+          "title": "湖上航行",
+          "image": "banner.jpg"
+        },
+        {
+          "title": "亲子体验",
+          "image": "news-1.jpg"
+        },
+        {
+          "title": "证书展示",
+          "image": "cert.jpg"
+        },
+        {
+          "title": "团队合练",
+          "image": "hero-1.jpg"
+        },
+        {
+          "title": "赛后复盘",
+          "image": "event.jpg"
+        }
+      ]
+    },
     "recruitments": [
       {
         "recruit_id": "r1",
@@ -150,12 +195,12 @@ window.HEROES_DATA = {
         "location": "滴水湖二号码头",
         "fee": 500,
         "feeDisplay": "500",
-        "signed": 12,
-        "total": 20,
+        "signed": 0,
+        "total": 16,
+        "signupDisplay": "招募名额：0/16",
         "cover_image": "event.jpg",
         "time": "06/08 (周六) 09:00-16:00",
-        "timeDisplay": "06/08 (周六) 09:00-16:00",
-        "signupDisplay": "共招募 20 名，已报 12 名"
+        "timeDisplay": "06/08 (周六) 09:00-16:00"
       },
       {
         "recruit_id": "r2",
@@ -168,12 +213,12 @@ window.HEROES_DATA = {
         "location": "滴水湖二号码头",
         "fee": 1280,
         "feeDisplay": "1,280",
-        "signed": 8,
-        "total": 16,
+        "signed": 3,
+        "total": null,
+        "signupDisplay": "招募名额：3/不限",
         "cover_image": "banner.jpg",
         "time": "06/08 (周六) 09:00-16:00",
-        "timeDisplay": "06/08 (周六) 09:00-16:00",
-        "signupDisplay": "共招募 16 名，已报 8 名"
+        "timeDisplay": "06/08 (周六) 09:00-16:00"
       },
       {
         "recruit_id": "r9",
@@ -191,7 +236,7 @@ window.HEROES_DATA = {
         "cover_image": "recruit-cover.jpg",
         "time": "06/14 (周日) 09:00-16:00",
         "timeDisplay": "06/14 (周日) 09:00-16:00",
-        "signupDisplay": "共招募 16 名，已报 9 名"
+        "signupDisplay": "招募名额：9/16"
       },
       {
         "recruit_id": "r10",
@@ -209,7 +254,7 @@ window.HEROES_DATA = {
         "cover_image": "event.jpg",
         "time": "06/21 (周日) 08:00-17:00",
         "timeDisplay": "06/21 (周日) 08:00-17:00",
-        "signupDisplay": "共招募 20 名，已报 10 名"
+        "signupDisplay": "招募名额：10/20"
       },
       {
         "recruit_id": "r11",
@@ -227,7 +272,7 @@ window.HEROES_DATA = {
         "cover_image": "course.jpg",
         "time": "06/28 (周日) 10:00-15:00",
         "timeDisplay": "06/28 (周日) 10:00-15:00",
-        "signupDisplay": "共招募 8 名，已报 4 名"
+        "signupDisplay": "招募名额：4/8"
       }
     ],
     "courses": [
@@ -237,7 +282,11 @@ window.HEROES_DATA = {
         "timeDisplay": "7月26日 09:00 - 16:30",
         "location": "滴水湖二号码头",
         "fee": 1280,
-        "cover_image": "course.jpg"
+        "signed": 10,
+        "total": 16,
+        "cover_image": "course.jpg",
+        "feeDisplay": "1,280",
+        "signupDisplay": "招募名额：10/16"
       }
     ]
   },
@@ -309,7 +358,7 @@ window.HEROES_DATA = {
         "time": "08/03 (周一) 14:00-17:00",
         "timeDisplay": "08/03 (周一) 14:00-17:00",
         "feeDisplay": "298",
-        "signupDisplay": "共招募 12 名，已报 5 名"
+        "signupDisplay": "招募名额：5/12"
       },
       {
         "recruit_id": "r4",
@@ -327,7 +376,7 @@ window.HEROES_DATA = {
         "time": "08/09 (周日) 14:00-16:00",
         "timeDisplay": "08/09 (周日) 14:00-16:00",
         "feeDisplay": "168",
-        "signupDisplay": "共招募 12 名，已报 6 名"
+        "signupDisplay": "招募名额：6/12"
       }
     ],
     "courses": [
@@ -337,7 +386,11 @@ window.HEROES_DATA = {
         "timeDisplay": "8月2日 09:00 - 16:00",
         "location": "金鸡湖帆船码头",
         "fee": 880,
-        "cover_image": "course.jpg"
+        "signed": 7,
+        "total": 12,
+        "cover_image": "course.jpg",
+        "feeDisplay": "880",
+        "signupDisplay": "招募名额：7/12"
       }
     ]
   },
@@ -404,7 +457,7 @@ window.HEROES_DATA = {
         "time": "08/10 (周一) 09:00-17:00",
         "timeDisplay": "08/10 (周一) 09:00-17:00",
         "feeDisplay": "680",
-        "signupDisplay": "共招募 10 名，已报 4 名"
+        "signupDisplay": "招募名额：4/10"
       },
       {
         "recruit_id": "r5",
@@ -422,7 +475,7 @@ window.HEROES_DATA = {
         "time": "07/18 (周六) 10:00-12:00",
         "timeDisplay": "07/18 (周六) 10:00-12:00",
         "feeDisplay": "128",
-        "signupDisplay": "共招募 10 名，已报 5 名"
+        "signupDisplay": "招募名额：5/10"
       }
     ],
     "courses": [
@@ -432,7 +485,11 @@ window.HEROES_DATA = {
         "timeDisplay": "7月18日 10:00 - 12:00",
         "location": "太湖桨板营地",
         "fee": 198,
-        "cover_image": "course.jpg"
+        "signed": 5,
+        "total": 12,
+        "cover_image": "course.jpg",
+        "feeDisplay": "198",
+        "signupDisplay": "招募名额：5/12"
       }
     ]
   },
@@ -517,7 +574,7 @@ window.HEROES_DATA = {
         "time": "07/28 (周二) 07:30-18:00",
         "timeDisplay": "07/28 (周二) 07:30-18:00",
         "feeDisplay": "800",
-        "signupDisplay": "共招募 24 名，已报 15 名"
+        "signupDisplay": "招募名额：15/24"
       },
       {
         "recruit_id": "r7a",
@@ -535,7 +592,7 @@ window.HEROES_DATA = {
         "time": "08/09 (周日) 09:00-16:00",
         "timeDisplay": "08/09 (周日) 09:00-16:00",
         "feeDisplay": "398",
-        "signupDisplay": "共招募 16 名，已报 8 名"
+        "signupDisplay": "招募名额：8/16"
       }
     ],
     "courses": [
@@ -545,7 +602,11 @@ window.HEROES_DATA = {
         "timeDisplay": "8月15日 08:30 - 17:00",
         "location": "青岛奥帆中心",
         "fee": 1680,
-        "cover_image": "course.jpg"
+        "signed": 5,
+        "total": 8,
+        "cover_image": "course.jpg",
+        "feeDisplay": "1,680",
+        "signupDisplay": "招募名额：5/8"
       }
     ]
   },
@@ -557,7 +618,8 @@ window.HEROES_DATA = {
     "years_exp": 8,
     "student_count": 86,
     "honors_count": 2,
-    "enabled": true,
+    "enabled": false,
+    "stale_list_demo": true,
     "project_types": [
       "皮划艇",
       "桨板"
@@ -620,7 +682,7 @@ window.HEROES_DATA = {
         "time": "08/02 (周日) 09:00-16:00",
         "timeDisplay": "08/02 (周日) 09:00-16:00",
         "feeDisplay": "268",
-        "signupDisplay": "共招募 12 名，已报 6 名"
+        "signupDisplay": "招募名额：6/12"
       },
       {
         "recruit_id": "r8a",
@@ -638,7 +700,7 @@ window.HEROES_DATA = {
         "time": "08/16 (周日) 10:00-12:00",
         "timeDisplay": "08/16 (周日) 10:00-12:00",
         "feeDisplay": "168",
-        "signupDisplay": "共招募 10 名，已报 4 名"
+        "signupDisplay": "招募名额：4/10"
       }
     ],
     "courses": [
@@ -648,7 +710,11 @@ window.HEROES_DATA = {
         "timeDisplay": "7月19日 09:30 - 11:30",
         "location": "淀山湖皮划艇基地",
         "fee": 268,
-        "cover_image": "course.jpg"
+        "signed": 4,
+        "total": 10,
+        "cover_image": "course.jpg",
+        "feeDisplay": "268",
+        "signupDisplay": "招募名额：4/10"
       }
     ]
   }
@@ -657,8 +723,10 @@ window.HEROES_DATA = {
 /** 英雄广场列表 mock（首页 / 广场页共用） */
 window.listPlazaHeroesMock = function listPlazaHeroesMock() {
   const data = window.HEROES_DATA || {};
-  return Object.keys(data).map(function (id) {
+  return Object.keys(data)
+    .map(function (id) {
     const h = data[id] || {};
+    if (h.enabled === false && !h.stale_list_demo) return null;
     const recruitments = Array.isArray(h.recruitments) ? h.recruitments : [];
     const courses = Array.isArray(h.courses) ? h.courses : [];
     const nested = [];
@@ -684,6 +752,7 @@ window.listPlazaHeroesMock = function listPlazaHeroesMock() {
       hero_id: id,
       id: id,
       enabled: h.enabled !== false,
+      stale_list_demo: !!h.stale_list_demo,
       name: h.name,
       nickname: h.nickname || h.name,
       avatar: h.avatar_img || h.avatar || '',
@@ -701,5 +770,6 @@ window.listPlazaHeroesMock = function listPlazaHeroesMock() {
       events: recruitments,
       courses: courses,
     };
-  });
+  })
+    .filter(Boolean);
 };

@@ -32,3 +32,6 @@ miniprogram_npm/
 
 # 临时文件
 *.tmp
+.tools/.overview-gallery-dirty
+.tools/gh.zip
+.tools/gh_*/

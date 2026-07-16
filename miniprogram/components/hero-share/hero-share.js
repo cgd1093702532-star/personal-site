@@ -25,6 +25,44 @@ function wrapText(ctx, text, maxWidth) {
   return lines.slice(0, 2);
 }
 
+function loadCanvasImage(canvas, src) {
+  return new Promise((resolve, reject) => {
+    const image = canvas.createImage();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+function drawQrPlaceholder(ctx, x, y, size, seedText) {
+  const cells = 18;
+  const cell = size / cells;
+  let seed = [...String(seedText || '英雄广场')].reduce(
+    (sum, char) => sum + char.charCodeAt(0),
+    0,
+  );
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(x, y, size, size);
+  ctx.fillStyle = '#111';
+  for (let row = 0; row < cells; row += 1) {
+    for (let col = 0; col < cells; col += 1) {
+      seed = (seed * 9301 + 49297) % 233280;
+      if (seed / 233280 > 0.52) {
+        ctx.fillRect(x + col * cell, y + row * cell, Math.ceil(cell), Math.ceil(cell));
+      }
+    }
+  }
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(x + size / 2, y + size / 2, 15, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#1b579c';
+  ctx.font = 'bold 13px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('英', x + size / 2, y + size / 2);
+}
+
 Component({
   properties: {
     visible: { type: Boolean, value: false },
@@ -70,7 +108,7 @@ Component({
         query
           .select('#heroPosterCanvas')
           .fields({ node: true, size: true })
-          .exec((res) => {
+          .exec(async (res) => {
             if (!res || !res[0] || !res[0].node) {
               reject(new Error('canvas not found'));
               return;
@@ -84,65 +122,73 @@ Component({
             canvas.height = height * dpr;
             ctx.scale(dpr, dpr);
 
-            const grd = ctx.createLinearGradient(0, 0, width, height);
-            grd.addColorStop(0, '#dbe6ff');
-            grd.addColorStop(0.55, '#a8c4f5');
-            grd.addColorStop(1, '#7ba3e8');
-            ctx.fillStyle = grd;
+            ctx.fillStyle = '#fff';
             ctx.fillRect(0, 0, width, height);
 
-            ctx.fillStyle = '#fff';
-            roundRect(ctx, 24, 72, width - 48, height - 120, 16);
-            ctx.fill();
+            const photoX = 16;
+            const photoY = 16;
+            const photoWidth = width - 32;
+            const photoHeight = 300;
+            ctx.save();
+            roundRect(ctx, photoX, photoY, photoWidth, photoHeight, 16);
+            ctx.clip();
+            try {
+              const avatar = hero.avatar_img || hero.avatar || 'hero-1.jpg';
+              const avatarSrc =
+                /^https?:|^\//.test(avatar) ? avatar : `/assets/images/${avatar}`;
+              const image = await loadCanvasImage(canvas, avatarSrc);
+              const imageRatio = image.width / image.height;
+              const targetRatio = photoWidth / photoHeight;
+              let sx = 0;
+              let sy = 0;
+              let sw = image.width;
+              let sh = image.height;
+              if (imageRatio > targetRatio) {
+                sw = image.height * targetRatio;
+                sx = (image.width - sw) / 2;
+              } else {
+                sh = image.width / targetRatio;
+                sy = (image.height - sh) / 2;
+              }
+              ctx.drawImage(
+                image,
+                sx,
+                sy,
+                sw,
+                sh,
+                photoX,
+                photoY,
+                photoWidth,
+                photoHeight,
+              );
+            } catch (_) {
+              const grd = ctx.createLinearGradient(0, photoY, 0, photoY + photoHeight);
+              grd.addColorStop(0, '#dbe6ff');
+              grd.addColorStop(1, '#7ba3e8');
+              ctx.fillStyle = grd;
+              ctx.fillRect(photoX, photoY, photoWidth, photoHeight);
+            }
+            ctx.restore();
 
-            ctx.fillStyle = '#a8c4f5';
-            ctx.beginPath();
-            ctx.arc(width / 2, 132, 44, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 28px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText((hero.name || '教练').slice(0, 1), width / 2, 132);
-
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'alphabetic';
             ctx.fillStyle = '#222';
-            ctx.font = 'bold 22px sans-serif';
-            ctx.fillText(hero.name || '教练', width / 2, 200);
+            ctx.font = '18px sans-serif';
+            ctx.fillText(hero.name || hero.nickname || '教练', 16, 350);
 
-            const subtitle = `${(hero.project_types || []).join(' · ')} · ${hero.years_exp || ''}年经验`;
-            ctx.fillStyle = '#666';
-            ctx.font = '13px sans-serif';
-            ctx.fillText(subtitle, width / 2, 226);
-
-            ctx.fillStyle = '#1b579c';
-            ctx.font = 'bold 16px sans-serif';
-            ctx.fillText(`★ ${hero.rating || '-'}`, width / 2, 254);
-
-            const tags = [...(hero.honor_titles || []), ...(hero.cert_badges || [])].slice(0, 3);
-            ctx.fillStyle = '#444';
+            const bio = hero.about_me || hero.bio || '欢迎扫码查看英雄详情';
+            ctx.fillStyle = '#999';
             ctx.font = '12px sans-serif';
-            tags.forEach((tag, i) => {
-              ctx.fillText(tag, width / 2, 282 + i * 22);
+            const lines = wrapText(ctx, bio, 174);
+            lines.forEach((line, index) => {
+              ctx.fillText(line, 16, 386 + index * 20);
             });
 
-            const bio = (hero.about_me || hero.bio || '').slice(0, 48);
-            if (bio) {
-              ctx.fillStyle = '#888';
-              ctx.font = '11px sans-serif';
-              ctx.textAlign = 'left';
-              const lines = wrapText(ctx, bio, width - 80);
-              lines.forEach((line, i) => {
-                ctx.fillText(line, 40, 350 + i * 18);
-              });
-            }
-
+            drawQrPlaceholder(ctx, 214, 338, 70, hero.name || hero.nickname);
             ctx.textAlign = 'center';
-            ctx.fillStyle = '#1b579c';
-            ctx.font = 'bold 14px sans-serif';
-            ctx.fillText('英雄广场', width / 2, height - 72);
             ctx.fillStyle = '#999';
-            ctx.font = '11px sans-serif';
-            ctx.fillText('长按识别小程序，查看教练详情', width / 2, height - 52);
+            ctx.font = '10px sans-serif';
+            ctx.fillText('扫码/长按识别', 249, 424);
 
             wx.canvasToTempFilePath({
               canvas,

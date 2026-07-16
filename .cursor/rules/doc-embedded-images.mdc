@@ -1,0 +1,70 @@
+---
+description: 需求文档配图必须用 ![alt](path)；禁止收成纯文字；改文档后必检必修
+alwaysApply: true
+---
+
+# 铁律：需求文档配图语法
+
+右侧「需求说明」预览**只渲染** Markdown 图片语法：
+
+```markdown
+![教练不存在空态](./images/hero-detail/state-missing.png)
+```
+
+若写成纯文字（例如只有 `教练不存在空态`），**即使 PNG 文件在磁盘上，右侧也完全不出图**。此问题已反复出现。
+
+## 根因（已核实）
+
+| 现象 | 原因 |
+|------|------|
+| 截图文件在 `docs/.../images/` 里 | 文件没丢 |
+| 右侧预览空白 / 只显示一行字 | md 里 `![alt](path)` 被收成纯 `alt` 文字 |
+| 两张图合成一行纯文字 | 如 `禁用状态预览禁用 · 查看原因弹窗`（两张 alt 粘连） |
+| symlink / build 正常 | 与符号链接无关；是**语法丢失** |
+
+常见触发：编辑器/协作者误删 `![]()`；AI 改文档时「整理」成纯文字；粘贴时只保留了说明文字。
+
+## AI 强制流程（避坑）
+
+**凡改动** `docs/miniprogram/pages/*.md`（含 StrReplace / Write / 用户协同编辑后的收尾），在声称完成前必须：
+
+1. **不得**把已有 `![alt](./images/…)` 改成纯文字 alt；整理段落时整行保留图片语法。
+2. 跑：`python3 scripts/check-doc-images.py --fix`
+3. 再跑：`python3 scripts/check-doc-images.py`（须 `OK doc-embedded-images`）
+4. 用 `rg '!\\[' 该md` 确认相关状态截图仍是 `![]()`，不是裸文字
+5. 未通过检查**禁止**告诉用户「截图已挂上 / 预览已有图」
+
+机械兜底（已接入，仍不能代替上面自检）：
+
+- `python3 preview/build-pages.py` 会先 `--fix` 再校验
+- Cursor `afterFileEdit` hook：`.cursor/hooks/fix-doc-images.sh` 改 md 后自动 `--fix`
+
+## 必须遵守
+
+1. **写入配图时**必须带完整 `![说明](./images/…/xxx.png)`，禁止只写说明文字。
+2. **改文档时**不得把已有 `![]()` 改成纯文字；见 `docs-supplement-not-overwrite.mdc`。
+3. **新增截图后**：
+   - 文件放进 `docs/miniprogram/pages/images/<页或模块>/`
+   - md 中插入 `![]()`
+   - 在 `docs/miniprogram/pages/images/IMAGE_REGISTRY.json` **追加登记**（doc / alt / src）
+   - 跑 `python3 scripts/check-doc-images.py`（`build-pages.py` 已接入）
+4. 发现「有文件、预览无图」：先 `rg '!\[' 该md`，再 `python3 scripts/check-doc-images.py --fix`
+5. 用户明确要求「截图放进需求预览」时，直接按相关状态截图、写入 md 并登记，无需再询问截图方案。
+
+## 自检与兜底
+
+```bash
+python3 scripts/check-doc-images.py          # 失败则说明缺图或语法丢了
+python3 scripts/check-doc-images.py --fix    # 把纯文字 / 粘连 alt 恢复为 ![alt](src)
+```
+
+- 登记表：`docs/miniprogram/pages/images/IMAGE_REGISTRY.json`
+- 预览兜底映射：`preview/assets/doc-image-alts.json`（build 生成）
+- 预览脚本对「整行=登记 alt」及「粘连 alt」会兜底出图，但**真源仍必须写回 `![]()`**，不能长期依赖兜底
+
+## 禁止
+
+- 用纯文字代替 `![...](...)`
+- 只提交 PNG、不写 md、不登记 IMAGE_REGISTRY
+- 声称「已挂进需求预览」但未跑通 `check-doc-images.py`
+- 改完 md 不跑 `--fix` / 检查就结束任务

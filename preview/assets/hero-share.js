@@ -14,15 +14,12 @@
       <div class="share-sheet mobile-overlay" hidden>
         <div class="share-sheet__mask"></div>
         <div class="share-sheet__panel">
-          <div class="share-sheet__title">分享到</div>
           <div class="share-sheet__options">
             <button type="button" class="share-sheet__option" data-action="card">
-              <span class="share-sheet__icon-wrap"><img class="share-sheet__icon" src="../assets/icons/chat.png" alt=""></span>
-              <span class="share-sheet__label">分享给好友</span>
+              <span class="share-sheet__label">分享好友</span>
             </button>
             <button type="button" class="share-sheet__option" data-action="poster">
-              <span class="share-sheet__icon-wrap"><img class="share-sheet__icon" src="../assets/icons/image.png" alt=""></span>
-              <span class="share-sheet__label">分享海报</span>
+              <span class="share-sheet__label">海报</span>
             </button>
           </div>
           <button type="button" class="share-sheet__cancel">取消</button>
@@ -33,8 +30,14 @@
         <div class="poster-modal__body">
           <div class="poster-card" id="poster-card"></div>
           <div class="poster-modal__actions">
-            <button type="button" class="poster-modal__btn" data-action="save">保存海报</button>
-            <button type="button" class="poster-modal__btn poster-modal__btn--primary" data-action="share-img">分享给好友</button>
+            <button type="button" class="poster-modal__btn" data-action="share-img">
+              <span class="poster-modal__action-icon poster-modal__action-icon--share"><img src="../assets/icons/chat.png" alt=""></span>
+              <span>分享给好友</span>
+            </button>
+            <button type="button" class="poster-modal__btn" data-action="save">
+              <span class="poster-modal__action-icon poster-modal__action-icon--save"><img src="../assets/icons/image.png" alt=""></span>
+              <span>保存海报</span>
+            </button>
           </div>
         </div>
       </div>`;
@@ -77,20 +80,28 @@
   }
 
   function buildPosterHtml(hero) {
-    const tags = [...(hero.honor_titles || []), ...(hero.cert_badges || [])].slice(0, 3);
-    const subtitle = `${(hero.project_types || []).join(' · ')} · ${hero.years_exp || ''}年经验`;
-    const bio = (hero.about_me || '').slice(0, 48);
+    const escapeText = (value) =>
+      String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    const avatar = hero.avatar_img || hero.avatar || 'hero-1.jpg';
+    const avatarSrc =
+      /^https?:|^\/|^\.\./.test(avatar) ? avatar : `../assets/images/${avatar}`;
+    const name = escapeText(hero.name || hero.nickname || '教练');
+    const bio = escapeText(hero.about_me || hero.bio || '欢迎扫码查看英雄详情');
     return `
-      <div class="poster-card__bg"></div>
-      <div class="poster-card__panel">
-        <div class="poster-card__avatar">${(hero.name || '教').slice(0, 1)}</div>
-        <div class="poster-card__name">${hero.name}</div>
-        <div class="poster-card__subtitle">${subtitle}</div>
-        <div class="poster-card__rating">★ ${hero.rating}</div>
-        <div class="poster-card__tags">${tags.map((t) => `<span>${t}</span>`).join('')}</div>
-        ${bio ? `<div class="poster-card__bio">${bio}</div>` : ''}
-        <div class="poster-card__brand">英雄广场</div>
-        <div class="poster-card__hint">长按识别小程序，查看教练详情</div>
+      <div class="poster-card__photo"><img src="${escapeText(avatarSrc)}" alt="${name}"></div>
+      <div class="poster-card__info">
+        <div class="poster-card__copy">
+          <div class="poster-card__name">${name}</div>
+          <div class="poster-card__bio">${bio}</div>
+        </div>
+        <div class="poster-card__qr">
+          <div class="poster-card__qr-code"><span>英</span></div>
+          <div class="poster-card__hint">扫码/长按识别</div>
+        </div>
       </div>`;
   }
 

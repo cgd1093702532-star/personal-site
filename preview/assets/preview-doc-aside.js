@@ -5,6 +5,68 @@
 
   let loadSeq = 0;
   let asideEl = null;
+  /** @type {Record<string, Record<string, string>>|null} */
+  let imageAltMap = null;
+
+  async function loadImageAltMap() {
+    if (imageAltMap) return imageAltMap;
+    try {
+      const url = new URL('../assets/doc-image-alts.json', window.location.href).href;
+      const res = await fetch(url, { cache: 'no-store' });
+      if (!res.ok) {
+        imageAltMap = {};
+        return imageAltMap;
+      }
+      const data = await res.json();
+      imageAltMap = data.byDoc || {};
+    } catch (_) {
+      imageAltMap = {};
+    }
+    return imageAltMap;
+  }
+
+  function currentDocFileName(docUrl) {
+    try {
+      const name = new URL(docUrl, window.location.href).pathname.split('/').pop() || '';
+      return decodeURIComponent(name);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function imgTagFromSrc(src, alt, docUrl, cacheToken) {
+    let href = src;
+    try {
+      const u = new URL(src, docUrl);
+      if (cacheToken) u.searchParams.set('v', cacheToken);
+      href = u.href;
+    } catch (_) {
+      /* keep */
+    }
+    return `<p><img class="preview-doc-aside__shot" src="${escapeHtml(href)}" alt="${escapeHtml(alt)}" loading="lazy" /></p>`;
+  }
+
+  /** 纯文字 alt 兜底：配图语法被收成「教练不存在空态」或粘成一行时仍能出图 */
+  function resolveBareAltImage(line, docUrl, cacheToken) {
+    const alt = String(line || '').trim();
+    if (!alt || alt.includes('![') || !imageAltMap) return null;
+    const docName = currentDocFileName(docUrl);
+    const map = imageAltMap[docName] || {};
+    if (map[alt]) return imgTagFromSrc(map[alt], alt, docUrl, cacheToken);
+
+    // 粘连行：如「禁用状态预览禁用 · 查看原因弹窗」
+    const alts = Object.keys(map).sort((a, b) => b.length - a.length);
+    let remaining = alt;
+    const chunks = [];
+    while (remaining) {
+      const hit = alts.find((a) => remaining.startsWith(a));
+      if (!hit) break;
+      chunks.push(imgTagFromSrc(map[hit], hit, docUrl, cacheToken));
+      remaining = remaining.slice(hit.length).replace(/^[\s\u3000]+/, '');
+    }
+    if (chunks.length >= 2 && !remaining) return chunks.join('');
+    return null;
+  }
 
   function escapeHtml(text) {
     return String(text ?? '')
@@ -12,6 +74,26 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
+  }
+
+  /** 需求文档协作标记：【重复】【矛盾】→ 彩色高亮（勿覆盖用户原文，仅标出） */
+  function applyDocFlags(escapedHtml) {
+    return String(escapedHtml || '')
+      .replace(
+        /【矛盾】([^【<]*)/g,
+        '<mark class="preview-doc-aside__flag preview-doc-aside__flag--conflict" title="相互矛盾，需产品确认">【矛盾】$1</mark>',
+      )
+      .replace(
+        /【重复】([^【<]*)/g,
+        '<mark class="preview-doc-aside__flag preview-doc-aside__flag--dup" title="重复描述，供产品删并">【重复】$1</mark>',
+      );
+  }
+
+  function calloutClassFromText(text) {
+    const t = String(text || '');
+    if (t.includes('【矛盾】')) return 'preview-doc-aside__callout preview-doc-aside__callout--conflict';
+    if (t.includes('【重复】')) return 'preview-doc-aside__callout preview-doc-aside__callout--dup';
+    return '';
   }
 
   function inlineFormat(text, docBaseUrl, cacheToken) {
@@ -32,7 +114,7 @@
     });
     s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
     s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
-    return s;
+    return applyDocFlags(s);
   }
 
   /** 文首元信息：有 http(s) 地址时可点击；「设计中」等占位不可点 */
@@ -103,12 +185,17 @@
     return icon('plus-primary.png');
   }
 
-  /** 表格分点换行：显式 &lt;br&gt;，以及「1、」「1.」自动断行。 */
+  /** 表格分点换行：显式 &lt;br&gt;；以及「1、」「1.1、」等序号前自动断行（不要求前面有空格）。 */
   function formatTableCell(text, docBaseUrl, cacheToken) {
     let raw = String(text ?? '')
-      .replace(/[\u0000-\u001f]/g, ' ')
+      .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '') // 清掉控制符（含误入的 \x1f）
+      .replace(/\u00a0/g, ' ')
       .replace(/<br\s*\/?>/gi, '\n');
-    raw = raw.replace(/(\S)\s*(?=\d+[、.．]\s*)/g, '$1\n');
+    // 先断「1.1、」子序号，再断「1、」；禁止在「1.1」中间的「.1」处切开
+    raw = raw.replace(/([^\n])(?=\d+\.\d+[、])/g, '$1\n');
+    raw = raw.replace(/([^\d.\n])(?=\d+[、])/g, '$1\n');
+    // 兼容「1. 」「2. 」西式序号（点号后须空白，避免误伤 1.1）
+    raw = raw.replace(/([^\n])(?=\d+\.\s+)/g, '$1\n');
     return raw
       .split('\n')
       .map((part) => part.trim())
@@ -262,7 +349,7 @@
           }
           continue;
         }
-        html.push(`<blockquote><p>${fmt(parts.join(' '))}</p></blockquote>`);
+        html.push(`<blockquote class="${calloutClassFromText(parts.join(' ')) || ''}"><p>${fmt(parts.join(' '))}</p></blockquote>`);
         continue;
       }
 
@@ -300,7 +387,12 @@
       }
 
       closeList();
-      html.push(`<p>${fmt(trimmed)}</p>`);
+      const bareImg = resolveBareAltImage(trimmed, docBaseUrl, cacheToken);
+      if (bareImg) {
+        html.push(bareImg);
+      } else {
+        html.push(`<p>${fmt(trimmed)}</p>`);
+      }
       i += 1;
     }
     closeList();
@@ -320,21 +412,31 @@
     return res.text();
   }
 
-  /** 用文档内首张配图的 Last-Modified 做缓存破坏，避免截图更新后仍显示旧图。 */
+  /** 用文档内全部配图的 Last-Modified / 体积做缓存破坏，避免只改后几张图仍显示旧截图。 */
   async function resolveShotCacheToken(docBaseUrl, md) {
-    const m = /!\[[^\]]*\]\(([^)]+)\)/.exec(String(md || ''));
-    if (!m) return String(Date.now());
-    try {
-      const imgUrl = new URL(m[1], docBaseUrl).href;
-      const res = await fetch(imgUrl, { method: 'HEAD', cache: 'no-store' });
-      const lastMod = res.headers.get('Last-Modified');
-      if (lastMod) return lastMod.replace(/\s+/g, '_');
-      const len = res.headers.get('Content-Length');
-      if (len) return `len-${len}`;
-    } catch (_) {
-      /* fall through */
+    const matches = [...String(md || '').matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)];
+    if (!matches.length) return String(Date.now());
+    const parts = [];
+    for (const m of matches) {
+      try {
+        const imgUrl = new URL(m[1], docBaseUrl).href;
+        const res = await fetch(imgUrl, { method: 'HEAD', cache: 'no-store' });
+        const lastMod = res.headers.get('Last-Modified');
+        if (lastMod) {
+          parts.push(lastMod.replace(/\s+/g, '_'));
+          continue;
+        }
+        const len = res.headers.get('Content-Length');
+        if (len) {
+          parts.push(`len-${len}`);
+          continue;
+        }
+      } catch (_) {
+        /* fall through */
+      }
+      parts.push(String(Date.now()));
     }
-    return String(Date.now());
+    return parts.join('__') || String(Date.now());
   }
 
   function ensurePanel() {
@@ -435,6 +537,7 @@
     setHeadTitle(aside, '需求说明');
 
     try {
+      await loadImageAltMap();
       const absolute = new URL(docUrl, window.location.href).href;
       const raw = await loadMarkdown(absolute);
       const scope = docScope || resolveDocScope();

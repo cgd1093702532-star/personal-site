@@ -72,13 +72,14 @@ function normalizeMember(raw) {
     avatar: avatarSrc(raw.avatar || raw.avatar_img || ''),
     signedAtText: formatSignedAt(raw.signed_at || raw.created_at || raw.time),
     signed_at: raw.signed_at || raw.created_at || raw.time || '',
+    status: raw.status || '',
   };
 }
 
 function sortBySignedAtDesc(list) {
   return [...list].sort((a, b) => {
-    const ta = new Date(a.signed_at || 0).getTime();
-    const tb = new Date(b.signed_at || 0).getTime();
+    const ta = new Date(a.signed_at || a.time || 0).getTime();
+    const tb = new Date(b.signed_at || b.time || 0).getTime();
     return (Number.isNaN(tb) ? 0 : tb) - (Number.isNaN(ta) ? 0 : ta);
   });
 }
@@ -136,11 +137,34 @@ Page({
   },
 
   loadRecruitList(title) {
+    const fallback = [
+      {
+        id: 'rs1',
+        nickname: '张三',
+        name: '张三',
+        phone: '13800001111',
+        avatar: '/assets/images/avatar-user.jpg',
+        signed_at: '2026-07-08T10:20:00',
+        status: '待确认',
+        title: '企业家杯月赛',
+      },
+      {
+        id: 'rs2',
+        nickname: '李四',
+        name: '李四',
+        phone: '13900002222',
+        avatar: '/assets/images/avatar-user.jpg',
+        signed_at: '2026-07-07T16:05:00',
+        status: '已确认',
+        title: '企业家杯月赛',
+      },
+    ];
     data.getAppState('my_signups', []).then((list) => {
       const filtered = (list || []).filter(
         (item) => item.type !== 'course' && (!title || title === '招募报名' || item.title === title),
       );
-      this.setData({ list: filtered });
+      const source = filtered.length ? filtered : fallback.filter((s) => !title || title === '招募报名' || s.title === title);
+      this.setData({ list: sortBySignedAtDesc(source.map(normalizeMember)) });
     });
   },
 

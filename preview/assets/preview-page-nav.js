@@ -183,7 +183,10 @@
     nav.setAttribute('aria-label', '页面导航');
     nav.innerHTML = `
       <div class="preview-page-nav__head">
-        <div class="preview-page-nav__title">页面导航</div>
+        <div class="preview-page-nav__title">
+          <span>页面导航</span>
+          <span class="preview-page-nav__total" data-page-nav-total>共 0 页</span>
+        </div>
         <div class="preview-page-nav__meta">父子级可拖动 · 顺序保存在本机</div>
       </div>
       <div class="preview-page-nav__body">
@@ -196,9 +199,28 @@
     return nav;
   }
 
+  function totalPageCount() {
+    return tree.groups.reduce((sum, group) => sum + (Array.isArray(group.pages) ? group.pages.length : 0), 0);
+  }
+
+  function updateTotalLabel(nav) {
+    const el = nav?.querySelector('[data-page-nav-total]');
+    if (!el) return;
+    const n = totalPageCount();
+    el.textContent = `共 ${n} 页`;
+  }
+
   function setActive(htmlName) {
     if (!navEl) return;
+    if (htmlName) activeOverviewId = '';
     navEl.querySelectorAll('.preview-page-nav__link').forEach((btn) => {
+      if (btn.dataset.overview) {
+        const active = !!activeOverviewId && btn.dataset.overview === activeOverviewId;
+        btn.classList.toggle('is-active', active);
+        if (active) btn.setAttribute('aria-current', 'page');
+        else btn.removeAttribute('aria-current');
+        return;
+      }
       const active = btn.dataset.html === htmlName;
       btn.classList.toggle('is-active', active);
       if (active) btn.setAttribute('aria-current', 'page');
@@ -222,13 +244,78 @@
     if (activeBtn?.scrollIntoView) activeBtn.scrollIntoView({ block: 'nearest' });
   }
 
+  /** 预览专用总览（不进目录 JSON / 本机排序） */
+  const OVERVIEW_ITEMS = [
+    { id: 'dialogs', label: '弹框总览' },
+    { id: 'toasts', label: '提示总览' },
+  ];
+  let overviewCollapsed = false;
+  let activeOverviewId = '';
+
+  function appendOverviewGroup() {
+    const body = navEl?.querySelector('.preview-page-nav__body');
+    if (!body) return;
+    body.querySelector('[data-overview-group]')?.remove();
+    const children = overviewCollapsed
+      ? ''
+      : `<div class="preview-page-nav__children" data-overview-children>` +
+        OVERVIEW_ITEMS.map(
+          (item) =>
+            `<div class="preview-page-nav__row preview-page-nav__row--page preview-page-nav__row--overview" data-kind="overview" data-overview="${escapeHtml(
+              item.id,
+            )}">` +
+            `<button type="button" class="preview-page-nav__link" data-overview="${escapeHtml(item.id)}">${escapeHtml(
+              item.label,
+            )}</button>` +
+            `</div>`,
+        ).join('') +
+        `</div>`;
+    body.insertAdjacentHTML(
+      'beforeend',
+      `<div class="preview-page-nav__group preview-page-nav__group--overview" data-overview-group data-kind="overview-group">` +
+        `<div class="preview-page-nav__row preview-page-nav__row--group" data-kind="overview-group">` +
+        `<button type="button" class="preview-page-nav__toggle" data-overview-toggle aria-expanded="${
+          overviewCollapsed ? 'false' : 'true'
+        }" title="${overviewCollapsed ? '展开' : '收起'}">${overviewCollapsed ? '▶' : '▼'}</button>` +
+        `<span class="preview-page-nav__group-title">总览大全` +
+        `<span class="preview-page-nav__count">${OVERVIEW_ITEMS.length}</span></span>` +
+        `</div>` +
+        children +
+        `</div>`,
+    );
+    if (activeOverviewId) {
+      const btn = body.querySelector(`.preview-page-nav__link[data-overview="${CSS.escape(activeOverviewId)}"]`);
+      btn?.classList.add('is-active');
+      if (btn) btn.setAttribute('aria-current', 'page');
+    }
+  }
+
+  function setOverviewActive(overviewId) {
+    activeOverviewId = overviewId || '';
+    if (!navEl) return;
+    navEl.querySelectorAll('.preview-page-nav__link').forEach((btn) => {
+      const isOverview = !!btn.dataset.overview;
+      const active = isOverview && btn.dataset.overview === activeOverviewId;
+      if (isOverview) {
+        btn.classList.toggle('is-active', active);
+        if (active) btn.setAttribute('aria-current', 'page');
+        else btn.removeAttribute('aria-current');
+      } else if (activeOverviewId) {
+        btn.classList.remove('is-active');
+        btn.removeAttribute('aria-current');
+      }
+    });
+  }
+
   function renderTree() {
     const nav = ensurePanel();
     if (!nav) return;
+    updateTotalLabel(nav);
     const body = nav.querySelector('.preview-page-nav__body');
     if (!body) return;
     if (!tree.groups.length) {
       body.innerHTML = '<p class="preview-page-nav__empty">暂无页面目录</p>';
+      appendOverviewGroup();
       return;
     }
 
@@ -272,6 +359,7 @@
         );
       })
       .join('');
+    appendOverviewGroup();
   }
 
   function navigateFromNav(html) {
@@ -310,6 +398,10 @@
     const row = e.target.closest('.preview-page-nav__row');
     if (!row || !navEl?.contains(row)) return;
     const kind = row.dataset.kind;
+    if (kind === 'overview' || kind === 'overview-group') {
+      e.preventDefault();
+      return;
+    }
     if (kind === 'group') {
       drag = { kind: 'group', groupId: row.dataset.groupId || '' };
     } else if (kind === 'page') {
@@ -492,6 +584,15 @@
       e.preventDefault();
       return;
     }
+    const overviewToggle = e.target.closest('[data-overview-toggle]');
+    if (overviewToggle && navEl?.contains(overviewToggle)) {
+      e.preventDefault();
+      overviewCollapsed = !overviewCollapsed;
+      renderTree();
+      if (activeOverviewId) setOverviewActive(activeOverviewId);
+      else setActive(currentHtmlName());
+      return;
+    }
     const toggle = e.target.closest('[data-group-toggle]');
     if (toggle && navEl?.contains(toggle)) {
       e.preventDefault();
@@ -501,12 +602,25 @@
       group.collapsed = !group.collapsed;
       writeTree(tree);
       renderTree();
-      setActive(currentHtmlName());
+      if (activeOverviewId) setOverviewActive(activeOverviewId);
+      else setActive(currentHtmlName());
       return;
     }
     const btn = e.target.closest('.preview-page-nav__link');
     if (!btn || !navEl?.contains(btn)) return;
     e.preventDefault();
+    const overviewId = btn.dataset.overview || '';
+    if (overviewId) {
+      setOverviewActive(overviewId);
+      if (window.PreviewOverviewGallery?.open) {
+        window.PreviewOverviewGallery.open(overviewId);
+      }
+      return;
+    }
+    if (window.PreviewOverviewGallery?.close) {
+      window.PreviewOverviewGallery.close();
+    }
+    activeOverviewId = '';
     navigateFromNav(btn.dataset.html || '');
   }
 

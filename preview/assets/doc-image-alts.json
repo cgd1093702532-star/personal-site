@@ -1,0 +1,26 @@
+{
+  "description": "由 scripts/check-doc-images.py --write-preview-map 生成；预览对纯文字 alt 兜底出图",
+  "byDoc": {
+    "英雄详情.md": {
+      "教练不存在空态": "./images/hero-detail/state-missing.png",
+      "个人展示 · 视频（单条 + 右下角时长）": "./images/hero-detail/personal-showcase-video.png",
+      "英雄详情底栏 · 未认证状态": "./images/hero-detail/footer-unverified.png",
+      "英雄详情底栏 · 已认证状态": "./images/hero-detail/footer-approved.png"
+    },
+    "英雄广场.md": {
+      "搜索无结果": "./images/heroes/state-search-empty.png",
+      "广场暂无数据": "./images/heroes/state-plaza-empty.png",
+      "搜索有结果 · 结果提示": "./images/heroes/state-search-result-hint.png"
+    },
+    "个人中心.md": {
+      "未登录状态预览": "./images/profile/state-guest.png",
+      "未申请状态预览": "./images/profile/state-none.png",
+      "审核中状态预览": "./images/profile/state-pending.png",
+      "已驳回状态预览": "./images/profile/state-rejected.png",
+      "已驳回 · 查看原因弹窗": "./images/profile/state-rejected-dialog.png",
+      "已认证可用状态预览": "./images/profile/state-approved.png",
+      "禁用状态预览": "./images/profile/state-disabled.png",
+      "禁用 · 查看原因弹窗": "./images/profile/state-disabled-dialog.png"
+    }
+  }
+}

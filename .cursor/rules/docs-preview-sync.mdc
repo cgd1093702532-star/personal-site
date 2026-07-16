@@ -1,11 +1,13 @@
 ---
-description: 需求真源与预览右侧文档必须一致（符号链接，禁止拷贝漂移）
+description: 需求真源与预览右侧文档必须一致；文档不驱动原型
 alwaysApply: true
 ---
 
 # 铁律：需求文档 ↔ 右侧预览必须一致
 
 用户看右侧「需求说明」时，**必须与** `docs/miniprogram/pages/*.md` 真源逐字一致。
+
+> **单向协作**：原型改动 → 写入文档。**禁止**根据文档内容去改原型。详见 `docs-supplement-not-overwrite.mdc`。
 
 ## 机制（已改为符号链接）
 
@@ -33,9 +35,12 @@ alwaysApply: true
 1. 只改 `docs/miniprogram/pages/`（不要手改 `preview/docs/`）
 2. 若刚克隆 / 链接丢失：跑 `python3 preview/build-pages.py`（会重建符号链接并刷新左侧导航 JSON）
 3. 核对：
-   - `python3 scripts/check-docs-preview-sync.py`（须 `OK ... symlink`）
-   - `python3 scripts/check-preview-page-nav.py`（须 `OK preview-page-nav`）
+ - `python3 scripts/check-docs-preview-sync.py`（须 `OK ... symlink`）
+ - `python3 scripts/check-preview-page-nav.py`（须 `OK preview-page-nav`）
+ - `python3 scripts/check-doc-images.py --fix` 后再 `python3 scripts/check-doc-images.py`（须 `OK`；配图不得丢成纯文字，见 `doc-embedded-images.mdc`）
 4. 让用户**强制刷新**浏览器（避免旧 md / JSON 缓存）；截图 URL 仍带 `?v=`
+
+> 机械兜底：`build-pages.py` 会自动 `--fix` 配图语法；Agent 改 md 后有 `afterFileEdit` hook 再修一遍。仍以真源 `![]()` 为准。
 
 ## 表格陷阱
 
@@ -48,3 +53,4 @@ alwaysApply: true
 - 手改 `preview-page-nav.json` 或漏改 `page_catalog.py` 导致左侧导航漏页
 - 未核对就声称「预览已与文档一致」
 - 让用户自己对比右侧预览与 md
+- 覆盖用户已写需求原文（只补充；重复/矛盾用 `【重复】`/`【矛盾】` 着色标记，见 `docs-supplement-not-overwrite.mdc`）

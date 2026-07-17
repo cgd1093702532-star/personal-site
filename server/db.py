@@ -726,17 +726,25 @@ def get_hero_apply_status(user_id: str = DEFAULT_USER_ID) -> dict[str, Any]:
     conn.close()
 
     role = get_app_state("mock_hero_role") or "none"
-    if role in ("approved", "pending", "rejected"):
-        hero_id = "1" if role == "approved" else None
-        pending = get_pending_profile_change(hero_id) if hero_id else None
-        enabled, disable_reason = _hero_enablement(hero_id) if hero_id else (True, "")
+    if role == "approved":
+        # 预览兜底角色：英雄已被后台删除时视为未认证
+        hero_id = "1"
+        hero = get_hero(hero_id)
+        if not hero:
+            set_app_state("mock_hero_role", "")
+            set_app_state("hero_apply_form", None)
+            return _apply_status_payload(status="none")
+        pending = get_pending_profile_change(hero_id)
+        enabled, disable_reason = _hero_enablement(hero_id)
         return _apply_status_payload(
-            status=role,
+            status="approved",
             hero_id=hero_id,
             pending_profile_change=pending,
             hero_enabled=enabled,
             disable_reason=disable_reason,
         )
+    if role in ("pending", "rejected"):
+        return _apply_status_payload(status=role, hero_id=None)
     return _apply_status_payload(status="none")
 
 
@@ -1253,6 +1261,9 @@ def delete_hero(hero_id: str) -> bool:
     for uid in user_ids:
         _sync_mock_hero_role_for_user(uid, conn)
     conn.close()
+    # 再读一次：无申请时强制未认证，避免预览 mock 残留 approved
+    for uid in user_ids:
+        _sync_mock_hero_role_for_user(uid)
     return True
 
 
@@ -1851,6 +1862,24 @@ def get_profile_change(change_id: str) -> dict[str, Any] | None:
     ).fetchone()
     conn.close()
     return _profile_change_row_to_dict(row) if row else None
+
+
+def delete_profile_changes(change_ids: list[str]) -> int:
+    """后台批量删除资料变更记录，返回实际删除条数。"""
+    ids = [str(x).strip() for x in (change_ids or []) if str(x).strip()]
+    if not ids:
+        return 0
+    conn = connect()
+    init_schema(conn)
+    placeholders = ",".join("?" for _ in ids)
+    cur = conn.execute(
+        f"DELETE FROM profile_change_requests WHERE change_id IN ({placeholders})",
+        ids,
+    )
+    deleted = cur.rowcount if cur.rowcount is not None and cur.rowcount >= 0 else 0
+    conn.commit()
+    conn.close()
+    return int(deleted)
 
 
 def approve_profile_change(change_id: str) -> dict[str, Any]:

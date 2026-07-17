@@ -21,7 +21,6 @@ SKIP_PAGE_DOCS = frozenset(
     {
         "README.md",
         "_TEMPLATE.md",
-        "消息.md",  # 第一期暂不做，无预览页
     }
 )
 
@@ -40,7 +39,8 @@ PAGE_CATALOG: list[tuple[str, list[tuple[str, str]]]] = [
         "浏览与报名",
         [
             ("hero-detail.html", "英雄详情.md"),
-            ("recruitment-detail.html", "招募详情.md"),
+            ("recruitment-detail.html", "赛事详情.md"),
+            ("activity-detail.html", "活动详情.md"),
             ("course-detail.html", "课程详情.md"),
         ],
     ),
@@ -73,6 +73,8 @@ PAGE_CATALOG: list[tuple[str, list[tuple[str, str]]]] = [
         [
             ("my-signups.html", "我的报名.md"),
             ("my-reviews.html", "我的评价.md"),
+            ("messages.html", "消息.md"),
+            ("message-detail.html", "消息详情.md"),
         ],
     ),
 ]
@@ -80,6 +82,10 @@ PAGE_CATALOG: list[tuple[str, list[tuple[str, str]]]] = [
 # 预览右侧文档裁剪范围（与历史 PREVIEW_DOC_SCOPE 一致）
 PREVIEW_DOC_SCOPE: dict[str, str] = {
     "index.html": "intro",
+    "course-create.html": "intro",
+    "messages.html": "intro",
+    "activity-detail.html": "intro",
+    "course-detail.html": "intro",
 }
 
 
@@ -120,8 +126,14 @@ def preview_doc_map() -> dict[str, str]:
     }
 
 
+# 文件名无法含「/」时，导航与需求预览展示名可在此覆盖
+DOC_LABEL_OVERRIDES: dict[str, str] = {}
+
+
 def label_for_doc(doc: str) -> str:
     name = Path(doc).name
+    if name in DOC_LABEL_OVERRIDES:
+        return DOC_LABEL_OVERRIDES[name]
     return name[:-3] if name.endswith(".md") else name
 
 

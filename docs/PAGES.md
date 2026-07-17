@@ -62,7 +62,8 @@
 | 页面 | 需求文档 | 源码目录 | 路由 | M1 |
 |------|----------|----------|------|-----|
 | 英雄详情 | [英雄详情.md](./miniprogram/pages/英雄详情.md) | `miniprogram/pages/hero-detail/` | `pages/hero-detail/hero-detail` | ✅ |
-| 招募详情 | [招募详情.md](./miniprogram/pages/招募详情.md) | `miniprogram/pages/recruitment-detail/` | `pages/recruitment-detail/recruitment-detail` | ✅ |
+| 赛事详情 | [赛事详情.md](./miniprogram/pages/赛事详情.md) | `miniprogram/pages/recruitment-detail/` | `pages/recruitment-detail/recruitment-detail` | ✅ |
+| 活动详情 | [活动详情.md](./miniprogram/pages/活动详情.md) | 同壳预览 `activity-detail.html`（小程序仍走 recruitment-detail） | `pages/recruitment-detail/recruitment-detail` | ✅ |
 | 课程详情 | [课程详情.md](./miniprogram/pages/课程详情.md) | `miniprogram/pages/course-detail/` | `pages/course-detail/course-detail` | ✅ |
 
 ### 子页 · 英雄认证

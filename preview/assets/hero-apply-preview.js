@@ -249,6 +249,7 @@
   let editContext = { active: false, heroId: null };
   let showcaseSections = createDefaultShowcaseSections();
   let showcaseSectionSeq = 1;
+  let initialSnapshotSig = '';
 
   function isEditMode() {
     try {
@@ -483,22 +484,164 @@
     }
   }
 
-  async function loadDraftApplication() {
+  /** 仅「保存并退出」写入；勿与提交时缓存的 hero_apply_form 混用 */
+  const APPLY_DRAFT_KEY = 'hero_apply_local_draft';
+  const EDIT_DRAFT_KEY = 'hero_profile_edit_draft';
+
+  async function readPersistedDraft(isEdit) {
+    const key = isEdit ? EDIT_DRAFT_KEY : APPLY_DRAFT_KEY;
     const db = window.HeroPlazaDB;
-    if (!db || !(await db.isAvailable())) return null;
-    try {
-      const status = await db.getHeroApplyStatus();
-      if (status?.status === 'rejected' && status.application) {
-        return status.application;
-      }
-      if (status?.status === 'rejected') {
-        const saved = await db.getAppState('hero_apply_form');
+    if (db && (await db.isAvailable()) && typeof db.getAppState === 'function') {
+      try {
+        const saved = await db.getAppState(key);
         if (saved && typeof saved === 'object') return saved;
+      } catch (_) {
+        /* ignore */
+      }
+    }
+    try {
+      const raw = localStorage.getItem(`hero_plaza_${key}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') return parsed;
       }
     } catch (_) {
       /* ignore */
     }
     return null;
+  }
+
+  async function persistDraft(payload, isEdit) {
+    const key = isEdit ? EDIT_DRAFT_KEY : APPLY_DRAFT_KEY;
+    const db = window.HeroPlazaDB;
+    if (db && (await db.isAvailable()) && typeof db.setAppState === 'function') {
+      try {
+        await db.setAppState(key, payload);
+        try {
+          if (payload == null) localStorage.removeItem(`hero_plaza_${key}`);
+          else localStorage.setItem(`hero_plaza_${key}`, JSON.stringify(payload));
+        } catch (_) {
+          /* ignore */
+        }
+        return;
+      } catch (_) {
+        /* fall through */
+      }
+    }
+    try {
+      if (payload == null) localStorage.removeItem(`hero_plaza_${key}`);
+      else localStorage.setItem(`hero_plaza_${key}`, JSON.stringify(payload));
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  async function loadDraftApplication() {
+    try {
+      const local = await readPersistedDraft(false);
+      const db = window.HeroPlazaDB;
+      if (!db || !(await db.isAvailable())) {
+        // 无 API 时：仅回显用户主动「保存并退出」的草稿，不拿提交缓存乱填
+        return local;
+      }
+      const status = await db.getHeroApplyStatus();
+      const role = status?.status || 'none';
+      if (role === 'rejected') {
+        if (local) return local;
+        if (status.application) return status.application;
+        return null;
+      }
+      // 未申请：仅有主动保存的本地草稿才回填；首次新建保持空白
+      if (role === 'none') return local;
+    } catch (_) {
+      /* ignore */
+    }
+    return readPersistedDraft(false);
+  }
+
+  function collectDraftSnapshot(root) {
+    if (!root) return null;
+    const nickname = root.querySelector('[data-field="nickname"]')?.value ?? '';
+    const name = root.querySelector('[data-field="name"]')?.value ?? '';
+    const phone = root.querySelector('[data-field="phone"]')?.value?.trim() || '';
+    const idCard = root.querySelector('[data-field="id_card"]')?.value?.trim() || '';
+    const idDocType =
+      root.querySelector('#apply-id-doc-type')?.value?.trim() || DEFAULT_ID_DOC_TYPE;
+    const bankAccount = root.querySelector('[data-field="bank_account"]')?.value?.trim() || '';
+    const address = root.querySelector('[data-field="address"]')?.value ?? '';
+    const bio = root.querySelector('[data-field="bio"]')?.value ?? '';
+    const certification = root.querySelector('#apply-cert')?.value?.trim() || '';
+    const yearsExp =
+      root.querySelector('#apply-years-tags .apply-tag--active')?.dataset.years || '';
+    const projects = getSelectedProjects(root);
+    const certificates = collectCertPayload(root);
+    const showcasePayload = showcaseSectionsToPayload(showcaseSections);
+    return {
+      nickname,
+      name,
+      phone,
+      id_doc_type: idDocType,
+      id_card: idCard,
+      bank_account: bankAccount,
+      project_types: projects,
+      city: address,
+      address,
+      certification,
+      years_exp: yearsExp,
+      bio,
+      cert_count: certificates.length,
+      certificates,
+      certFiles: certificates.map((c, i) => ({
+        id: `c-${i + 1}`,
+        label: c.name || `证书${i + 1}`,
+        name: c.name || `证书${i + 1}`,
+        url: c.image || '',
+      })),
+      ...showcasePayload,
+    };
+  }
+
+  function snapshotSignature(payload) {
+    try {
+      return JSON.stringify(payload || null);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function showSaveEditDialog(host) {
+    return new Promise((resolve) => {
+      document.getElementById('apply-save-edit-dialog')?.remove();
+      const dialog = document.createElement('div');
+      dialog.id = 'apply-save-edit-dialog';
+      dialog.className = 'profile-dialog';
+      dialog.innerHTML =
+        `<div class="profile-dialog__mask" data-save-edit-stay></div>` +
+        `<div class="profile-dialog__panel" role="dialog" aria-modal="true">` +
+        `<div class="profile-dialog__title">是否保存本次的编辑内容</div>` +
+        `<div class="profile-dialog__actions">` +
+        `<button type="button" class="profile-dialog__btn" data-save-edit-discard>不保存</button>` +
+        `<button type="button" class="profile-dialog__btn profile-dialog__btn--primary" data-save-edit-save>保存并退出</button>` +
+        `</div></div>`;
+      const finish = (action) => {
+        dialog.remove();
+        resolve(action);
+      };
+      dialog.addEventListener('click', (e) => {
+        if (e.target.closest('[data-save-edit-discard]')) {
+          finish('discard');
+          return;
+        }
+        if (e.target.closest('[data-save-edit-save]')) {
+          finish('save');
+          return;
+        }
+        if (e.target.closest('[data-save-edit-stay]')) {
+          finish('stay');
+        }
+      });
+      (host || document.querySelector('.mobile-shell') || document.body).appendChild(dialog);
+    });
   }
 
   function fillDraft(root, draft, helpers) {
@@ -750,6 +893,7 @@
           showcasePayload,
         );
         await db.submitProfileChange(editContext.heroId, patch, 'profile');
+        await persistDraft(null, true);
         try {
           localStorage.setItem('hero_plaza_profile_changes_updated', String(Date.now()));
           window.dispatchEvent(new CustomEvent('hero_plaza_profile_changes_updated'));
@@ -768,6 +912,7 @@
       }
 
       await db.submitHeroApply(application);
+      await persistDraft(null, false);
       try {
         localStorage.setItem('hero_plaza_applications_updated', String(Date.now()));
         window.dispatchEvent(new CustomEvent('hero_plaza_applications_updated'));
@@ -843,7 +988,8 @@
         heroId: loaded.heroId,
         profilePending: !!loaded.profilePending,
       };
-      pendingDraft = loaded.draft;
+      const editLocal = await readPersistedDraft(true);
+      pendingDraft = editLocal || loaded.draft;
     }
 
     const shell = getShell(root);
@@ -865,21 +1011,21 @@
         <div class="apply-section__title">基本信息</div>
         <div class="apply-field">
           <label class="apply-label apply-label--required">昵称</label>
-          <input class="apply-input" value="" placeholder="请输入" data-field="nickname" maxlength="10" />
+          <input class="apply-input" value="" placeholder="请输入" data-field="nickname" maxlength="10" autocomplete="off" />
         </div>
         <div class="apply-field">
           <label class="apply-label apply-label--required">手机号</label>
           <div class="apply-phone-wrap">
-            <input class="apply-input apply-input--phone" type="tel" maxlength="11" placeholder="请输入" data-field="phone" value="" inputmode="numeric" />
+            <input class="apply-input apply-input--phone" type="tel" maxlength="11" placeholder="请输入" data-field="phone" value="" inputmode="numeric" autocomplete="off" />
             <button type="button" class="apply-sms-code" id="apply-sms-send" disabled>获取验证码</button>
           </div>
           <div class="apply-sms-field" id="apply-sms-field">
-            <input class="apply-input" type="tel" maxlength="6" placeholder="请输入" data-field="sms_code" inputmode="numeric" />
+            <input class="apply-input" type="tel" maxlength="6" placeholder="请输入" data-field="sms_code" inputmode="numeric" autocomplete="one-time-code" />
           </div>
         </div>
         <div class="apply-field">
           <label class="apply-label apply-label--required">姓名</label>
-          <input class="apply-input" value="" placeholder="请输入" data-field="name" maxlength="10" />
+          <input class="apply-input" value="" placeholder="请输入" data-field="name" maxlength="10" autocomplete="off" />
         </div>
         <div class="apply-field">
           <label class="apply-label apply-label--required">证件类型</label>
@@ -1596,6 +1742,10 @@
     renderShowcaseSections();
     updateBioCount();
 
+    const captureInitialSnapshot = () => {
+      initialSnapshotSig = snapshotSignature(collectDraftSnapshot(root));
+    };
+
     const applyDraft = (draft) => {
       if (!draft || !getRoot()) return;
       fillDraft(root, draft, {
@@ -1606,14 +1756,41 @@
       });
     };
 
+    const finishBoot = () => {
+      captureInitialSnapshot();
+      window.PreviewNav?.setBackGuard?.(async () => {
+        if (!getRoot()) return true;
+        if (snapshotSignature(collectDraftSnapshot(root)) === initialSnapshotSig) {
+          return true;
+        }
+        const action = await showSaveEditDialog(shell || root.closest('.mobile-shell'));
+        if (action === 'stay') return false;
+        if (action === 'save') {
+          await persistDraft(collectDraftSnapshot(root), !!editContext.active);
+        } else if (action === 'discard') {
+          // 不保存：清掉本地草稿，下次进入保持空白（勿残留联调/上次草稿）
+          await persistDraft(null, !!editContext.active);
+        }
+        return true;
+      });
+    };
+
     if (pendingDraft) {
       applyDraft(pendingDraft);
+      finishBoot();
     } else if (!isEdit) {
-      loadDraftApplication().then(applyDraft);
+      loadDraftApplication().then((draft) => {
+        applyDraft(draft);
+        finishBoot();
+      });
+    } else {
+      finishBoot();
     }
 
     cleanup = () => {
       clearInterval(countdownTimer);
+      window.PreviewNav?.clearBackGuard?.();
+      document.getElementById('apply-save-edit-dialog')?.remove();
       closeCertNameDialog();
       root.querySelector('#apply-years-tags')?.removeEventListener('click', onYearsTagsClick);
       agree?.removeEventListener('change', onAgreeChange);

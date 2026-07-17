@@ -41,6 +41,8 @@ Page({
     coverThreshold: COVER_BODY_HEIGHT,
     coverStyle: '',
     navSolid: false,
+    shareVisible: false,
+    shareHero: null,
   },
 
   onLoad(options) {
@@ -50,6 +52,7 @@ Page({
       wx.showToast({ title: '课程不存在', icon: 'none' });
       return;
     }
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
     const sys = wx.getSystemInfoSync();
     const statusBarHeight = sys.statusBarHeight || 20;
     const chromeHeight = statusBarHeight + NAV_BAR_HEIGHT;
@@ -59,6 +62,10 @@ Page({
       .map((t) => String(t || '').trim())
       .filter(Boolean)
       .slice(0, 3);
+    const desc =
+      (item.description || '').trim() ||
+      ['课程', item.location, item.time].filter(Boolean).join(' · ') ||
+      '欢迎扫码查看课程详情';
     this.setData({
       item: { ...item, remark: item.remark || '' },
       courseId: id,
@@ -70,6 +77,14 @@ Page({
       coverThreshold: COVER_BODY_HEIGHT,
       coverStyle: `height: ${chromeHeight + COVER_BODY_HEIGHT}px`,
       navSolid: false,
+      shareHero: {
+        name: item.title || '课程',
+        nickname: item.title || '课程',
+        about_me: desc,
+        bio: desc,
+        avatar_img: coverImages[0] || '/assets/images/course.jpg',
+        avatar: coverImages[0] || '/assets/images/course.jpg',
+      },
     });
   },
 
@@ -79,6 +94,22 @@ Page({
       title: (item && item.title) || '课程详情',
       path: `/pages/course-detail/course-detail?id=${courseId}`,
     };
+  },
+
+  onShareTimeline() {
+    const { item, courseId } = this.data;
+    return {
+      title: (item && item.title) || '课程详情',
+      query: `id=${courseId}`,
+    };
+  },
+
+  onShareTap() {
+    this.setData({ shareVisible: true });
+  },
+
+  onShareClose() {
+    this.setData({ shareVisible: false });
   },
 
   onPageScroll(e) {

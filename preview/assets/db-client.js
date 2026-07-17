@@ -226,6 +226,13 @@
       });
     },
 
+    async batchDeleteProfileChanges(ids) {
+      return request('/api/admin/profile-changes/batch-delete', {
+        method: 'POST',
+        body: JSON.stringify({ ids: ids || [] }),
+      });
+    },
+
     async getSettings() {
       return request('/api/admin/settings');
     },

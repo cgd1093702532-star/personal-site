@@ -135,7 +135,7 @@
       const id = activity.recruit_id || activity.id || activity.target_id;
       const title = activity.title || '';
       const status = statusLabel(activity.status_label || activity.status, '报名中');
-      rows.push(taggedRow(`recruitment-detail.html?id=${escapeHtml(id)}`, 'activity', `${status} | ${title}`));
+      rows.push(taggedRow(`activity-detail.html?id=${escapeHtml(id)}`, 'activity', `${status} | ${title}`));
     }
     if (course) {
       const id = course.course_id || course.id || course.target_id;

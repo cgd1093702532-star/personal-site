@@ -67,11 +67,14 @@ a { color: inherit; text-decoration: none; }
 
 /* 桌面：左侧页面导航 + 手机模型 + 右侧需求文档 */
 body.has-preview-doc .device.device--with-doc {
-  justify-content: center;
+  /* 左对齐，避免三栏总宽超过视口时左侧导航被居中裁切到屏外 */
+  justify-content: flex-start;
   align-items: flex-start;
   gap: 20px;
   padding: 24px 20px;
   flex-wrap: nowrap;
+  overflow-x: auto;
+  box-sizing: border-box;
 }
 
 body.has-preview-doc .device.device--with-doc > .device__frame {
@@ -480,6 +483,7 @@ body.preview-dialog-gallery-open .device {
   font-size: 14px;
   line-height: 1.45;
   color: #fff;
+  background: #000;
   text-align: center;
   word-break: break-word;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
@@ -5965,7 +5969,8 @@ button.profile-hero-shortcuts__item {
 .profile-dialog {
   position: absolute;
   inset: 0;
-  z-index: 80;
+  /* 须高于 .apply-footer--pinned(100)，弹框遮罩才能盖住底部协议与提交栏 */
+  z-index: 2300;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8161,4 +8166,143 @@ body:not(.admin-app) .admin-detail__actions { display: flex; gap: 8px; margin-to
 
 .my-recruit__card[data-href] {
   cursor: pointer;
+}
+
+/* 消息中心 */
+.msg-center {
+  min-height: 100%;
+  padding: 12px 16px 24px;
+  background: #f5f5f5;
+  box-sizing: border-box;
+}
+
+.msg-center__card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 16px 14px;
+  border: none;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  font: inherit;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.msg-center__card:last-child {
+  margin-bottom: 0;
+}
+
+.msg-center__card:active {
+  opacity: 0.88;
+}
+
+.msg-center__icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: block;
+  object-fit: contain;
+}
+
+.msg-center__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  color: #222;
+  font-weight: 500;
+}
+
+.msg-center__arrow {
+  flex-shrink: 0;
+  font-size: 18px;
+  color: #c0c0c0;
+  line-height: 1;
+}
+
+/* 消息详情 · 系统消息 */
+.msg-detail {
+  min-height: 100%;
+  padding: 12px 16px 24px;
+  background: #f5f5f5;
+  box-sizing: border-box;
+}
+
+.msg-detail__item {
+  margin: 0 0 12px;
+  padding: 16px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.msg-detail__item:last-child {
+  margin-bottom: 0;
+}
+
+.msg-detail__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.msg-detail__title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #222;
+  line-height: 1.4;
+}
+
+.msg-detail__time {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: #999;
+  line-height: 1.4;
+}
+
+.msg-detail__content {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: #666;
+  line-height: 1.55;
+}
+
+.msg-detail__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 420px;
+  padding: 80px 24px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.msg-detail__empty-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.msg-detail__empty-icon img {
+  width: 36px;
+  height: 36px;
+  display: block;
+}
+
+.msg-detail__empty-title {
+  margin-top: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #999;
 }

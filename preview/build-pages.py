@@ -687,6 +687,8 @@ def hero_home_card(
     def row_href(row_type, item_id):
         if row_type == "course":
             return f"course-detail.html?id={item_id}"
+        if row_type == "activity":
+            return f"activity-detail.html?id={item_id}"
         return f"recruitment-detail.html?id={item_id}"
 
     row1_link = row_href(row1_type, row1_id)
@@ -1012,7 +1014,7 @@ HOME = f"""
                 </div>
               </div>
             </a>
-            <a class="event-card event-card--hero" href="recruitment-detail.html?id=r2">
+            <a class="event-card event-card--hero" href="activity-detail.html?id=r2">
               <div class="event-card__bg"><img src="{I}/banner.jpg" alt="亲子帆船体验日"></div>
               <div class="event-card__scrim"></div>
               <div class="event-card__top">
@@ -1030,7 +1032,7 @@ HOME = f"""
                 </div>
               </div>
             </a>
-            <a class="event-card event-card--hero" href="recruitment-detail.html?id=r4">
+            <a class="event-card event-card--hero" href="activity-detail.html?id=r4">
               <div class="event-card__bg"><img src="{I}/recruit-cover.jpg" alt="浆板初体验"></div>
               <div class="event-card__scrim"></div>
               <div class="event-card__top">
@@ -1120,8 +1122,8 @@ sub_pages = {
           <script src="../assets/hero-share.js"></script>
           <script src="../assets/hero-detail-page.js"></script>
     '''),
-    "recruitment-detail.html": ("招募详情", '''
-          <div id="recruitment-detail-root"></div>
+    "recruitment-detail.html": ("赛事详情", '''
+          <div id="recruitment-detail-root" data-default-recruit-id="r1"></div>
           <script src="../assets/db-client.js"></script>
           <script src="../assets/preview-toast.js"></script>
           <script src="../assets/my-signups-preview.js"></script>
@@ -1129,6 +1131,19 @@ sub_pages = {
           <script src="../assets/heroes-data.js"></script>
           <script src="../assets/recruitments-data.js"></script>
           <script src="../assets/cover-carousel.js"></script>
+          <script src="../assets/hero-share.js"></script>
+          <script src="../assets/recruitment-detail-preview.js"></script>
+    '''),
+    "activity-detail.html": ("活动详情", '''
+          <div id="recruitment-detail-root" data-default-recruit-id="r2"></div>
+          <script src="../assets/db-client.js"></script>
+          <script src="../assets/preview-toast.js"></script>
+          <script src="../assets/my-signups-preview.js"></script>
+          <script src="../assets/signup-action-preview.js"></script>
+          <script src="../assets/heroes-data.js"></script>
+          <script src="../assets/recruitments-data.js"></script>
+          <script src="../assets/cover-carousel.js"></script>
+          <script src="../assets/hero-share.js"></script>
           <script src="../assets/recruitment-detail-preview.js"></script>
     '''),
     "course-detail.html": ("课程详情", '''
@@ -1136,6 +1151,7 @@ sub_pages = {
           <script src="../assets/db-client.js"></script>
           <script src="../assets/heroes-data.js"></script>
           <script src="../assets/cover-carousel.js"></script>
+          <script src="../assets/hero-share.js"></script>
           <script src="../assets/course-detail-preview.js"></script>
     '''),
     "hero-apply.html": ("申请成为英雄", '''
@@ -1212,6 +1228,16 @@ sub_pages = {
           <script src="../assets/review-sort.js"></script>
           <script src="../assets/my-reviews-preview.js"></script>
     '''),
+    "messages.html": ("消息中心", '''
+          <div id="messages-root"></div>
+          <script src="../assets/preview-toast.js"></script>
+          <script src="../assets/messages-preview.js"></script>
+    '''),
+    "message-detail.html": ("消息详情", '''
+          <div id="message-detail-root"></div>
+          <script src="../assets/db-client.js"></script>
+          <script src="../assets/message-detail-preview.js"></script>
+    '''),
     "my-students.html": ("我的学员", '''
           <div id="my-students-root"></div>
           <script src="../assets/my-students-preview.js"></script>
@@ -1248,7 +1274,7 @@ for fname, (title, body) in sub_pages.items():
     back = "profile.html"
     if fname.startswith("hero") and fname not in ("hero-apply-success.html", "hero-apply-submitted.html", "hero-profile.html", "hero-apply.html"):
         back = "heroes.html"
-    if fname in ("recruitment-detail.html", "course-detail.html", "hero-detail.html"):
+    if fname in ("recruitment-detail.html", "activity-detail.html", "course-detail.html", "hero-detail.html"):
         back = "heroes.html"
     if fname == "signup-list.html":
         back = "my-courses.html"
@@ -1256,6 +1282,8 @@ for fname, (title, body) in sub_pages.items():
         back = "profile.html"
     if fname == "recruitment-edit.html":
         back = "my-recruitments.html"
+    if fname == "message-detail.html":
+        back = "messages.html"
     if fname in ("hero-apply.html",):
         back = "profile.html"
     if fname == "hero-apply-success.html":
@@ -1265,11 +1293,11 @@ for fname, (title, body) in sub_pages.items():
     nav_title_id = ""
     nav_right_action = None
     back_target = ""
-    if fname in ("hero-apply-submitted.html", "hero-apply-success.html", "recruitment-create.html", "course-create.html"):
+    if fname in ("hero-apply-submitted.html", "hero-apply-success.html", "recruitment-create.html", "course-create.html", "messages.html"):
         back_target = "profile.html"
     if fname == "hero-detail.html":
         nav_title_id = "navbar-hero-title"
-    elif fname == "recruitment-detail.html":
+    elif fname in ("recruitment-detail.html", "activity-detail.html"):
         nav_title_id = "navbar-recruit-title"
     elif fname == "course-detail.html":
         nav_title_id = "navbar-course-title"
@@ -1280,8 +1308,9 @@ for fname, (title, body) in sub_pages.items():
             title,
             body,
             navbar_html=navbar(title, back, back_target=back_target, title_id=nav_title_id, right_action=nav_right_action),
-            immersive=fname in ("recruitment-detail.html", "course-detail.html"),
+            immersive=fname in ("recruitment-detail.html", "activity-detail.html", "course-detail.html"),
             preview_doc=PREVIEW_DOC_MAP.get(fname, ""),
+            preview_doc_scope=PREVIEW_DOC_SCOPE.get(fname, ""),
         ),
         encoding="utf-8",
     )
@@ -1436,5 +1465,20 @@ _r2 = subprocess.run(
 )
 if _r2.returncode != 0:
     raise SystemExit(_r2.returncode)
+
+# 铁律：表格序号分点必须 <br> 换行
+_tbl = ROOT.parent / "scripts" / "check-doc-table-linebreaks.py"
+_r_tbl_fix = subprocess.run(
+    [sys.executable, str(_tbl), "--fix"],
+    cwd=str(ROOT.parent),
+)
+if _r_tbl_fix.returncode != 0:
+    raise SystemExit(_r_tbl_fix.returncode)
+_r_tbl = subprocess.run(
+    [sys.executable, str(_tbl)],
+    cwd=str(ROOT.parent),
+)
+if _r_tbl.returncode != 0:
+    raise SystemExit(_r_tbl.returncode)
 
 print("ok", len(tab_pages) + len(sub_pages))

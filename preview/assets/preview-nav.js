@@ -10,6 +10,8 @@
   const STACK_KEY = 'preview-nav-stack';
   let navigating = false;
   let navStack = [];
+  /** 返回前守卫：返回 false 则拦截返回；支持 Promise */
+  let backGuard = null;
 
   function normalizeUrl(url) {
     try {
@@ -158,13 +160,21 @@
   }
 
   async function navigateTo(href, transition = 'forward', options = {}) {
-    const { replace = false, fromPopstate = false, skipStack = false, force = false } = options;
+    const {
+      replace = false,
+      fromPopstate = false,
+      skipStack = false,
+      force = false,
+      /** 左侧目录「传送」：栈重置为仅当前页，不污染手机内返回路径 */
+      resetStack = false,
+    } = options;
+    if (navigating && !force) return;
     const url = resolveUrl(href);
 
     const isBackNav = transition === 'back' || transition === 'tab';
     if (!fromPopstate && !force && !isBackNav && url === window.location.href) return;
 
-    if (!fromPopstate && !replace && !skipStack && transition !== 'back') {
+    if (!fromPopstate && !replace && !skipStack && !resetStack && transition !== 'back') {
       prepareForwardStack(href);
     }
 
@@ -176,6 +186,9 @@
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const newShell = doc.querySelector('.mobile-shell');
       if (!newShell) throw new Error('missing .mobile-shell');
+
+      // 换页后旧页的返回守卫失效
+      clearBackGuard();
 
       const currentShell = frame.querySelector('.mobile-shell');
       const nextShell = document.importNode(newShell, true);
@@ -210,7 +223,11 @@
 
       if (!fromPopstate) {
         const normalized = normalizeUrl(url);
-        if (replace) {
+        if (resetStack) {
+          history.replaceState({ previewUrl: url }, '', url);
+          navStack = [normalized];
+          writeStack(navStack);
+        } else if (replace) {
           history.replaceState({ previewUrl: url }, '', url);
           navStack = readStack();
           if (navStack.length) {
@@ -232,7 +249,13 @@
       await runPageScripts(doc);
       window.dispatchEvent(
         new CustomEvent('preview:navigate', {
-          detail: { url, transition, previewDoc: nextDoc || '', previewDocScope: nextScope || '' },
+          detail: {
+            url,
+            transition,
+            previewDoc: nextDoc || '',
+            previewDocScope: nextScope || '',
+            resetStack: !!resetStack,
+          },
         }),
       );
     } catch (err) {
@@ -248,11 +271,12 @@
     if (navStack.length > 1) {
       return { url: navStack[navStack.length - 2], source: 'stack' };
     }
-    if (document.referrer && isInternalPreviewUrl(document.referrer)) {
-      return { url: document.referrer, source: 'referrer' };
-    }
+    // 栈仅当前页（含左侧目录传送后）：优先页面声明的 fallback，避免跟 referrer / 目录切换史
     if (fallbackHref && isInternalHref(fallbackHref)) {
       return { url: resolveUrl(fallbackHref), source: 'fallback' };
+    }
+    if (document.referrer && isInternalPreviewUrl(document.referrer)) {
+      return { url: document.referrer, source: 'referrer' };
     }
     return null;
   }
@@ -299,9 +323,26 @@
     return navigateTo(target.url, transition, { replace: true, skipStack: true, force: true });
   }
 
+  function setBackGuard(fn) {
+    backGuard = typeof fn === 'function' ? fn : null;
+  }
+
+  function clearBackGuard() {
+    backGuard = null;
+  }
+
   /** 返回：data-back-target 固定页 > 导航栈 > fallback */
-  function handleBack(link) {
+  async function handleBack(link) {
     if (navigating) return;
+    if (backGuard) {
+      try {
+        const allow = await backGuard();
+        if (allow === false) return;
+      } catch (err) {
+        console.warn('[PreviewNav] backGuard error:', err);
+        return;
+      }
+    }
     if (navigateToBackTarget(link)) return;
     goBack(resolveBackFallback(link));
   }
@@ -357,7 +398,13 @@
     navigateTo(current, 'back', { replace: true, fromPopstate: true, skipStack: true });
   });
 
-  window.PreviewNav = { navigateTo, goBack, getStack: () => readStack() };
+  window.PreviewNav = {
+    navigateTo,
+    goBack,
+    getStack: () => readStack(),
+    setBackGuard,
+    clearBackGuard,
+  };
 
   // 全局注入 Toast，保证各页提示都在当前手机页内居中
   if (!window.PreviewToast) {

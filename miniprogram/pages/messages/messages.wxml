@@ -1,0 +1,14 @@
+<view class="page msg-center">
+  <view
+    class="msg-center__card"
+    wx:for="{{categories}}"
+    wx:key="id"
+    data-id="{{item.id}}"
+    bindtap="onCategoryTap"
+    hover-class="msg-center__card--active"
+  >
+    <image class="msg-center__icon" src="{{item.icon}}" mode="aspectFit" />
+    <text class="msg-center__title">{{item.title}}</text>
+    <text class="msg-center__arrow">›</text>
+  </view>
+</view>

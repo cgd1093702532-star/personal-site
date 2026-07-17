@@ -115,7 +115,7 @@
       const title = activity.title || '';
       const status = statusLabel(activity.status_label || activity.status, '报名中');
       rows.push(
-        `<a class="hero-card__row nav-forward" href="recruitment-detail.html?id=${escapeHtml(id)}"><span class="tag tag--activity">活动</span><span class="hero-card__row-text">${escapeHtml(status)} | ${escapeHtml(title)}</span><span class="hero-card__row-arrow">›</span></a>`,
+        `<a class="hero-card__row nav-forward" href="activity-detail.html?id=${escapeHtml(id)}"><span class="tag tag--activity">活动</span><span class="hero-card__row-text">${escapeHtml(status)} | ${escapeHtml(title)}</span><span class="hero-card__row-arrow">›</span></a>`,
       );
     }
     if (course) {

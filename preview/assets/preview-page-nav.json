@@ -38,17 +38,24 @@
         },
         {
           "html": "recruitment-detail.html",
-          "doc": "招募详情.md",
-          "label": "招募详情",
-          "docUrl": "../docs/miniprogram/pages/招募详情.md",
+          "doc": "赛事详情.md",
+          "label": "赛事详情",
+          "docUrl": "../docs/miniprogram/pages/赛事详情.md",
           "scope": ""
+        },
+        {
+          "html": "activity-detail.html",
+          "doc": "活动详情.md",
+          "label": "活动详情",
+          "docUrl": "../docs/miniprogram/pages/活动详情.md",
+          "scope": "intro"
         },
         {
           "html": "course-detail.html",
           "doc": "课程详情.md",
           "label": "课程详情",
           "docUrl": "../docs/miniprogram/pages/课程详情.md",
-          "scope": ""
+          "scope": "intro"
         }
       ]
     },
@@ -101,13 +108,6 @@
           "label": "报名人员列表",
           "docUrl": "../docs/miniprogram/pages/报名人员列表.md",
           "scope": ""
-        },
-        {
-          "html": "hero-reviews.html",
-          "doc": "英雄评价列表.md",
-          "label": "英雄评价列表",
-          "docUrl": "../docs/miniprogram/pages/英雄评价列表.md",
-          "scope": ""
         }
       ]
     },
@@ -122,10 +122,17 @@
           "scope": ""
         },
         {
-          "html": "my-reviews.html",
-          "doc": "我的评价.md",
-          "label": "我的评价",
-          "docUrl": "../docs/miniprogram/pages/我的评价.md",
+          "html": "messages.html",
+          "doc": "消息.md",
+          "label": "消息",
+          "docUrl": "../docs/miniprogram/pages/消息.md",
+          "scope": "intro"
+        },
+        {
+          "html": "message-detail.html",
+          "doc": "消息详情.md",
+          "label": "消息详情",
+          "docUrl": "../docs/miniprogram/pages/消息详情.md",
           "scope": ""
         }
       ]

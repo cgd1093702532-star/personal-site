@@ -1,5 +1,10 @@
-/** 预览页 · 轻量 Toast 提示（当前页面居中） */
+/** 预览页 · 轻量 Toast 提示（当前页面居中）
+ * 铁律：全局提示统一黑底白字（忽略 type 配色）
+ */
 (function (global) {
+  const TOAST_BG = '#000000';
+  const TOAST_COLOR = '#ffffff';
+
   function getHost() {
     return (
       document.querySelector('.mobile-shell') ||
@@ -18,7 +23,7 @@
     }
   }
 
-  function show(message, type, durationMs) {
+  function show(message, _type, durationMs) {
     const host = getHost();
     ensureHostPosition(host);
 
@@ -37,16 +42,10 @@
       `position:${isFixed ? 'fixed' : 'absolute'};` +
       'left:50%;top:50%;transform:translate(-50%,-50%);' +
       'max-width:min(280px,calc(100% - 48px));padding:12px 18px;border-radius:10px;' +
-      'font-size:14px;line-height:1.45;color:#fff;background:rgba(0,0,0,0.82);' +
+      `font-size:14px;line-height:1.45;color:${TOAST_COLOR};background:${TOAST_BG};` +
       'z-index:99999;pointer-events:none;opacity:0;transition:opacity .2s ease;text-align:center;' +
       'box-sizing:border-box;word-break:break-word;';
     el.textContent = message;
-    el.style.background =
-      type === 'error'
-        ? 'rgba(180,40,40,0.92)'
-        : type === 'success'
-          ? 'rgba(27,87,156,0.92)'
-          : 'rgba(0,0,0,0.82)';
     // force reflow then show
     void el.offsetWidth;
     el.style.opacity = '1';

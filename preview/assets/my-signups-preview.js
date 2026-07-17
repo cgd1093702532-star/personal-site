@@ -136,7 +136,7 @@
       ? `<div class="my-signup__row"><img class="my-signup__row-icon" src="../assets/icons/location.png" alt=""><span class="my-signup__row-text">${item.location}</span></div>`
       : '';
     return (
-      `<a class="my-signup__card nav-forward" href="recruitment-detail.html?id=${item.recruit_id}">` +
+      `<a class="my-signup__card nav-forward" href="${item.type === 'activity' ? 'activity-detail.html' : 'recruitment-detail.html'}?id=${item.recruit_id}">` +
       `<div class="my-signup__card-head">` +
       `<span class="my-signup__title">${item.title}</span>` +
       `<span class="my-signup__badge my-signup__badge--${item.listTab}">${badgeLabel}</span>` +

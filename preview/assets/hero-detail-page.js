@@ -202,7 +202,7 @@
           ? ' hero-detail__activity-card--collapsed'
           : '';
       return (
-        `<a class="hero-detail__activity-card${collapsed} nav-forward" href="recruitment-detail.html?id=${r.recruit_id}">` +
+        `<a class="hero-detail__activity-card${collapsed} nav-forward" href="${isActivity ? 'activity-detail.html' : 'recruitment-detail.html'}?id=${r.recruit_id}">` +
         `<div class="hero-detail__activity-main">` +
         `<div class="hero-detail__activity-thumb"><img src="${imgBase}${cover}" alt=""></div>` +
         `<div class="hero-detail__activity-body">` +
@@ -285,12 +285,10 @@
       try {
         const res = await window.HeroPlazaDB.getHeroApplyStatus();
         const status = res?.status || 'none';
-        if (status && status !== 'none') {
-          return {
-            status,
-            reject_reason: res?.reject_reason || res?.application?.reject_reason || '',
-          };
-        }
+        return {
+          status: status === '' ? 'none' : status,
+          reject_reason: res?.reject_reason || res?.application?.reject_reason || '',
+        };
       } catch (_) {
         /* fallback */
       }

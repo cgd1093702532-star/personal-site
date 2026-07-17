@@ -146,7 +146,7 @@
     if (item.actionType === 'draft') return draftCard(item);
     const muted = item.badgeType === 'closed' || item.badgeType === 'ended' ? ' my-recruit__fee--muted' : '';
     return (
-      `<article class="my-recruit__card" data-href="recruitment-detail.html?id=${item.recruit_id}">` +
+      `<article class="my-recruit__card" data-href="${item.type === 'activity' ? 'activity-detail.html' : 'recruitment-detail.html'}?id=${item.recruit_id}">` +
       `<div class="my-recruit__meta">` +
       `<span class="my-recruit__meta-id">编号：${item.recruit_id}</span>` +
       `<span class="my-recruit__meta-time">${item.timeDisplay || ''}</span>` +

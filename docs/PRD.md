@@ -73,7 +73,8 @@ hero-plaza-miniprogram/
 | 英雄广场 | [miniprogram/pages/英雄广场.md](./miniprogram/pages/英雄广场.md) | P0 |
 | 商城 | [miniprogram/pages/商城.md](./miniprogram/pages/商城.md) | 占位 |
 | 英雄详情 | [miniprogram/pages/英雄详情.md](./miniprogram/pages/英雄详情.md) | P0 |
-| 招募详情 | [miniprogram/pages/招募详情.md](./miniprogram/pages/招募详情.md) | P0 |
+| 赛事详情 | [miniprogram/pages/赛事详情.md](./miniprogram/pages/赛事详情.md) | P0 |
+| 活动详情 | [miniprogram/pages/活动详情.md](./miniprogram/pages/活动详情.md) | P0 |
 | 个人中心 | [miniprogram/pages/个人中心.md](./miniprogram/pages/个人中心.md) | P0 |
 | 申请成为英雄 | [miniprogram/pages/申请成为英雄.md](./miniprogram/pages/申请成为英雄.md) | P0 |
 | 认证成功 | [miniprogram/pages/认证成功.md](./miniprogram/pages/认证成功.md) | P0 |

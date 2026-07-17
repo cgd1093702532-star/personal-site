@@ -11,7 +11,8 @@ module.exports = {
   ],
   subPages: [
     { path: 'pages/hero-detail/hero-detail', doc: 'docs/miniprogram/pages/英雄详情.md' },
-    { path: 'pages/recruitment-detail/recruitment-detail', doc: 'docs/miniprogram/pages/招募详情.md' },
+    { path: 'pages/recruitment-detail/recruitment-detail', doc: 'docs/miniprogram/pages/赛事详情.md' },
+    // 活动详情与赛事共用小程序页；独立需求文档 docs/miniprogram/pages/活动详情.md（预览 activity-detail.html）
     { path: 'pages/course-detail/course-detail', doc: 'docs/miniprogram/pages/课程详情.md' },
     { path: 'pages/hero-apply/hero-apply', doc: 'docs/miniprogram/pages/申请成为英雄.md' },
     { path: 'pages/hero-apply-success/hero-apply-success', doc: 'docs/miniprogram/pages/认证成功.md' },

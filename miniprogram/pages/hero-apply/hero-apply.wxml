@@ -1,5 +1,18 @@
 <view class="page apply-page">
-  <scroll-view class="apply-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+  <view class="apply-chrome">
+    <view class="apply-chrome__status" style="height: {{statusBarHeight}}px;"></view>
+    <view class="apply-chrome__navbar" style="height: {{navBarHeight}}px;">
+      <view class="apply-chrome__back" bindtap="onBack">‹</view>
+      <text class="apply-chrome__title">{{navTitle}}</text>
+    </view>
+  </view>
+  <scroll-view
+    class="apply-scroll"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    style="padding-top: {{statusBarHeight + navBarHeight}}px;"
+  >
     <view class="apply">
 
   <view class="apply-section">
@@ -334,6 +347,17 @@
       <view class="profile-dialog__actions">
         <view class="profile-dialog__btn" bindtap="onCloseCustomCertDialog">取消</view>
         <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onConfirmCustomCert">确定</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showSaveEditDialog}}" class="profile-dialog" catchtouchmove="noop">
+    <view class="profile-dialog__mask" bindtap="onStaySaveEditDialog"></view>
+    <view class="profile-dialog__panel">
+      <text class="profile-dialog__title">是否保存本次的编辑内容</text>
+      <view class="profile-dialog__actions">
+        <view class="profile-dialog__btn" bindtap="onDiscardAndExit">不保存</view>
+        <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onSaveAndExit">保存并退出</view>
       </view>
     </view>
   </view>

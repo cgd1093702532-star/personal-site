@@ -7,9 +7,46 @@
   background: var(--color-bg-subtle);
 }
 
+.apply-chrome {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--color-bg-page);
+  box-shadow: 0 1rpx 0 var(--color-divider);
+}
+
+.apply-chrome__navbar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.apply-chrome__back {
+  position: absolute;
+  left: 8rpx;
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56rpx;
+  font-weight: 300;
+  color: var(--color-text-primary);
+}
+
+.apply-chrome__title {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
 .apply-scroll {
   flex: 1;
   height: 0;
+  box-sizing: border-box;
 }
 
 .apply {
@@ -759,7 +796,8 @@
 .profile-dialog {
   position: fixed;
   inset: 0;
-  z-index: 1000;
+  /* 高于底部协议栏与导航，遮罩需盖住整页含提交按钮 */
+  z-index: 3000;
   display: flex;
   align-items: center;
   justify-content: center;

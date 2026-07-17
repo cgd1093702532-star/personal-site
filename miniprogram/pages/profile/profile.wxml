@@ -14,7 +14,7 @@
           </view>
         </view>
         <view class="profile-user__msg" bindtap="onMessages" hover-class="profile-user__msg--active">
-          <image class="profile-user__msg-icon" src="/assets/icons/chat.png" mode="aspectFit" />
+          <image class="profile-user__msg-icon" src="/assets/icons/bell.png" mode="aspectFit" />
         </view>
       </view>
     </view>

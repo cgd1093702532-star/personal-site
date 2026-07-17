@@ -25,6 +25,7 @@ case "$FILE_PATH" in
 esac
 
 cd "$ROOT"
-# 先修粘连/纯文字 alt，再写预览兜底映射；失败不阻断编辑（exit 0）
+# 先修粘连/纯文字 alt，再写预览兜底映射；表格序号换行铁律一并修复；失败不阻断编辑（exit 0）
 python3 scripts/check-doc-images.py --fix --write-preview-map >/dev/null 2>&1 || true
+python3 scripts/check-doc-table-linebreaks.py --fix >/dev/null 2>&1 || true
 exit 0

@@ -289,6 +289,15 @@ class Handler(BaseHTTPRequestHandler):
                 json_response(self, 400, {"error": "invalid_status"})
             return
 
+        if path == "/api/admin/profile-changes/batch-delete":
+            ids = body.get("ids") or body.get("change_ids") or []
+            if not isinstance(ids, list):
+                json_response(self, 400, {"error": "invalid_ids"})
+                return
+            deleted = db.delete_profile_changes(ids)
+            json_response(self, 200, {"ok": True, "deleted": deleted})
+            return
+
         json_response(self, 404, {"error": "not_found"})
 
     def do_DELETE(self) -> None:

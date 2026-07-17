@@ -1,6 +1,7 @@
 {
   "navigationStyle": "custom",
   "usingComponents": {
-    "category-tag": "/components/category-tag/category-tag"
+    "category-tag": "/components/category-tag/category-tag",
+    "hero-share": "/components/hero-share/hero-share"
   }
 }

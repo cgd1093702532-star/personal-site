@@ -21,6 +21,9 @@ const SHOWCASE_IMAGE_MAX = 9;
 const SHOWCASE_INTRO_MAX = 300;
 const CERT_MAX = 10;
 const CERT_NAME_MAX = 15;
+/** 仅「保存并退出」写入；勿与提交缓存 hero_apply_form 混用 */
+const APPLY_DRAFT_KEY = 'hero_apply_local_draft';
+const EDIT_DRAFT_KEY = 'hero_profile_edit_draft';
 
 const MOCK_FORM = {
   nickname: '',
@@ -181,11 +184,22 @@ function validateShowcaseSections(sections) {
   return '';
 }
 
+function snapshotSignature(payload) {
+  try {
+    return JSON.stringify(payload || null);
+  } catch (_) {
+    return '';
+  }
+}
+
 Page({
   data: {
     isEdit: false,
+    navTitle: '申请成为英雄',
     submitLabel: '提交申请',
     profileChangePending: false,
+    statusBarHeight: 20,
+    navBarHeight: 44,
     projectTypes: PROJECT_TYPES,
     selectedMap: {},
     projectTypesDisplay: '',
@@ -204,6 +218,7 @@ Page({
     showCustomCertDialog: false,
     customCertName: '',
     showCertNameDialog: false,
+    showSaveEditDialog: false,
     pendingCertUrl: '',
     pendingCertName: '',
     certFiles: [],
@@ -216,14 +231,17 @@ Page({
     this._returnFrom = options?.from || '';
     this._returnHeroId = options?.hero_id || '';
     this._showcaseSectionSeq = 1;
+    this._initialSnapshotSig = '';
+    this._bootDone = false;
     const isEdit = options?.mode === 'edit';
+    const sys = wx.getSystemInfoSync();
     this.setData({
       isEdit,
+      navTitle: isEdit ? '修改资料' : '申请成为英雄',
       submitLabel: isEdit ? '提交修改' : '提交申请',
+      statusBarHeight: sys.statusBarHeight || 20,
+      navBarHeight: 44,
     });
-    if (isEdit) {
-      wx.setNavigationBarTitle({ title: '修改资料' });
-    }
 
     data.getHeroApplyStatus().then((res) => {
       const role = res.status;
@@ -237,22 +255,34 @@ Page({
         const pendingAfter = res.pending_profile_change?.after || null;
         this.setData({ profileChangePending: !!res.profile_change_pending });
         const applyPending = (base) => {
-          if (pendingAfter) {
-            this.fillFromApplication({
-              ...(base || {}),
-              ...pendingAfter,
-              bio: pendingAfter.bio || pendingAfter.about_me || base?.bio || '',
-              address: pendingAfter.address || pendingAfter.city || base?.address || '',
-              certification:
-                pendingAfter.certification ||
-                (pendingAfter.cert_badges && pendingAfter.cert_badges[0]) ||
-                base?.certification ||
-                '',
-            });
-            return;
-          }
-          if (base) this.fillFromApplication(base);
-          else this.initMockForm();
+          data.getAppState(EDIT_DRAFT_KEY, null).then((local) => {
+            if (local) {
+              this.fillFromApplication(local, () => this.captureInitialSnapshot());
+              return;
+            }
+            if (pendingAfter) {
+              this.fillFromApplication(
+                {
+                  ...(base || {}),
+                  ...pendingAfter,
+                  bio: pendingAfter.bio || pendingAfter.about_me || base?.bio || '',
+                  address: pendingAfter.address || pendingAfter.city || base?.address || '',
+                  certification:
+                    pendingAfter.certification ||
+                    (pendingAfter.cert_badges && pendingAfter.cert_badges[0]) ||
+                    base?.certification ||
+                    '',
+                },
+                () => this.captureInitialSnapshot(),
+              );
+              return;
+            }
+            if (base) this.fillFromApplication(base, () => this.captureInitialSnapshot());
+            else {
+              this.initMockForm();
+              this.captureInitialSnapshot();
+            }
+          });
         };
         if (res.application) {
           applyPending(res.application);
@@ -304,15 +334,112 @@ Page({
         setTimeout(() => wx.navigateBack(), 1500);
         return;
       }
-      if (role === 'rejected' && res.application) {
-        this.fillFromApplication(res.application);
-        return;
-      }
-      this.initMockForm();
+      // 首次新建保持空白；仅主动「保存并退出」的草稿，或驳回申请，才回填
+      data.getAppState(APPLY_DRAFT_KEY, null).then((local) => {
+        if (local && typeof local === 'object') {
+          this.fillFromApplication(local, () => this.captureInitialSnapshot());
+          return;
+        }
+        if (role === 'rejected' && res.application) {
+          this.fillFromApplication(res.application, () => this.captureInitialSnapshot());
+          return;
+        }
+        this.initMockForm();
+        this.captureInitialSnapshot();
+      });
     });
   },
 
-  fillFromApplication(app) {
+  collectDraftSnapshot() {
+    const form = this.data.form || {};
+    const projects = Array.isArray(form.project_types) ? form.project_types.slice() : [];
+    const address = form.address || form.city || '';
+    const certList = (this.data.certFiles || [])
+      .filter((f) => f && f.url)
+      .map((f, i) => ({
+        name: String(f.label || f.name || `证书${i + 1}`).trim().slice(0, CERT_NAME_MAX),
+        image: f.url,
+      }));
+    const showcasePayload = showcaseSectionsToPayload(this.data.showcaseSections);
+    return {
+      nickname: form.nickname || '',
+      name: form.name || '',
+      phone: (form.phone || '').trim(),
+      id_doc_type: form.id_doc_type || DEFAULT_ID_DOC_TYPE,
+      id_card: (form.id_card || '').trim(),
+      bank_account: (form.bank_account || '').trim(),
+      project_types: projects,
+      city: address,
+      address,
+      certification: form.certification || '',
+      years_exp: form.years_exp || '',
+      bio: form.bio || '',
+      cert_count: certList.length,
+      certificates: certList,
+      certFiles: (this.data.certFiles || [])
+        .filter((f) => f && f.url)
+        .map((f, i) => ({
+          id: f.id || `c-${i + 1}`,
+          label: String(f.label || f.name || `证书${i + 1}`).slice(0, CERT_NAME_MAX),
+          name: String(f.label || f.name || `证书${i + 1}`).slice(0, CERT_NAME_MAX),
+          url: f.url,
+        })),
+      ...showcasePayload,
+    };
+  },
+
+  captureInitialSnapshot() {
+    this._initialSnapshotSig = snapshotSignature(this.collectDraftSnapshot());
+    this._bootDone = true;
+  },
+
+  isFormDirty() {
+    if (!this._bootDone) return false;
+    return snapshotSignature(this.collectDraftSnapshot()) !== this._initialSnapshotSig;
+  },
+
+  leavePage() {
+    const pages = getCurrentPages();
+    if (pages.length > 1) {
+      wx.navigateBack();
+      return;
+    }
+    wx.switchTab({ url: '/pages/profile/profile' });
+  },
+
+  onBack() {
+    if (!this.isFormDirty()) {
+      this.leavePage();
+      return;
+    }
+    this.setData({ showSaveEditDialog: true });
+  },
+
+  onBackPress() {
+    this.onBack();
+    return true;
+  },
+
+  onStaySaveEditDialog() {
+    this.setData({ showSaveEditDialog: false });
+  },
+
+  onDiscardAndExit() {
+    const key = this.data.isEdit ? EDIT_DRAFT_KEY : APPLY_DRAFT_KEY;
+    data.setAppState(key, null);
+    this.setData({ showSaveEditDialog: false });
+    this.leavePage();
+  },
+
+  onSaveAndExit() {
+    const key = this.data.isEdit ? EDIT_DRAFT_KEY : APPLY_DRAFT_KEY;
+    const payload = this.collectDraftSnapshot();
+    data.setAppState(key, payload);
+    this.setData({ showSaveEditDialog: false });
+    this.leavePage();
+  },
+
+  fillFromApplication(app, done) {
     const projects = Array.isArray(app.project_types)
       ? app.project_types.slice(0, PROJECT_TYPE_MAX)
       : app.project_type
@@ -363,34 +490,39 @@ Page({
       }),
     );
     const bio = app.bio || '';
-    this.setData({
-      projectTypes,
-      selectedMap: buildSelectedMap(projects),
-      projectTypesDisplay: projectTypesDisplayText(projects),
-      form: {
-        nickname: app.nickname || '',
-        name: app.name || '',
-        phone: app.phone || '',
-        sms_code: '',
-        id_doc_type: ID_DOC_TYPES.includes(app.id_doc_type) ? app.id_doc_type : DEFAULT_ID_DOC_TYPE,
-        id_card: app.id_card || '',
-        bank_account: app.bank_account || '',
-        project_types: projects,
-        city: address || app.city || '',
-        address,
-        certification,
-        years_exp: app.years_exp || '',
-        bio,
+    this.setData(
+      {
+        projectTypes,
+        selectedMap: buildSelectedMap(projects),
+        projectTypesDisplay: projectTypesDisplayText(projects),
+        form: {
+          nickname: app.nickname || '',
+          name: app.name || '',
+          phone: app.phone || '',
+          sms_code: '',
+          id_doc_type: ID_DOC_TYPES.includes(app.id_doc_type) ? app.id_doc_type : DEFAULT_ID_DOC_TYPE,
+          id_card: app.id_card || '',
+          bank_account: app.bank_account || '',
+          project_types: projects,
+          city: address || app.city || '',
+          address,
+          certification,
+          years_exp: app.years_exp || '',
+          bio,
+        },
+        bioLength: bio.length,
+        certFiles,
+        showcaseSections,
+        showSmsField: false,
+        smsCanSend: !!(app.phone || '').trim(),
+        smsSentOnce: false,
+        smsCountdown: 0,
+        agreed: false,
       },
-      bioLength: bio.length,
-      certFiles,
-      showcaseSections,
-      showSmsField: false,
-      smsCanSend: !!(app.phone || '').trim(),
-      smsSentOnce: false,
-      smsCountdown: 0,
-      agreed: false,
-    });
+      () => {
+        if (typeof done === 'function') done();
+      },
+    );
   },
 
   initMockForm() {
@@ -953,6 +1085,7 @@ Page({
       data
         .submitProfileChange(heroId, patch, 'profile')
         .then(() => {
+          data.setAppState(EDIT_DRAFT_KEY, null);
           wx.showToast({ title: '已提交审核', icon: 'success' });
           setTimeout(() => wx.navigateBack(), 800);
         })
@@ -983,6 +1116,7 @@ Page({
     data
       .submitHeroApply(application)
       .then(() => {
+        data.setAppState(APPLY_DRAFT_KEY, null);
         wx.setStorageSync('mock_hero_role', 'pending');
         const returnQuery =
           this._returnFrom === 'hero-detail'

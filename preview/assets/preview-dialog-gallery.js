@@ -36,6 +36,32 @@
       ],
     },
     {
+      group: '赛事详情',
+      items: [
+        {
+          title: '分享面板',
+          src: '../assets/dialog-gallery/hero-share-sheet.png',
+        },
+        {
+          title: '海报结果页',
+          src: '../assets/dialog-gallery/hero-poster-modal.png',
+        },
+      ],
+    },
+    {
+      group: '课程详情',
+      items: [
+        {
+          title: '分享面板',
+          src: '../assets/dialog-gallery/hero-share-sheet.png',
+        },
+        {
+          title: '海报结果页',
+          src: '../assets/dialog-gallery/hero-poster-modal.png',
+        },
+      ],
+    },
+    {
       group: '申请成为英雄',
       items: [
         {
@@ -61,6 +87,10 @@
         {
           title: '自定义资质等级弹窗',
           src: '../assets/dialog-gallery/apply-custom-cert-dialog.png',
+        },
+        {
+          title: '返回 · 是否保存编辑',
+          src: '../assets/dialog-gallery/apply-save-edit-dialog.png',
         },
       ],
     },
@@ -183,10 +213,9 @@
     return '默认';
   }
 
-  function toastBg(type) {
-    if (type === 'error') return 'rgba(180,40,40,0.92)';
-    if (type === 'success') return 'rgba(27,87,156,0.92)';
-    return 'rgba(0,0,0,0.82)';
+  function toastBg(_type) {
+    // 铁律：全局提示统一黑底白字
+    return '#000000';
   }
 
   function ensurePanel() {

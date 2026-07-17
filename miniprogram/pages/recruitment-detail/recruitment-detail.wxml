@@ -38,7 +38,7 @@
           <text class="recruit-detail__price-num">{{feeInt}}</text>
           <text class="recruit-detail__price-dec">.{{feeDec}}</text>
         </view>
-        <button class="recruit-detail__share" open-type="share" hover-class="recruit-detail__share--active">
+        <button class="recruit-detail__share" bindtap="onShareTap" hover-class="recruit-detail__share--active">
           <image class="recruit-detail__share-icon" src="/assets/icons/share.png" mode="aspectFit" />
         </button>
       </view>
@@ -149,3 +149,10 @@
     </view>
   </view>
 </view>
+
+<hero-share
+  visible="{{shareVisible}}"
+  hero="{{shareHero}}"
+  heroId="{{recruitId}}"
+  bind:close="onShareClose"
+/>

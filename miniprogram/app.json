@@ -17,6 +17,8 @@
     "pages/my-courses/my-courses",
     "pages/my-signups/my-signups",
     "pages/my-reviews/my-reviews",
+    "pages/messages/messages",
+    "pages/message-detail/message-detail",
     "pages/my-students/my-students",
     "pages/recruitment-edit/recruitment-edit",
     "pages/signup-list/signup-list",

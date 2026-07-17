@@ -198,31 +198,31 @@ Page({
   noop() {},
 
   onVipCard() {
-    wx.showToast({ title: '即将开放', icon: 'none' });
+    // 航海家权益卡：不跳转、无提示
   },
 
   onMallAsset() {
-    wx.showToast({ title: '即将开放', icon: 'none' });
+    // 商城资产：不跳转、无提示
   },
 
   onShoppingCart() {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    // 我的服务：不跳转、无提示
   },
 
   onShippingAddress() {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    // 我的服务：不跳转、无提示
   },
 
   onCustomerService() {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    // 我的服务：不跳转、无提示
   },
 
   onAccountSettings() {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    // 我的服务：不跳转、无提示
   },
 
   onMessages() {
-    wx.showToast({ title: '功能开发中', icon: 'none' });
+    wx.navigateTo({ url: '/pages/messages/messages' });
   },
 
   onHeroProfile() {
@@ -255,7 +255,6 @@ Page({
   },
 
   onPublishCourse() {
-    this.setData({ showPublishSheet: false });
-    wx.navigateTo({ url: '/pages/course-create/course-create' });
+    // 申请课程：不收起弹层、不跳转、无提示（预览侧仅切换需求说明）
   },
 });

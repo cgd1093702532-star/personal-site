@@ -45,7 +45,8 @@ alwaysApply: true
 ## 表格陷阱
 
 - 单元格内**禁止半角 `|`**（竖线用全角 `｜`）
-- 分点用 `<br>` 换行（见 `doc-table-linebreaks.mdc`）
+- 分点用 `<br>` 换行（**铁律，永久**；见 `doc-table-linebreaks.mdc`）
+- 自查：`python3 scripts/check-doc-table-linebreaks.py`（`build-pages.py` 已接入 `--fix` + 校验）
 
 ## 禁止
 

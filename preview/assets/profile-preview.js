@@ -22,16 +22,14 @@
       try {
         const res = await window.HeroPlazaDB.getHeroApplyStatus();
         const status = res?.status || 'none';
-        if (status && status !== 'none') {
-          return {
-            status,
-            reject_reason: res?.reject_reason || res?.application?.reject_reason || '',
-            hero_id: res?.hero_id || null,
-            profile_change_pending: !!res?.profile_change_pending,
-            hero_enabled: res?.hero_enabled !== false,
-            disable_reason: res?.disable_reason || '',
-          };
-        }
+        return {
+          status: status === '' ? 'none' : status,
+          reject_reason: res?.reject_reason || res?.application?.reject_reason || '',
+          hero_id: res?.hero_id || null,
+          profile_change_pending: !!res?.profile_change_pending,
+          hero_enabled: res?.hero_enabled !== false,
+          disable_reason: res?.disable_reason || '',
+        };
       } catch (_) {
         /* fallback */
       }
@@ -124,7 +122,7 @@
   function userBlock(state) {
     const msgBtn =
       `<button type="button" class="profile-user__msg" id="profile-messages" aria-label="消息">` +
-      `<img class="profile-user__msg-icon" src="../assets/icons/chat.png" alt=""></button>`;
+      `<img class="profile-user__msg-icon" src="../assets/icons/bell.png" alt=""></button>`;
     if (state.guest) {
       return `<div class="profile-user">
         <div class="profile-user__head">
@@ -154,7 +152,7 @@
   }
 
   function vipBlock() {
-    return `<button type="button" class="profile-vip" data-profile-soon="航海家权益卡">
+    return `<button type="button" class="profile-vip" data-profile-vip>
       <span class="profile-vip__title">航海家<span class="profile-vip__title-gold">权益卡</span></span>
       <span class="profile-vip__cta">立即开通 ›</span>
     </button>`;
@@ -162,15 +160,15 @@
 
   function assetsBlock() {
     return `<div class="profile-assets">
-      <button type="button" class="profile-assets__item" data-profile-soon="积分">
+      <button type="button" class="profile-assets__item" data-profile-noop>
         <span class="profile-assets__num">0</span>
         <span class="profile-assets__label">积分</span>
       </button>
-      <button type="button" class="profile-assets__item" data-profile-soon="赠品">
+      <button type="button" class="profile-assets__item" data-profile-noop>
         <span class="profile-assets__num">0</span>
         <span class="profile-assets__label">赠品</span>
       </button>
-      <button type="button" class="profile-assets__item" data-profile-soon="优惠券/码">
+      <button type="button" class="profile-assets__item" data-profile-noop>
         <span class="profile-assets__num">0</span>
         <span class="profile-assets__label">优惠券/码</span>
       </button>
@@ -325,10 +323,24 @@
     sheet.addEventListener('click', (e) => {
       const pub = e.target.closest('[data-publish]');
       if (pub) {
+        // 申请课程：不收起弹层、不跳转、无提示；仅切换右侧需求预览
+        if (pub.dataset.publish === 'course') {
+          e.preventDefault();
+          e.stopPropagation();
+          const docUrl = '../docs/miniprogram/pages/发布课程.md';
+          if (window.PreviewDocAside?.render) {
+            window.PreviewDocAside.render(docUrl, 'intro');
+          } else if (window.PreviewDocAside?.sync) {
+            window.PreviewDocAside.sync(docUrl, 'intro');
+          }
+          return;
+        }
         closePublishSheet();
-        const href = pub.dataset.publish === 'course' ? 'course-create.html' : 'recruitment-create.html';
-        if (window.PreviewNav?.navigateTo) window.PreviewNav.navigateTo(href, 'forward');
-        else window.location.href = href;
+        if (window.PreviewNav?.navigateTo) {
+          window.PreviewNav.navigateTo('recruitment-create.html', 'forward');
+        } else {
+          window.location.href = 'recruitment-create.html';
+        }
         return;
       }
       if (e.target.closest('[data-sheet-close]')) closePublishSheet();
@@ -408,22 +420,22 @@
     return `<div class="profile-section">
       <div class="profile-section__card">
       <div class="profile-section__title profile-section__title--in-card">我的服务</div>
-      <button type="button" class="profile-menu__item" data-profile-placeholder="购物车">
+      <button type="button" class="profile-menu__item" data-profile-noop>
         <span class="profile-menu__icon"><img class="icon icon--md" src="../assets/icons/shopping.png" alt=""></span>
         <span class="profile-menu__body"><span class="profile-menu__title">购物车</span></span>
         <span class="profile-menu__arrow">›</span>
       </button>
-      <button type="button" class="profile-menu__item" data-profile-placeholder="收货地址">
+      <button type="button" class="profile-menu__item" data-profile-noop>
         <span class="profile-menu__icon"><img class="icon icon--md" src="../assets/icons/location.png" alt=""></span>
         <span class="profile-menu__body"><span class="profile-menu__title">收货地址</span></span>
         <span class="profile-menu__arrow">›</span>
       </button>
-      <button type="button" class="profile-menu__item" data-profile-placeholder="在线客服">
+      <button type="button" class="profile-menu__item" data-profile-noop>
         <span class="profile-menu__icon"><img class="icon icon--md" src="../assets/icons/chat.png" alt=""></span>
         <span class="profile-menu__body"><span class="profile-menu__title">在线客服</span></span>
         <span class="profile-menu__arrow">›</span>
       </button>
-      <button type="button" class="profile-menu__item" data-profile-placeholder="账号设置">
+      <button type="button" class="profile-menu__item" data-profile-noop>
         <span class="profile-menu__icon"><img class="icon icon--md" src="../assets/icons/user.png" alt=""></span>
         <span class="profile-menu__body"><span class="profile-menu__title">账号设置</span></span>
         <span class="profile-menu__arrow">›</span>
@@ -438,6 +450,11 @@
     if (placeholderBound) return;
     placeholderBound = true;
     root.addEventListener('click', (e) => {
+      const noop = e.target.closest('[data-profile-noop]');
+      if (noop) {
+        e.preventDefault();
+        return;
+      }
       const msg = e.target.closest('#profile-messages');
       if (msg) {
         e.preventDefault();
@@ -445,7 +462,11 @@
           showToast('请先授权登录');
           return;
         }
-        showToast('功能开发中');
+        if (window.PreviewNav?.navigateTo) {
+          window.PreviewNav.navigateTo('messages.html', 'forward');
+        } else {
+          window.location.href = 'messages.html';
+        }
         return;
       }
       const soon = e.target.closest('[data-profile-soon]');

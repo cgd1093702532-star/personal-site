@@ -222,7 +222,26 @@
     });
 
     root.querySelector('[data-share]')?.addEventListener('click', () => {
-      showToast('分享功能开发中', 'info');
+      const cover = (item.banner_images && item.banner_images[0]) || 'course.jpg';
+      const coverSrc = bannerSrc(cover);
+      const desc =
+        (item.description || '').trim() ||
+        ['课程', item.location, item.time].filter(Boolean).join(' · ') ||
+        '欢迎扫码查看课程详情';
+      const payload = {
+        name: item.title || '课程',
+        title: item.title || '课程',
+        about_me: desc,
+        bio: desc,
+        avatar_img: coverSrc,
+        shareTitle: `${item.title || '课程'} · 英雄广场`,
+        shareUrl: `${location.origin}${location.pathname}?id=${encodeURIComponent(id)}`,
+      };
+      if (window.HeroShare?.open) {
+        window.HeroShare.open(payload, id);
+      } else {
+        showToast('分享组件未加载', 'info');
+      }
     });
 
     root.querySelector('[data-vip]')?.addEventListener('click', () => {

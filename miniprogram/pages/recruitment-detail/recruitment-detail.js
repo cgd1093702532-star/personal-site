@@ -35,6 +35,8 @@ Page({
     coverThreshold: COVER_BODY_HEIGHT,
     coverStyle: '',
     navSolid: false,
+    shareVisible: false,
+    shareHero: null,
   },
 
   onLoad(options) {
@@ -43,6 +45,7 @@ Page({
       wx.showToast({ title: '活动不存在', icon: 'none' });
       return;
     }
+    wx.showShareMenu({ withShareTicket: true, menus: ['shareAppMessage', 'shareTimeline'] });
     Promise.all([
       data.getRecruitmentById(id),
       data.getMySignupByRecruitId(id),
@@ -66,6 +69,12 @@ Page({
         .map((t) => String(t || '').trim())
         .filter(Boolean)
         .slice(0, 3);
+      const desc =
+        (item.description || '').trim() ||
+        [item.typeLabel, item.location, item.timeDisplay || item.start_at]
+          .filter(Boolean)
+          .join(' · ') ||
+        '欢迎扫码查看活动详情';
       this.setData({
         item,
         recruitId: id,
@@ -78,6 +87,14 @@ Page({
         footerLabel: footer.label,
         footerDisabled: footer.disabled,
         footerAction: footer.action,
+        shareHero: {
+          name: item.title || '赛事/活动',
+          nickname: item.title || '赛事/活动',
+          about_me: desc,
+          bio: desc,
+          avatar_img: coverImages[0] || 'recruit-cover.jpg',
+          avatar: coverImages[0] || 'recruit-cover.jpg',
+        },
         statusBarHeight,
         coverThreshold: COVER_BODY_HEIGHT,
         coverStyle: `height: ${chromeHeight + COVER_BODY_HEIGHT}px`,
@@ -89,9 +106,25 @@ Page({
   onShareAppMessage() {
     const { item, recruitId } = this.data;
     return {
-      title: (item && item.title) || '赛事招募',
+      title: (item && item.title) || '赛事/活动',
       path: `/pages/recruitment-detail/recruitment-detail?id=${recruitId}`,
     };
+  },
+
+  onShareTimeline() {
+    const { item, recruitId } = this.data;
+    return {
+      title: (item && item.title) || '赛事/活动',
+      query: `id=${recruitId}`,
+    };
+  },
+
+  onShareTap() {
+    this.setData({ shareVisible: true });
+  },
+
+  onShareClose() {
+    this.setData({ shareVisible: false });
   },
 
   applyFooter() {

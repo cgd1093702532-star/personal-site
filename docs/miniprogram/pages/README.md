@@ -12,9 +12,10 @@
 2. **结构**：§1 页面业务目标 → §2 登录和身份描述 → §3 页面详细描述 → §4 常见路径 → §5 相关页面 → §6 规则补充与验收要点 → §7 变更记录  
 3. **预览**：打开对应预览页时，桌面为「左侧页面导航 | 手机预览 | 右侧需求文档」三方联动；左侧导航只含有需求文档的页面，目录真源为 `preview/page_catalog.py`（新增文档页须登记后 build）；自查：`python3 scripts/check-preview-page-nav.py`；改文档后执行 `python3 preview/build-pages.py`  
 4. **配图**：必须用 `![说明](./images/…)`，禁止只写说明文字；登记 `images/IMAGE_REGISTRY.json`；自查 `python3 scripts/check-doc-images.py`（见 `.cursor/rules/doc-embedded-images.mdc`）  
-5. **流程图**：保留，标签用中文  
-6. **§6**：预览右侧隐藏；仍写验收规则，不写接口/代码字段  
-7. **个人中心**另有状态截图同步规则：`.cursor/rules/profile-doc-sync.mdc`
+5. **表格序号**：单元格内 `1、` `2、` / `场景 1：` 等分点必须用 `<br>` 换行（铁律，永久）；自查 `python3 scripts/check-doc-table-linebreaks.py`（见 `.cursor/rules/doc-table-linebreaks.mdc`）  
+6. **流程图**：保留，标签用中文  
+7. **§6**：预览右侧隐藏；仍写验收规则，不写接口/代码字段  
+8. **个人中心**另有状态截图同步规则：`.cursor/rules/profile-doc-sync.mdc`
 
 ## Tab 页
 
@@ -30,7 +31,8 @@
 | 需求文档 | 预览 |
 |----------|------|
 | [英雄详情.md](./英雄详情.md) | `hero-detail.html` |
-| [招募详情.md](./招募详情.md) | `recruitment-detail.html` |
+| [赛事详情.md](./赛事详情.md) | `recruitment-detail.html` |
+| [活动详情.md](./活动详情.md) | `activity-detail.html` |
 | [课程详情.md](./课程详情.md) | `course-detail.html` |
 
 ## 子页 · 英雄认证
@@ -63,9 +65,5 @@
 |----------|------|
 | [我的报名.md](./我的报名.md) | `my-signups.html` |
 | [我的评价.md](./我的评价.md) | `my-reviews.html` |
-
-## 暂不做
-
-| 需求文档 | 说明 |
-|----------|------|
-| [消息.md](./消息.md) | 第一期不做；无预览页 |
+| [消息.md](./消息.md) | `messages.html` |
+| [消息详情.md](./消息详情.md) | `message-detail.html` |

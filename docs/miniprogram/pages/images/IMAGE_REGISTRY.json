@@ -75,6 +75,16 @@
       "doc": "个人中心.md",
       "alt": "禁用 · 查看原因弹窗",
       "src": "./images/profile/state-disabled-dialog.png"
+    },
+    {
+      "doc": "消息.md",
+      "alt": "消息中心",
+      "src": "./images/messages/hub.png"
+    },
+    {
+      "doc": "消息详情.md",
+      "alt": "暂无消息",
+      "src": "./images/messages/state-empty.png"
     }
   ]
 }

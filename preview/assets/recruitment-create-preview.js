@@ -163,7 +163,7 @@
     }
 
     return (
-      `<a class="event-card event-card--hero nav-forward" href="recruitment-detail.html?id=${id}">` +
+      `<a class="event-card event-card--hero nav-forward" href="${isActivity ? 'activity-detail.html' : 'recruitment-detail.html'}?id=${id}">` +
       `<div class="event-card__bg"><img src="${imgBase}${escapeHtml(cover)}" alt="${title}"></div>` +
       `<div class="event-card__scrim"></div>` +
       `<div class="event-card__top">` +

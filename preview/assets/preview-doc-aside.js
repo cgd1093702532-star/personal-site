@@ -185,17 +185,32 @@
     return icon('plus-primary.png');
   }
 
-  /** 表格分点换行：显式 &lt;br&gt;；以及「1、」「1.1、」等序号前自动断行（不要求前面有空格）。 */
+  /**
+   * 【铁律】表格序号分点必须换行（永久，勿弱化/删除）。
+   * 真源 md 须写显式 &lt;br&gt;；此处再按「1、」「1.1、」「1. 」「场景 1：」自动断行兜底。
+   * 与 scripts/check-doc-table-linebreaks.py 对齐：只在第 2 个及之后的序号前断行。
+   */
   function formatTableCell(text, docBaseUrl, cacheToken) {
     let raw = String(text ?? '')
-      .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '') // 清掉控制符（含误入的 \x1f）
+      .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]+/g, '\n') // 控制符→换行
+      .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
       .replace(/\u00a0/g, ' ')
       .replace(/<br\s*\/?>/gi, '\n');
-    // 先断「1.1、」子序号，再断「1、」；禁止在「1.1」中间的「.1」处切开
-    raw = raw.replace(/([^\n])(?=\d+\.\d+[、])/g, '$1\n');
-    raw = raw.replace(/([^\d.\n])(?=\d+[、])/g, '$1\n');
-    // 兼容「1. 」「2. 」西式序号（点号后须空白，避免误伤 1.1）
-    raw = raw.replace(/([^\n])(?=\d+\.\s+)/g, '$1\n');
+
+    const markerRe =
+      /\d+\.\d+[、]|(?<![\d.])\d+[、]|(?<!\d)\d+\.\s+|场景\s*\d+\s*[：:]/g;
+    const spans = [];
+    let m;
+    while ((m = markerRe.exec(raw)) !== null) {
+      spans.push(m.index);
+    }
+    // 只在第 2 个及之后的序号前插入换行（避免 **1、 被拆成 ** + 1、）
+    for (let i = spans.length - 1; i >= 1; i -= 1) {
+      const start = spans[i];
+      if (start <= 0 || raw[start - 1] === '\n') continue;
+      raw = `${raw.slice(0, start)}\n${raw.slice(start)}`;
+    }
+
     return raw
       .split('\n')
       .map((part) => part.trim())

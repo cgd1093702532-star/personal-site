@@ -148,7 +148,7 @@
     if (window.HeroPlazaDB && (await window.HeroPlazaDB.isAvailable())) {
       try {
         const res = await window.HeroPlazaDB.getHeroApplyStatus();
-        if (res && res.status === 'approved') return true;
+        return !!(res && res.status === 'approved');
       } catch (_) {
         /* fall through */
       }
@@ -172,7 +172,10 @@
   }
 
   async function init() {
-    const id = new URLSearchParams(location.search).get('id') || 'r1';
+    const id =
+      new URLSearchParams(location.search).get('id') ||
+      (root && root.getAttribute('data-default-recruit-id')) ||
+      'r1';
     const item = await loadRecruitment(id);
     if (!item) {
       root.innerHTML =
@@ -289,8 +292,28 @@
     });
 
     root.querySelector('[data-share]')?.addEventListener('click', () => {
-      if (window.PreviewToast) window.PreviewToast.show('分享功能开发中', 'info');
-      else window.alert('分享功能开发中');
+      const cover = (item.cover_images && item.cover_images[0]) || 'recruit-cover.jpg';
+      const coverSrc = /^https?:|^\/|^\.\./.test(cover) ? cover : `${imgBase}/${cover}`;
+      const desc =
+        (item.description || '').trim() ||
+        [item.typeLabel, item.location, item.timeDisplay || item.start_at]
+          .filter(Boolean)
+          .join(' · ') ||
+        '欢迎扫码查看活动详情';
+      const payload = {
+        name: item.title || '赛事/活动',
+        title: item.title || '赛事/活动',
+        about_me: desc,
+        bio: desc,
+        avatar_img: coverSrc,
+        shareTitle: `${item.title || '赛事/活动'} · 英雄广场`,
+        shareUrl: `${location.origin}${location.pathname}?id=${encodeURIComponent(id)}`,
+      };
+      if (window.HeroShare?.open) {
+        window.HeroShare.open(payload, id);
+      } else if (window.PreviewToast) {
+        window.PreviewToast.show('分享组件未加载', 'info');
+      }
     });
 
     root.querySelector('[data-vip]')?.addEventListener('click', () => {

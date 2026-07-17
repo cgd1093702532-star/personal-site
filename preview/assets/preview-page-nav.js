@@ -247,7 +247,6 @@
   /** 预览专用总览（不进目录 JSON / 本机排序） */
   const OVERVIEW_ITEMS = [
     { id: 'dialogs', label: '弹框总览' },
-    { id: 'toasts', label: '提示总览' },
   ];
   let overviewCollapsed = false;
   let activeOverviewId = '';
@@ -366,8 +365,14 @@
     if (!html) return;
     if (currentHtmlName() === html) return;
     if (window.PreviewNav?.navigateTo) {
-      const tabPages = new Set(['index.html', 'heroes.html', 'profile.html']);
-      window.PreviewNav.navigateTo(html, tabPages.has(html) ? 'tab' : 'forward');
+      const tabPages = new Set(['index.html', 'heroes.html', 'mall.html', 'profile.html']);
+      // 左侧目录是传送门：重置返回栈，手机内「返回」走页面自身 fallback / 产品路径
+      window.PreviewNav.navigateTo(html, tabPages.has(html) ? 'tab' : 'forward', {
+        replace: true,
+        skipStack: true,
+        force: true,
+        resetStack: true,
+      });
       return;
     }
     window.location.href = html;
@@ -668,32 +673,63 @@
     return filterExistingDocs(await res.json());
   }
 
+  let initPromise = null;
+  let wasDesktop = false;
+
   async function init() {
     if (!document.querySelector('.device')) return;
-    if (!isDesktopPreview()) return;
-    try {
-      catalog = await loadCatalog();
-      pageMap = buildPageMap(catalog);
-      tree = mergeTreeWithCatalog(readTree(), catalog);
-      writeTree(tree);
-      renderTree();
-      setActive(currentHtmlName());
-      bindInteractions();
-    } catch (err) {
-      const nav = ensurePanel();
-      const body = nav?.querySelector('.preview-page-nav__body');
-      if (body) {
-        body.innerHTML = `<p class="preview-page-nav__error">无法加载页面导航<br/><small>${escapeHtml(
-          String(err.message || err),
-        )}</small></p>`;
+    if (!isDesktopPreview()) {
+      wasDesktop = false;
+      const existing = document.querySelector('.preview-page-nav');
+      if (existing) existing.hidden = true;
+      document.body.classList.remove('has-preview-page-nav');
+      document.querySelector('.device')?.classList.remove('device--with-page-nav');
+      return;
+    }
+    wasDesktop = true;
+    if (initPromise) return initPromise;
+    initPromise = (async () => {
+      try {
+        catalog = await loadCatalog();
+        pageMap = buildPageMap(catalog);
+        tree = mergeTreeWithCatalog(readTree(), catalog);
+        writeTree(tree);
+        renderTree();
+        setActive(currentHtmlName());
+        bindInteractions();
+        const nav = document.querySelector('.preview-page-nav');
+        if (nav) nav.hidden = false;
+      } catch (err) {
+        const nav = ensurePanel();
+        const body = nav?.querySelector('.preview-page-nav__body');
+        if (body) {
+          body.innerHTML = `<p class="preview-page-nav__error">无法加载页面导航<br/><small>${escapeHtml(
+            String(err.message || err),
+          )}</small></p>`;
+        }
+        console.warn('[preview-page-nav]', err);
+      } finally {
+        initPromise = null;
       }
-      console.warn('[preview-page-nav]', err);
+    })();
+    return initPromise;
+  }
+
+  function onViewportChange() {
+    const desktop = isDesktopPreview();
+    if (desktop && !wasDesktop) {
+      init();
+      return;
+    }
+    if (!desktop && wasDesktop) {
+      init();
     }
   }
 
   window.addEventListener('preview:navigate', (e) => {
     setActive(currentHtmlName(e?.detail?.url || window.location.href));
   });
+  window.addEventListener('resize', onViewportChange);
 
   window.PreviewPageNav = {
     sync: () => setActive(currentHtmlName()),

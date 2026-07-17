@@ -1,0 +1,48 @@
+@import "../../styles/common.wxss";
+
+.msg-center {
+  min-height: 100vh;
+  padding: 24rpx 32rpx calc(48rpx + env(safe-area-inset-bottom));
+  background: #f5f5f5;
+  box-sizing: border-box;
+}
+
+.msg-center__card {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-bottom: 24rpx;
+  padding: 32rpx 28rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.04);
+}
+
+.msg-center__card:last-child {
+  margin-bottom: 0;
+}
+
+.msg-center__card--active {
+  opacity: 0.88;
+}
+
+.msg-center__icon {
+  width: 72rpx;
+  height: 72rpx;
+  flex-shrink: 0;
+}
+
+.msg-center__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 32rpx;
+  color: #222;
+  font-weight: 500;
+}
+
+.msg-center__arrow {
+  flex-shrink: 0;
+  font-size: 36rpx;
+  color: #c0c0c0;
+  line-height: 1;
+}

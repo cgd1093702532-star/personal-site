@@ -174,9 +174,9 @@ Component({
             ctx.textBaseline = 'alphabetic';
             ctx.fillStyle = '#222';
             ctx.font = '18px sans-serif';
-            ctx.fillText(hero.name || hero.nickname || '教练', 16, 350);
+            ctx.fillText(hero.name || hero.nickname || hero.title || '英雄广场', 16, 350);
 
-            const bio = hero.about_me || hero.bio || '欢迎扫码查看英雄详情';
+            const bio = hero.about_me || hero.bio || '欢迎扫码查看详情';
             ctx.fillStyle = '#999';
             ctx.font = '12px sans-serif';
             const lines = wrapText(ctx, bio, 174);

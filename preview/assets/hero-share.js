@@ -86,11 +86,13 @@
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;');
-    const avatar = hero.avatar_img || hero.avatar || 'hero-1.jpg';
+    const avatar = hero.avatar_img || hero.avatar || hero.cover || 'hero-1.jpg';
     const avatarSrc =
       /^https?:|^\/|^\.\./.test(avatar) ? avatar : `../assets/images/${avatar}`;
-    const name = escapeText(hero.name || hero.nickname || '教练');
-    const bio = escapeText(hero.about_me || hero.bio || '欢迎扫码查看英雄详情');
+    const name = escapeText(hero.name || hero.nickname || hero.title || '英雄广场');
+    const bio = escapeText(
+      hero.about_me || hero.bio || hero.desc || '欢迎扫码查看详情',
+    );
     return `
       <div class="poster-card__photo"><img src="${escapeText(avatarSrc)}" alt="${name}"></div>
       <div class="poster-card__info">
@@ -114,9 +116,14 @@
 
   async function shareCard() {
     closeSheet();
-    const hero = heroRef;
-    const url = `${location.origin}${location.pathname}?id=${heroIdRef}`;
-    const title = `${hero.name} · ${(hero.project_types || []).join('/')}教练`;
+    const hero = heroRef || {};
+    const url =
+      hero.shareUrl ||
+      `${location.origin}${location.pathname}${location.search || `?id=${heroIdRef}`}`;
+    const projects = (hero.project_types || []).join('/');
+    const title =
+      hero.shareTitle ||
+      `${hero.name || hero.title || '英雄广场'}${projects ? ` · ${projects}教练` : ''}`;
     if (navigator.share) {
       try {
         await navigator.share({ title, text: '来自英雄广场', url });

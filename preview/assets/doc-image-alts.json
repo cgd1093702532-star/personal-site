@@ -21,6 +21,12 @@
       "已认证可用状态预览": "./images/profile/state-approved.png",
       "禁用状态预览": "./images/profile/state-disabled.png",
       "禁用 · 查看原因弹窗": "./images/profile/state-disabled-dialog.png"
+    },
+    "消息.md": {
+      "消息中心": "./images/messages/hub.png"
+    },
+    "消息详情.md": {
+      "暂无消息": "./images/messages/state-empty.png"
     }
   }
 }

@@ -16,12 +16,28 @@
       <button type="button" class="admin-tabs__item" data-pc-status="rejected">已驳回</button>
       <button type="button" class="admin-tabs__item" data-pc-status="">全部</button>
     </div>
+    <div class="admin-action-bar" style="margin:12px 0 0">
+      <div class="admin-action-bar__left" style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="admin-btn admin-btn--outline-primary" id="pc-batch-delete">批量删除</button>
+      </div>
+    </div>
     <div class="admin-card">
       <div class="admin-card__body admin-card__body--compact">
         <div class="admin-table-wrap">
           <table class="admin-table">
-            <thead><tr><th>英雄</th><th>变更类型</th><th>提交时间</th><th>状态</th><th>操作</th></tr></thead>
-            <tbody id="pc-admin-tbody"><tr><td colspan="5" class="admin-table__empty">加载中…</td></tr></tbody>
+            <thead>
+              <tr>
+                <th class="admin-table__check">
+                  <input type="checkbox" id="pc-check-all" aria-label="全选" />
+                </th>
+                <th>英雄</th>
+                <th>变更类型</th>
+                <th>提交时间</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="pc-admin-tbody"><tr><td colspan="6" class="admin-table__empty">加载中…</td></tr></tbody>
           </table>
         </div>
       </div>

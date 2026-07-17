@@ -56,6 +56,21 @@
 - 后台：[`docs/admin/pages/README.md`](docs/admin/pages/README.md)
 - UI：[`docs/DESIGN-SPEC.md`](docs/DESIGN-SPEC.md)
 
+## 在线预览（给协作者）
+
+国内网络常打不开 `*.github.io`。请优先用下面 **jsDelivr 镜像**（仓库公开、Pages 正常；镜像走 CDN）：
+
+| 入口 | 地址 |
+|------|------|
+| 总入口 | https://cdn.jsdelivr.net/gh/cgd1093702532-star/personal-site@gh-pages/ |
+| 小程序预览 | https://cdn.jsdelivr.net/gh/cgd1093702532-star/personal-site@gh-pages/miniprogram/index.html |
+| 后台预览 | https://cdn.jsdelivr.net/gh/cgd1093702532-star/personal-site@gh-pages/admin/dashboard.html |
+
+备用（同内容）：把上面域名换成 `https://fastly.jsdelivr.net/gh/...` 即可。
+
+> 官方 Pages（需可访问 GitHub）：https://cgd1093702532-star.github.io/personal-site/  
+> 推送 `main` 后镜像可能有数分钟缓存延迟；仍旧可先强刷或换 `fastly` 域名试。
+
 ## Cursor
 
 请 **Open Folder** 打开本仓库根目录。规则按 `miniprogram/**` 与 `admin/**` 分别生效。

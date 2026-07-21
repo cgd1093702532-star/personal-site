@@ -3,7 +3,7 @@ const { chromium } = require('playwright');
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1100, height: 1000 }, deviceScaleFactor: 2 });
-  await page.goto("http://127.0.0.1:8765/miniprogram/profile.html?t=1784095748.4877481", { waitUntil: 'networkidle', timeout: 60000 });
+  await page.goto("http://127.0.0.1:8765/miniprogram/profile.html?t=1784535711.032594", { waitUntil: 'networkidle', timeout: 60000 });
   await page.waitForSelector('#profile-root', { timeout: 20000 });
   await page.waitForTimeout(900);
   await page.addStyleTag({ content: `

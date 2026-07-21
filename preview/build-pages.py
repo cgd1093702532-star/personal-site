@@ -302,6 +302,9 @@ ALL_HEROES = {
     },
 }
 
+# 备注 mock：固定 20 字，供课程详情时间地点卡展示
+COURSE_REMARK_MOCK = "请穿着运动服，注意防晒，自备防滑鞋与水。"
+
 COURSE_CATALOG = {
     "c1": {
         "course_id": "c1",
@@ -312,6 +315,7 @@ COURSE_CATALOG = {
         "signed": 10,
         "total": 16,
         "cover_image": "course.jpg",
+        "remark": COURSE_REMARK_MOCK,
     },
     "c2": {
         "course_id": "c2",
@@ -322,6 +326,7 @@ COURSE_CATALOG = {
         "signed": 5,
         "total": 12,
         "cover_image": "course.jpg",
+        "remark": COURSE_REMARK_MOCK,
     },
     "c3": {
         "course_id": "c3",
@@ -332,6 +337,7 @@ COURSE_CATALOG = {
         "signed": 3,
         "total": 8,
         "cover_image": "course.jpg",
+        "remark": COURSE_REMARK_MOCK,
     },
     "c4": {
         "course_id": "c4",
@@ -342,6 +348,7 @@ COURSE_CATALOG = {
         "signed": 4,
         "total": 10,
         "cover_image": "course.jpg",
+        "remark": COURSE_REMARK_MOCK,
     },
     "c5": {
         "course_id": "c5",
@@ -352,6 +359,7 @@ COURSE_CATALOG = {
         "signed": 7,
         "total": 12,
         "cover_image": "course.jpg",
+        "remark": COURSE_REMARK_MOCK,
     },
     "c6": {
         "course_id": "c6",
@@ -362,6 +370,7 @@ COURSE_CATALOG = {
         "signed": 5,
         "total": 8,
         "cover_image": "course.jpg",
+        "remark": COURSE_REMARK_MOCK,
     },
 }
 
@@ -1149,6 +1158,7 @@ sub_pages = {
     "course-detail.html": ("课程详情", '''
           <div id="course-detail-root"></div>
           <script src="../assets/db-client.js"></script>
+          <script src="../assets/preview-toast.js"></script>
           <script src="../assets/heroes-data.js"></script>
           <script src="../assets/cover-carousel.js"></script>
           <script src="../assets/hero-share.js"></script>
@@ -1191,7 +1201,7 @@ sub_pages = {
           <script src="../assets/course-form-preview.js"></script>
           <script src="../assets/course-create-preview.js"></script>
     '''),
-    "my-recruitments.html": ("我的招募", '''
+    "my-recruitments.html": ("我的活动赛事", '''
           <div id="my-recruitments-root"></div>
           <script src="../assets/db-client.js"></script>
           <script src="../assets/preview-toast.js"></script>
@@ -1201,7 +1211,7 @@ sub_pages = {
     "my-courses.html": ("我的课程", '''
           <div id="my-courses-root"></div>
           <script src="../assets/course-sort.js"></script>
-          <script src="../assets/my-courses-preview.js"></script>
+          <script src="../assets/my-courses-preview.js?v=20260721-quota2"></script>
     '''),
     "recruitment-edit.html": ("编辑招募", '''
           <div id="recruitment-edit-root"></div>
@@ -1222,6 +1232,23 @@ sub_pages = {
           <script src="../assets/recruitments-data.js"></script>
           <script src="../assets/signup-sort.js"></script>
           <script src="../assets/my-signups-preview.js"></script>
+    '''),
+    "my-orders.html": ("我的订单", '''
+          <div id="my-orders-root"></div>
+          <script src="../assets/orders-data.js"></script>
+          <script src="../assets/my-orders-preview.js"></script>
+    '''),
+    "order-voucher.html": ("二维码凭证", '''
+          <div id="order-voucher-root"></div>
+          <script src="../assets/preview-toast.js"></script>
+          <script src="../assets/orders-data.js"></script>
+          <script src="../assets/order-voucher-preview.js"></script>
+    '''),
+    "order-detail.html": ("订单详情", '''
+          <div id="order-detail-root"></div>
+          <script src="../assets/preview-toast.js"></script>
+          <script src="../assets/orders-data.js"></script>
+          <script src="../assets/order-detail-preview.js"></script>
     '''),
     "my-reviews.html": ("我的评价", '''
           <div id="my-reviews-root"></div>
@@ -1284,6 +1311,10 @@ for fname, (title, body) in sub_pages.items():
         back = "my-recruitments.html"
     if fname == "message-detail.html":
         back = "messages.html"
+    if fname == "order-voucher.html":
+        back = "my-orders.html"
+    if fname == "order-detail.html":
+        back = "my-orders.html"
     if fname in ("hero-apply.html",):
         back = "profile.html"
     if fname == "hero-apply-success.html":
@@ -1480,5 +1511,20 @@ _r_tbl = subprocess.run(
 )
 if _r_tbl.returncode != 0:
     raise SystemExit(_r_tbl.returncode)
+
+# 铁律：章节 / 正文序号通篇连续
+_sec = ROOT.parent / "scripts" / "check-doc-section-numbers.py"
+_r_sec_fix = subprocess.run(
+    [sys.executable, str(_sec), "--fix"],
+    cwd=str(ROOT.parent),
+)
+if _r_sec_fix.returncode != 0:
+    raise SystemExit(_r_sec_fix.returncode)
+_r_sec = subprocess.run(
+    [sys.executable, str(_sec)],
+    cwd=str(ROOT.parent),
+)
+if _r_sec.returncode != 0:
+    raise SystemExit(_r_sec.returncode)
 
 print("ok", len(tab_pages) + len(sub_pages))

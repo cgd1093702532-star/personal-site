@@ -8,6 +8,7 @@ cd "$ROOT"
 USER="cgd1093702532-star"
 REPO="personal-site"
 PAGES_URL="https://${USER}.github.io/${REPO}/"
+CF_PAGES_URL="https://personal-site-1e8.pages.dev/"
 
 git remote get-url origin >/dev/null 2>&1 || \
   git remote add origin "https://github.com/${USER}/${REPO}.git"
@@ -22,7 +23,13 @@ else
 fi
 
 echo ""
-echo "GitHub Actions 将把 preview/ 部署到 gh-pages 分支。"
-echo "Pages 地址：${PAGES_URL}"
+echo "同步部署 Cloudflare Pages..."
+bash "${ROOT}/scripts/deploy-to-cloudflare.sh" || {
+  echo "Cloudflare 部署失败（可稍后手动：bash scripts/deploy-to-cloudflare.sh）"
+}
+
 echo ""
-echo "请在 GitHub 仓库 Settings → Pages 中确认 Source 为 Deploy from branch → gh-pages → / (root)"
+echo "预览地址："
+echo "  - Cloudflare（优先）：${CF_PAGES_URL}"
+echo "  - GitHub Pages 备用：${PAGES_URL}"
+echo "GitHub Pages：Settings → Pages → Source = gh-pages → / (root)"

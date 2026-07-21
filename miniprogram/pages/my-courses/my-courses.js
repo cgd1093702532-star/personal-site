@@ -17,50 +17,118 @@ function formatTabDisplay(label, count) {
   return count > 0 ? `${label}(${count})` : label;
 }
 
+function withMineFlag(item) {
+  const isMine = item.is_mine !== false;
+  const signedNum = Number(item.signed) || 0;
+  const hasTotal = item.total != null && item.total !== '';
+  const totalNum = hasTotal ? Number(item.total) : NaN;
+  const quotaBase = Number.isFinite(totalNum)
+    ? `招募名额：${signedNum}/${totalNum}`
+    : `招募名额：${signedNum}/不限`;
+  let fillStatus =
+    Number.isFinite(totalNum) && totalNum > 0 && signedNum >= totalNum ? '已招满' : '进行中';
+  if (item.listTab === 'ended') {
+    fillStatus = '已结束';
+  }
+  return {
+    ...item,
+    isMine,
+    relationLabel: isMine ? '我发起的' : '我参与的',
+    canViewSignup: isMine,
+    quotaText: `${quotaBase} · ${fillStatus}`,
+  };
+}
+
+function visibleItems(list, onlyMine) {
+  const rows = list || [];
+  if (!onlyMine) return rows;
+  return rows.filter((item) => item.isMine !== false);
+}
+
 function applyLists(page, lists) {
+  const showOnlyMineFilter = !!page.data.showOnlyMineFilter;
+  const onlyMine = showOnlyMineFilter && !!page.data.onlyMine;
+  const activeVisible = visibleItems(lists.active, onlyMine);
+  const endedVisible = visibleItems(lists.ended, onlyMine);
+  const activeTab = page.data.activeTab || 'active';
   page.setData({
     lists,
+    onlyMine,
+    showOnlyMineFilter,
     tabs: [
-      { key: 'active', label: '招生进行中', count: lists.active.length, display: formatTabDisplay('招生进行中', lists.active.length) },
-      { key: 'ended', label: '招生已结束', count: lists.ended.length, display: formatTabDisplay('招生已结束', lists.ended.length) },
+      {
+        key: 'active',
+        label: '进行中',
+        count: activeVisible.length,
+        display: formatTabDisplay('进行中', activeVisible.length),
+      },
+      {
+        key: 'ended',
+        label: '已结束',
+        count: endedVisible.length,
+        display: formatTabDisplay('已结束', endedVisible.length),
+      },
     ],
-    currentList: lists[page.data.activeTab] || lists.active,
-    emptyState: EMPTY_STATES[page.data.activeTab] || EMPTY_STATES.active,
+    currentList: activeTab === 'ended' ? endedVisible : activeVisible,
+    emptyState: EMPTY_STATES[activeTab] || EMPTY_STATES.active,
   });
+}
+
+function normalizeLists(source) {
+  return {
+    active: (source.active || []).map(withMineFlag),
+    ended: (source.ended || []).map(withMineFlag),
+  };
 }
 
 Page({
   data: {
     tabs: [
-      { key: 'active', label: '招生进行中', count: 0, display: '招生进行中' },
-      { key: 'ended', label: '招生已结束', count: 0, display: '招生已结束' },
+      { key: 'active', label: '进行中', count: 0, display: '进行中' },
+      { key: 'ended', label: '已结束', count: 0, display: '已结束' },
     ],
     activeTab: 'active',
+    onlyMine: false,
+    showOnlyMineFilter: false,
     lists: { active: [], ended: [] },
     currentList: [],
     emptyState: EMPTY_STATES.active,
   },
 
   onLoad() {
-    this.loadLists();
+    this.reload();
   },
 
   onShow() {
-    this.loadLists();
+    this.reload();
   },
 
-  loadLists() {
-    data.getMyCourseLists().then((lists) => {
-      applyLists(this, lists);
+  reload() {
+    Promise.all([data.getMyCourseLists(), data.getHeroApplyStatus()]).then(([source, status]) => {
+      const showOnlyMineFilter =
+        status && status.status === 'approved' && status.hero_enabled !== false;
+      const onlyMine = showOnlyMineFilter ? !!this.data.onlyMine : false;
+      this.setData({ showOnlyMineFilter, onlyMine }, () => {
+        applyLists(this, normalizeLists(source));
+      });
     });
   },
 
   onTabChange(e) {
     const key = e.currentTarget.dataset.key;
+    const onlyMine = !!this.data.showOnlyMineFilter && !!this.data.onlyMine;
+    const list = visibleItems(this.data.lists[key] || [], onlyMine);
     this.setData({
       activeTab: key,
-      currentList: this.data.lists[key] || [],
+      currentList: list,
       emptyState: EMPTY_STATES[key] || EMPTY_STATES.active,
+    });
+  },
+
+  onToggleOnlyMine() {
+    const onlyMine = !this.data.onlyMine;
+    this.setData({ onlyMine }, () => {
+      applyLists(this, this.data.lists);
     });
   },
 

@@ -1,0 +1,97 @@
+<view class="page order-detail" wx:if="{{!missing && order}}">
+  <view class="order-detail__banner">
+    <text class="order-detail__status">{{order.statusLabel}}</text>
+  </view>
+
+  <view class="order-detail__voucher">
+    <view class="order-detail__voucher-main">
+      <text class="order-detail__time">{{order.timeRange}}</text>
+      <view class="order-detail__code-row">
+        <text>券码：{{order.voucherCode}}</text>
+        <view class="order-detail__copy" data-text="{{order.voucherCode}}" catchtap="onCopy">复制</view>
+      </view>
+    </view>
+    <view class="order-detail__qr-link" data-id="{{order.id}}" bindtap="onOpenVoucher">
+      <image class="order-detail__qr-thumb" src="/assets/images/order-voucher-qr.png" mode="aspectFill" />
+    </view>
+  </view>
+
+  <view class="order-detail__goods">
+    <view class="order-detail__shop">
+      <image class="order-detail__shop-icon" src="/assets/icons/landmark.png" mode="aspectFit" />
+      <text>{{order.shop}}</text>
+    </view>
+    <view class="order-detail__body">
+      <view class="order-detail__cover">
+        <image class="order-detail__cover-img" src="{{order.cover}}" mode="aspectFill" />
+      </view>
+      <view class="order-detail__info">
+        <text class="order-detail__title">{{order.title}}</text>
+        <view class="order-detail__price-row">
+          <text>¥ {{order.priceText}}</text>
+          <text class="order-detail__qty">x{{order.qty}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="order-detail__paid">实付款 ¥ {{order.paidText}}</view>
+  </view>
+
+  <view class="order-detail__meta">
+    <view class="order-detail__meta-row">
+      <text>订单编号：{{order.orderNo}}</text>
+      <view class="order-detail__copy order-detail__copy--link" data-text="{{order.orderNo}}" catchtap="onCopy">复制</view>
+    </view>
+    <view class="order-detail__meta-row">支付方式：{{order.payMethod}}</view>
+    <view class="order-detail__meta-row">创建时间：{{order.createdAt}}</view>
+    <view class="order-detail__meta-row">付款时间：{{order.paidAt}}</view>
+  </view>
+
+  <view class="order-detail__rating" wx:if="{{submittedScore > 0}}">
+    <text class="order-detail__rating-label">综合评分</text>
+    <view class="order-detail__rating-stars">
+      <image
+        class="order-detail__rating-icon"
+        wx:for="{{starList}}"
+        wx:key="*this"
+        src="{{item <= submittedScore ? '/assets/icons/star-soft-on.svg' : '/assets/icons/star-soft.svg'}}"
+        mode="aspectFit"
+      />
+    </view>
+    <text class="order-detail__rating-score">{{submittedScore}}.0 分</text>
+  </view>
+
+  <view class="order-detail__footer" wx:if="{{canRate || showCancel}}">
+    <view class="order-detail__cancel" wx:if="{{canRate}}" bindtap="onRate">去评分</view>
+    <view class="order-detail__cancel" wx:elif="{{showCancel}}" bindtap="onCancel">取消报名</view>
+  </view>
+
+  <view class="order-rate-sheet" wx:if="{{showRateSheet}}" catchtouchmove="noop">
+    <view class="order-rate-sheet__mask" bindtap="onCloseRateSheet"></view>
+    <view class="order-rate-sheet__panel">
+      <view class="order-rate-sheet__handle"></view>
+      <text class="order-rate-sheet__title">综合评分</text>
+      <text class="order-rate-sheet__score {{rateScore > 0 ? 'order-rate-sheet__score--on' : ''}}">{{rateScoreLabel}}</text>
+      <view class="order-rate-sheet__stars">
+        <view
+          class="order-rate-sheet__star"
+          wx:for="{{starList}}"
+          wx:key="*this"
+          data-score="{{item}}"
+          catchtap="onPickStar"
+        >
+          <image
+            class="order-rate-sheet__icon"
+            src="{{item <= rateScore ? '/assets/icons/star-soft-on.svg' : '/assets/icons/star-soft.svg'}}"
+            mode="aspectFit"
+          />
+        </view>
+      </view>
+      <view
+        class="order-rate-sheet__submit {{rateScore > 0 ? '' : 'order-rate-sheet__submit--disabled'}}"
+        bindtap="onSubmitRate"
+      >提交评分</view>
+    </view>
+  </view>
+</view>
+
+<view class="order-detail__missing" wx:else>订单不存在</view>

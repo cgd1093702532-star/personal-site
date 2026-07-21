@@ -176,7 +176,7 @@ Page({
   onRecruitmentTap(e) {
     const id = e.detail?.recruit_id || e.currentTarget?.dataset?.id;
     if (!id) return;
-    wx.navigateTo({ url: `/pages/recruitment-detail/recruitment-detail?id=${id}` });
+    wx.navigateTo({ url: `/pages/recruitment-detail/recruitment-detail?id=${id}&from=hero` });
   },
 
   onExpandRecruitments() {
@@ -195,7 +195,7 @@ Page({
 
   onCourseTap(e) {
     const { id } = e.currentTarget.dataset;
-    wx.navigateTo({ url: `/pages/course-detail/course-detail?id=${id}` });
+    wx.navigateTo({ url: `/pages/course-detail/course-detail?id=${id}&from=hero` });
   },
 
   onApplyHero() {

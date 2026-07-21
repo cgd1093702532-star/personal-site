@@ -268,7 +268,7 @@
       <text class="apply-agreement__text">我已阅读并同意<text class="apply-agreement__link" catchtap="onOpenAgreement" data-doc="hero">《英雄认证协议》</text><text class="apply-agreement__link" catchtap="onOpenAgreement" data-doc="terms">《平台服务条款》</text>和<text class="apply-agreement__link" catchtap="onOpenAgreement" data-doc="safety">《安全保障须知》</text>，承诺以上信息真实有效。</text>
     </view>
     <view wx:if="{{isEdit && profileChangePending}}" class="apply-submit apply-submit--ghost" bindtap="onWithdrawProfileChange">撤回审核</view>
-    <view class="apply-submit" bindtap="onSubmit">{{submitLabel}}</view>
+    <view wx:if="{{!(isEdit && profileChangePending)}}" class="apply-submit" bindtap="onSubmit">{{submitLabel}}</view>
   </view>
 
   <view wx:if="{{showIdDocTypeSheet}}" class="apply-cert-sheet" catchtouchmove="noop">

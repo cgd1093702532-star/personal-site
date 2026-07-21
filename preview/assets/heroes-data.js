@@ -285,6 +285,7 @@ window.HEROES_DATA = {
         "signed": 10,
         "total": 16,
         "cover_image": "course.jpg",
+        "remark": "请穿着运动服，注意防晒，自备防滑鞋与水。",
         "feeDisplay": "1,280",
         "signupDisplay": "招募名额：10/16"
       }
@@ -389,6 +390,7 @@ window.HEROES_DATA = {
         "signed": 7,
         "total": 12,
         "cover_image": "course.jpg",
+        "remark": "请穿着运动服，注意防晒，自备防滑鞋与水。",
         "feeDisplay": "880",
         "signupDisplay": "招募名额：7/12"
       }
@@ -488,6 +490,7 @@ window.HEROES_DATA = {
         "signed": 5,
         "total": 12,
         "cover_image": "course.jpg",
+        "remark": "请穿着运动服，注意防晒，自备防滑鞋与水。",
         "feeDisplay": "198",
         "signupDisplay": "招募名额：5/12"
       }
@@ -605,6 +608,7 @@ window.HEROES_DATA = {
         "signed": 5,
         "total": 8,
         "cover_image": "course.jpg",
+        "remark": "请穿着运动服，注意防晒，自备防滑鞋与水。",
         "feeDisplay": "1,680",
         "signupDisplay": "招募名额：5/8"
       }
@@ -713,6 +717,7 @@ window.HEROES_DATA = {
         "signed": 4,
         "total": 10,
         "cover_image": "course.jpg",
+        "remark": "请穿着运动服，注意防晒，自备防滑鞋与水。",
         "feeDisplay": "268",
         "signupDisplay": "招募名额：4/10"
       }

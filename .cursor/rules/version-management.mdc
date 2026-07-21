@@ -27,9 +27,11 @@ alwaysApply: true
    - 按需 `python3 preview/build-pages.py`
 3. `git add` → `git commit`（commit message 说明变更）
 4. `git push origin main`，等待 GitHub Actions 部署成功
-5. 验证线上可访问（优先官方 Pages；国内协作者可用 jsDelivr 镜像）：
-   - https://cgd1093702532-star.github.io/personal-site/
-   - https://cdn.jsdelivr.net/gh/cgd1093702532-star/personal-site@gh-pages/
+5. 验证线上可访问（优先 Cloudflare Pages；备用 GitHub Pages；**不要**用 jsDelivr 打开 HTML，会显示源码）：
+   - https://personal-site-1e8.pages.dev/
+   - https://personal-site-1e8.pages.dev/miniprogram/index.html
+   - 备用：https://cgd1093702532-star.github.io/personal-site/
+   - 推送 `main` 后若 Cloudflare 未自动更新：运行 `bash scripts/deploy-to-cloudflare.sh`
 6. **仅在线上确认成功后**：
    - 按 SemVer 更新 `VERSION`
    - 在 `docs/版本发布日志.md` 顶部追加新版本条目（含日期、变更摘要、Git 标签、提交 hash）

@@ -573,3 +573,57 @@
 .profile-dialog__btn:active {
   background: var(--color-bg-subtle);
 }
+
+.recruit-success-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+}
+
+.recruit-success-sheet__mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.recruit-success-sheet__panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 40rpx 32rpx calc(24rpx + env(safe-area-inset-bottom));
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+}
+
+.recruit-success-sheet__body {
+  display: block;
+  margin-bottom: 32rpx;
+  padding: 8rpx 16rpx 24rpx;
+  font-size: 30rpx;
+  line-height: 1.55;
+  color: var(--color-text-primary);
+  text-align: center;
+}
+
+.recruit-success-sheet__item {
+  height: 96rpx;
+  line-height: 96rpx;
+  text-align: center;
+  font-size: 30rpx;
+  font-weight: 600;
+  color: var(--color-primary);
+  border-bottom: 1rpx solid var(--color-divider);
+}
+
+.recruit-success-sheet__item--cancel {
+  margin-top: 16rpx;
+  border-bottom: none;
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+.recruit-success-sheet__item:active {
+  background: var(--color-bg-subtle);
+}

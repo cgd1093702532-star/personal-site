@@ -17,6 +17,7 @@
         fee: 500,
         feeDisplay: '500',
         cover: 'event.jpg',
+        hero_initiated: false,
       },
       {
         recruit_id: 'r2',
@@ -28,6 +29,7 @@
         fee: 1280,
         feeDisplay: '1,280',
         cover: 'banner.jpg',
+        hero_initiated: true,
       },
       {
         recruit_id: 'r4',
@@ -39,6 +41,7 @@
         fee: 1280,
         feeDisplay: '1,280',
         cover: 'recruit-cover.jpg',
+        hero_initiated: false,
       },
     ],
     ended: [
@@ -86,7 +89,7 @@
   const TAB_KEY = 'recruitment-create-tab';
   const RESTORE_KEY = 'recruitment-create-restore';
 
-  /** 仅从详情返回时恢复 Tab；外部进入一律「招募进行中」 */
+  /** 仅从详情返回时恢复 Tab；外部进入一律「进行中」 */
   function readInitialTab() {
     try {
       const shouldRestore = sessionStorage.getItem(RESTORE_KEY) === '1';
@@ -149,7 +152,6 @@
     const isActivity = item.type === 'activity';
     const typeLabel = item.typeLabel || (isActivity ? '活动' : '赛事');
     const tagClass = isActivity ? 'tag--activity' : 'tag--event';
-    const dotClass = isActivity ? ' event-card__dot--activity' : '';
     const timeText = item.time || item.timeDisplay || '';
     const cover = coverOf(item);
     const title = escapeHtml(item.title || '');
@@ -158,16 +160,18 @@
     let btnHtml;
     if (tab === 'ended') {
       btnHtml = `<span class="event-card__btn event-card__btn--disabled" aria-disabled="true">活动已结束</span>`;
+    } else if (item.hero_initiated === true) {
+      btnHtml = `<span class="event-card__btn event-card__btn--disabled" aria-disabled="true">招募中...</span>`;
     } else {
-      btnHtml = `<button type="button" class="event-card__btn" data-initiate-id="${id}">发起招募</button>`;
+      btnHtml = `<span class="event-card__btn">发起招募</span>`;
     }
 
     return (
-      `<a class="event-card event-card--hero nav-forward" href="${isActivity ? 'activity-detail.html' : 'recruitment-detail.html'}?id=${id}">` +
+      `<a class="event-card event-card--hero nav-forward" href="${isActivity ? 'activity-detail.html' : 'recruitment-detail.html'}?id=${id}&from=publish">` +
       `<div class="event-card__bg"><img src="${imgBase}${escapeHtml(cover)}" alt="${title}"></div>` +
       `<div class="event-card__scrim"></div>` +
       `<div class="event-card__top">` +
-      `<span class="event-card__time"><i class="event-card__dot${dotClass}" aria-hidden="true"></i>${escapeHtml(timeText)}</span>` +
+      `<span class="event-card__time">${escapeHtml(timeText)}</span>` +
       `</div>` +
       `<div class="event-card__bottom">` +
       `<div class="event-card__info">` +
@@ -181,40 +185,6 @@
       `</div></div>` +
       `</a>`
     );
-  }
-
-  function modalHtml() {
-    return (
-      `<div class="profile-dialog__mask" data-initiate-cancel></div>` +
-      `<div class="profile-dialog__panel" role="dialog" aria-modal="true">` +
-      `<div class="profile-dialog__title">确认发起赛事招募</div>` +
-      `<div class="profile-dialog__body">确认发起赛事招募后，在我的页>服务中心>我的招募中查看。</div>` +
-      `<div class="profile-dialog__actions">` +
-      `<button type="button" class="profile-dialog__btn" data-initiate-cancel>取消</button>` +
-      `<button type="button" class="profile-dialog__btn profile-dialog__btn--primary" data-initiate-confirm>确认开始招募</button>` +
-      `</div></div>`
-    );
-  }
-
-  function closeInitiateConfirm() {
-    document.getElementById('initiate-confirm-dialog')?.remove();
-  }
-
-  function openInitiateConfirm() {
-    closeInitiateConfirm();
-    const dialog = document.createElement('div');
-    dialog.id = 'initiate-confirm-dialog';
-    dialog.className = 'profile-dialog';
-    dialog.innerHTML = modalHtml();
-    (root.closest('.mobile-shell') || document.body).appendChild(dialog);
-    dialog.addEventListener('click', (e) => {
-      if (e.target.closest('[data-initiate-confirm]')) {
-        closeInitiateConfirm();
-        window.location.href = 'my-recruitments.html';
-        return;
-      }
-      if (e.target.closest('[data-initiate-cancel]')) closeInitiateConfirm();
-    });
   }
 
   function normalizeRow(row) {
@@ -244,6 +214,7 @@
       type: row.type || 'event',
       typeLabel: row.typeLabel || (row.type === 'activity' ? '活动' : '赛事'),
       is_mine: row.is_mine !== false,
+      hero_initiated: row.hero_initiated === true,
       feeDisplay:
         row.feeDisplay ||
         (row.fee != null ? String(row.fee).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''),
@@ -279,21 +250,24 @@
   function render() {
     const current = lists[activeTab] || [];
     const tabs = [
-      { key: 'active', label: '招募进行中', count: lists.active.length },
-      { key: 'ended', label: '招募已结束', count: lists.ended.length },
+      { key: 'active', label: '进行中', count: lists.active.length },
+      { key: 'ended', label: '已结束', count: lists.ended.length },
     ];
     const listHtml = current.length
       ? current.map((item) => cardHtml(item, activeTab)).join('')
-      : `<div class="recruit-publish-list__empty">暂无${activeTab === 'ended' ? '已结束的' : ''}赛事招募</div>`;
+      : `<div class="recruit-publish-list__empty">` +
+        `<div class="recruit-publish-list__empty-icon"><img src="../assets/icons/empty.png" alt=""></div>` +
+        `<div class="recruit-publish-list__empty-title">暂无数据</div>` +
+        `</div>`;
 
     root.innerHTML =
       `<div class="recruit-publish">` +
-      `<div class="my-recruit__tabs">${tabs
+      `<div class="my-recruit__tabs"><div class="my-recruit__tabs-track">${tabs
         .map(
           (t) =>
             `<button type="button" class="my-recruit__tab${activeTab === t.key ? ' my-recruit__tab--active' : ''}" data-tab="${t.key}">${tabDisplay(t.label, t.count)}</button>`,
         )
-        .join('')}</div>` +
+        .join('')}</div></div>` +
       `<div class="recruit-publish-list">${listHtml}</div>` +
       `</div>`;
 
@@ -307,14 +281,6 @@
     root.querySelectorAll('a.event-card').forEach((el) => {
       el.addEventListener('click', () => {
         markLeaveForRestore();
-      });
-    });
-
-    root.querySelectorAll('[data-initiate-id]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        openInitiateConfirm();
       });
     });
   }

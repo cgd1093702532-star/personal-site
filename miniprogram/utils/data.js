@@ -673,6 +673,7 @@ const DEFAULT_MY_COURSE_LISTS = {
       start_at: '2026-07-26T09:00:00',
       end_at: '2026-07-26T16:30:00',
       listTab: 'active',
+      is_mine: true,
     },
     {
       course_id: 'c4',
@@ -685,6 +686,7 @@ const DEFAULT_MY_COURSE_LISTS = {
       start_at: '2026-08-03T14:00:00',
       end_at: '2026-08-03T17:00:00',
       listTab: 'active',
+      is_mine: false,
     },
   ],
   ended: [
@@ -699,6 +701,7 @@ const DEFAULT_MY_COURSE_LISTS = {
       start_at: '2025-12-01T09:00:00',
       end_at: '2025-12-01T17:00:00',
       listTab: 'ended',
+      is_mine: true,
     },
   ],
 };
@@ -709,19 +712,40 @@ function enrichCourse(course) {
   const price = course.price ?? course.fee ?? 0;
   const startAt = course.start_at || (course.start_date ? `${course.start_date}T09:00:00` : '');
   const endAt = course.end_at || (course.deadline ? `${course.deadline}T23:59:59` : '');
+  const coverRaw =
+    (course.cover_images && course.cover_images[0]) ||
+    course.cover_image ||
+    (course.banner_images && course.banner_images[0]) ||
+    'course.jpg';
+  let coverSrc = String(coverRaw);
+  if (!(coverSrc.startsWith('http') || coverSrc.startsWith('/') || coverSrc.startsWith('data:'))) {
+    coverSrc = `/assets/images/${coverSrc.includes('.') ? coverSrc : `${coverSrc}.jpg`}`;
+  }
+  const timeDisplay =
+    mock.formatSignupTimeRange(startAt, endAt) ||
+    course.timeDisplay ||
+    course.time ||
+    startAt.slice(0, 10) ||
+    '';
   return {
     ...course,
     id: course.course_id || course.id,
     course_id: course.course_id || course.id,
+    type: 'course',
+    typeLabel: course.typeLabel || '课程',
     title: course.title || '',
     location: course.location || '',
+    placeLabel: '课程地点',
     price,
     signed,
     total,
     progress: total ? Math.min(100, Math.round((signed / total) * 100)) : 0,
-    timeDisplay: course.timeDisplay || course.time || startAt.slice(0, 10) || '',
+    timeDisplay,
+    quotaText: mock.formatRecruitmentSignup(signed, total),
+    coverSrc,
     start_at: startAt,
     end_at: endAt,
+    is_mine: course.is_mine !== false,
   };
 }
 

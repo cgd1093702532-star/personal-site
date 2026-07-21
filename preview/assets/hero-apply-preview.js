@@ -5,7 +5,7 @@
   const pageParams = new URLSearchParams(window.location.search);
   const returnFrom = pageParams.get('from') || '';
   const returnHeroId = pageParams.get('hero_id') || '';
-  const yearsOptions = ['1-3年', '3-5年', '5-10年', '10年+'];
+  const yearsOptions = ['1-3年', '3-5年', '5-10年', '10-15年', '15年+'];
   const certOptions = ['国家级教练', '省级教练', 'ACA认证', 'ISA认证', '其他'];
   const PRESET_CERT_LIST = certOptions.filter((item) => item !== '其他');
   const ID_DOC_TYPES = [
@@ -729,6 +729,10 @@
 
   async function handleSubmit(root, agree) {
     if (handleSubmit.busy) return;
+    if (editContext.active && editContext.profilePending) {
+      showToast('请先撤回审核后再提交修改');
+      return;
+    }
     const nickname = root.querySelector('[data-field="nickname"]')?.value ?? '';
     const name = root.querySelector('[data-field="name"]')?.value ?? '';
     const phone = root.querySelector('[data-field="phone"]')?.value?.trim();
@@ -1107,9 +1111,8 @@
         ${
           isEdit && editContext.profilePending
             ? '<button type="button" class="apply-submit apply-submit--ghost" id="apply-withdraw">撤回审核</button>'
-            : ''
+            : `<button type="button" class="apply-submit" id="apply-submit">${submitLabel}</button>`
         }
-        <button type="button" class="apply-submit" id="apply-submit">${submitLabel}</button>
       </div>
 
       <div class="profile-action-sheet mobile-overlay apply-cert-sheet" id="apply-id-doc-type-sheet" hidden>
@@ -1698,13 +1701,18 @@
             /* ignore */
           }
           showToast('已撤回审核', 'success');
-          setTimeout(() => {
-            if (window.PreviewNav?.navigateTo) {
-              window.PreviewNav.navigateTo('profile.html', 'back', { replace: true });
-            } else {
-              window.location.href = 'profile.html';
-            }
-          }, 500);
+          editContext.profilePending = false;
+          const footer = document.getElementById('apply-footer');
+          const withdrawBtn = document.getElementById('apply-withdraw');
+          withdrawBtn?.remove();
+          if (footer && !document.getElementById('apply-submit')) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'apply-submit';
+            btn.id = 'apply-submit';
+            btn.textContent = '提交修改';
+            footer.appendChild(btn);
+          }
         } catch (err) {
           showToast(`撤回失败：${err?.message || '请稍后重试'}`);
         }

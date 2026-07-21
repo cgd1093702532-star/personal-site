@@ -1,0 +1,51 @@
+<view class="page my-orders">
+  <view class="my-orders__tabs">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="key"
+      class="my-orders__tab {{activeTab === item.key ? 'my-orders__tab--active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTabChange"
+    >{{item.label}}</view>
+  </view>
+
+  <view class="my-orders__list" wx:if="{{list.length}}">
+    <view
+      class="my-orders__card"
+      wx:for="{{list}}"
+      wx:key="id"
+      data-id="{{item.id}}"
+      bindtap="onOpenDetail"
+    >
+      <view class="my-orders__card-head">
+        <view class="my-orders__shop">
+          <image class="my-orders__shop-icon" src="/assets/icons/landmark.png" mode="aspectFit" />
+          <text class="my-orders__shop-name">{{item.shop}}</text>
+        </view>
+        <text class="my-orders__status">{{item.statusLabel}}</text>
+      </view>
+      <view class="my-orders__body">
+        <view class="my-orders__cover">
+          <image class="my-orders__cover-img" src="{{item.cover}}" mode="aspectFill" />
+        </view>
+        <view class="my-orders__info">
+          <text class="my-orders__title">{{item.title}}</text>
+          <view class="my-orders__price-row">
+            <text class="my-orders__price">¥ {{item.priceText}}</text>
+            <text class="my-orders__qty">x{{item.qty}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="my-orders__paid">实付款 ¥ {{item.paidText}}</view>
+      <view class="my-orders__actions" wx:if="{{item.showVoucher || item.showRate}}">
+        <view class="my-orders__btn" wx:if="{{item.showVoucher}}" data-id="{{item.id}}" catchtap="onOpenVoucher">券码凭证</view>
+        <view class="my-orders__btn" wx:elif="{{item.showRate}}" data-id="{{item.id}}" catchtap="onRate">去评分</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="my-orders__empty" wx:else>
+    <image class="my-orders__empty-icon" src="/assets/icons/list.png" mode="aspectFit" />
+    <text class="my-orders__empty-title">暂无相关订单</text>
+  </view>
+</view>

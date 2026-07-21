@@ -1,7 +1,7 @@
 /** 预览页左侧页面导航：父子级树 + 拖动排序（本机记住） */
 (function () {
   const DATA_URL = new URL('../assets/preview-page-nav.json', window.location.href).href;
-  const TREE_KEY = 'preview-page-nav-tree-v2';
+  const TREE_KEY = 'preview-page-nav-tree-v3';
   const ORDER_KEY_LEGACY = 'preview-page-nav-order-v1';
 
   let navEl = null;
@@ -252,41 +252,9 @@
   let activeOverviewId = '';
 
   function appendOverviewGroup() {
+    // 预览左侧页面导航不再展示「总览大全」
     const body = navEl?.querySelector('.preview-page-nav__body');
-    if (!body) return;
-    body.querySelector('[data-overview-group]')?.remove();
-    const children = overviewCollapsed
-      ? ''
-      : `<div class="preview-page-nav__children" data-overview-children>` +
-        OVERVIEW_ITEMS.map(
-          (item) =>
-            `<div class="preview-page-nav__row preview-page-nav__row--page preview-page-nav__row--overview" data-kind="overview" data-overview="${escapeHtml(
-              item.id,
-            )}">` +
-            `<button type="button" class="preview-page-nav__link" data-overview="${escapeHtml(item.id)}">${escapeHtml(
-              item.label,
-            )}</button>` +
-            `</div>`,
-        ).join('') +
-        `</div>`;
-    body.insertAdjacentHTML(
-      'beforeend',
-      `<div class="preview-page-nav__group preview-page-nav__group--overview" data-overview-group data-kind="overview-group">` +
-        `<div class="preview-page-nav__row preview-page-nav__row--group" data-kind="overview-group">` +
-        `<button type="button" class="preview-page-nav__toggle" data-overview-toggle aria-expanded="${
-          overviewCollapsed ? 'false' : 'true'
-        }" title="${overviewCollapsed ? '展开' : '收起'}">${overviewCollapsed ? '▶' : '▼'}</button>` +
-        `<span class="preview-page-nav__group-title">总览大全` +
-        `<span class="preview-page-nav__count">${OVERVIEW_ITEMS.length}</span></span>` +
-        `</div>` +
-        children +
-        `</div>`,
-    );
-    if (activeOverviewId) {
-      const btn = body.querySelector(`.preview-page-nav__link[data-overview="${CSS.escape(activeOverviewId)}"]`);
-      btn?.classList.add('is-active');
-      if (btn) btn.setAttribute('aria-current', 'page');
-    }
+    body?.querySelector('[data-overview-group]')?.remove();
   }
 
   function setOverviewActive(overviewId) {

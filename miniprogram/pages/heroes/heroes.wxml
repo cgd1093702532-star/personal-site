@@ -1,4 +1,4 @@
-<view class="page page--tab heroes">
+<view class="page page--tab heroes {{emptyKind ? 'heroes--empty' : ''}}">
   <view class="heroes-search">
     <view class="heroes-search__field">
       <input

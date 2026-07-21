@@ -202,7 +202,7 @@
           ? ' hero-detail__activity-card--collapsed'
           : '';
       return (
-        `<a class="hero-detail__activity-card${collapsed} nav-forward" href="${isActivity ? 'activity-detail.html' : 'recruitment-detail.html'}?id=${r.recruit_id}">` +
+        `<a class="hero-detail__activity-card${collapsed} nav-forward" href="${isActivity ? 'activity-detail.html' : 'recruitment-detail.html'}?id=${r.recruit_id}&from=hero">` +
         `<div class="hero-detail__activity-main">` +
         `<div class="hero-detail__activity-thumb"><img src="${imgBase}${cover}" alt=""></div>` +
         `<div class="hero-detail__activity-body">` +
@@ -247,7 +247,7 @@
           ? ' hero-detail__activity-card--collapsed'
           : '';
       return (
-        `<a class="hero-detail__activity-card${collapsed} nav-forward" href="course-detail.html?id=${c.course_id}">` +
+        `<a class="hero-detail__activity-card${collapsed} nav-forward" href="course-detail.html?id=${c.course_id}&from=hero">` +
         `<div class="hero-detail__activity-main">` +
         `<div class="hero-detail__activity-thumb"><img src="${imgBase}${cover}" alt=""></div>` +
         `<div class="hero-detail__activity-body">` +

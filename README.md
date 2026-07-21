@@ -58,18 +58,19 @@
 
 ## 在线预览（给协作者）
 
-国内网络常打不开 `*.github.io`。请优先用下面 **jsDelivr 镜像**（仓库公开、Pages 正常；镜像走 CDN）：
+优先用 **Cloudflare Pages**（国内一般比 `github.io` 好开，且按网页渲染）。  
+**不要**用 jsDelivr 打开 `.html`：会显示源码。
+
+说明：[docs/CLOUDFLARE-PAGES.md](docs/CLOUDFLARE-PAGES.md)
 
 | 入口 | 地址 |
 |------|------|
-| 总入口 | https://cdn.jsdelivr.net/gh/cgd1093702532-star/personal-site@gh-pages/ |
-| 小程序预览 | https://cdn.jsdelivr.net/gh/cgd1093702532-star/personal-site@gh-pages/miniprogram/index.html |
-| 后台预览 | https://cdn.jsdelivr.net/gh/cgd1093702532-star/personal-site@gh-pages/admin/dashboard.html |
+| 总入口 | https://personal-site-1e8.pages.dev/ |
+| 小程序预览 | https://personal-site-1e8.pages.dev/miniprogram/index.html |
+| 后台预览 | https://personal-site-1e8.pages.dev/admin/dashboard.html |
 
-备用（同内容）：把上面域名换成 `https://fastly.jsdelivr.net/gh/...` 即可。
-
-> 官方 Pages（需可访问 GitHub）：https://cgd1093702532-star.github.io/personal-site/  
-> 推送 `main` 后镜像可能有数分钟缓存延迟；仍旧可先强刷或换 `fastly` 域名试。
+备用（GitHub Pages）：https://cgd1093702532-star.github.io/personal-site/  
+推送 `main` 后请同步部署 Cloudflare（`bash scripts/deploy-to-cloudflare.sh`）或由协作 AI 在推送后执行；GitHub Pages 仍由 Actions 自动更新。
 
 ## Cursor
 

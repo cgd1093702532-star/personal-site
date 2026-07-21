@@ -21,6 +21,10 @@ SKIP_PAGE_DOCS = frozenset(
     {
         "README.md",
         "_TEMPLATE.md",
+        # 仍保留文档与预览页，但不进左侧导航（由个人中心「申请课程」跳转说明）
+        "发布课程.md",
+        # 仍保留文档与预览页，但不进左侧导航（由个人中心未认证「我的活动赛事」进入）
+        "我的报名.md",
     }
 )
 
@@ -57,7 +61,6 @@ PAGE_CATALOG: list[tuple[str, list[tuple[str, str]]]] = [
         [
             ("hero-profile.html", "我的英雄资料.md"),
             ("recruitment-create.html", "发布招募.md"),
-            ("course-create.html", "发布课程.md"),
             ("my-recruitments.html", "我的招募.md"),
             ("my-courses.html", "我的课程.md"),
             ("my-students.html", "我的学员.md"),
@@ -71,10 +74,16 @@ PAGE_CATALOG: list[tuple[str, list[tuple[str, str]]]] = [
     (
         "用户活动",
         [
-            ("my-signups.html", "我的报名.md"),
-            ("my-reviews.html", "我的评价.md"),
             ("messages.html", "消息.md"),
             ("message-detail.html", "消息详情.md"),
+        ],
+    ),
+    (
+        "我的订单",
+        [
+            ("my-orders.html", "我的订单.md"),
+            ("order-voucher.html", "二维码凭证.md"),
+            ("order-detail.html", "订单详情.md"),
         ],
     ),
 ]
@@ -82,9 +91,9 @@ PAGE_CATALOG: list[tuple[str, list[tuple[str, str]]]] = [
 # 预览右侧文档裁剪范围（与历史 PREVIEW_DOC_SCOPE 一致）
 PREVIEW_DOC_SCOPE: dict[str, str] = {
     "index.html": "intro",
-    "course-create.html": "intro",
     "messages.html": "intro",
     "activity-detail.html": "intro",
+    "recruitment-detail.html": "intro",
     "course-detail.html": "intro",
 }
 
@@ -127,7 +136,9 @@ def preview_doc_map() -> dict[str, str]:
 
 
 # 文件名无法含「/」时，导航与需求预览展示名可在此覆盖
-DOC_LABEL_OVERRIDES: dict[str, str] = {}
+DOC_LABEL_OVERRIDES: dict[str, str] = {
+    "我的招募.md": "我的活动赛事",
+}
 
 
 def label_for_doc(doc: str) -> str:

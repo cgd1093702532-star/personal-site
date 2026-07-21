@@ -28,22 +28,15 @@
         actionText="{{item.actionText}}"
         actionDisabled="{{item.actionDisabled}}"
         actionKind="{{item.actionKind}}"
+        showTimeDot="{{false}}"
         bind:tap="onItemTap"
-        bind:action="onItemAction"
       />
     </view>
-    <view class="recruit-publish__empty" wx:else>{{emptyText}}</view>
-  </view>
-
-  <view wx:if="{{showInitiateConfirm}}" class="profile-dialog" catchtouchmove="noop">
-    <view class="profile-dialog__mask" bindtap="onCloseInitiateConfirm"></view>
-    <view class="profile-dialog__panel">
-      <text class="profile-dialog__title">确认发起赛事招募</text>
-      <text class="profile-dialog__body">确认发起赛事招募后，在我的页>服务中心>我的招募中查看。</text>
-      <view class="profile-dialog__actions">
-        <view class="profile-dialog__btn" bindtap="onCloseInitiateConfirm">取消</view>
-        <view class="profile-dialog__btn profile-dialog__btn--primary" bindtap="onConfirmInitiate">确认开始招募</view>
+    <view class="recruit-publish__empty" wx:else>
+      <view class="recruit-publish__empty-icon">
+        <image src="/assets/icons/empty.png" mode="aspectFit" />
       </view>
+      <text class="recruit-publish__empty-title">暂无数据</text>
     </view>
   </view>
 </view>

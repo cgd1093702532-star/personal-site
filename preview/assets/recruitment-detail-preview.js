@@ -9,7 +9,37 @@
     document.getElementById('initiate-confirm-dialog')?.remove();
   }
 
-  function openInitiateConfirm() {
+  function closeInitiateSuccess() {
+    document.getElementById('initiate-success-sheet')?.remove();
+  }
+
+  function openInitiateSuccess(onAfterClose) {
+    closeInitiateSuccess();
+    const sheet = document.createElement('div');
+    sheet.id = 'initiate-success-sheet';
+    sheet.className = 'recruit-success-sheet';
+    sheet.innerHTML =
+      `<div class="recruit-success-sheet__mask" data-success-cancel></div>` +
+      `<div class="recruit-success-sheet__panel" role="dialog" aria-modal="true">` +
+      `<p class="recruit-success-sheet__body">已成功发起招募，快去看看吧，邀请更多队友的加入</p>` +
+      `<button type="button" class="recruit-success-sheet__item" data-success-view>去查看</button>` +
+      `<button type="button" class="recruit-success-sheet__item recruit-success-sheet__item--cancel" data-success-cancel>取消</button>` +
+      `</div>`;
+    (root.closest('.mobile-shell') || document.body).appendChild(sheet);
+    sheet.addEventListener('click', (e) => {
+      if (e.target.closest('[data-success-view]')) {
+        closeInitiateSuccess();
+        window.location.href = 'my-recruitments.html';
+        return;
+      }
+      if (e.target.closest('[data-success-cancel]')) {
+        closeInitiateSuccess();
+        if (typeof onAfterClose === 'function') onAfterClose();
+      }
+    });
+  }
+
+  function openInitiateConfirm(onSuccess) {
     closeInitiateConfirm();
     const dialog = document.createElement('div');
     dialog.id = 'initiate-confirm-dialog';
@@ -18,7 +48,7 @@
       `<div class="profile-dialog__mask" data-initiate-cancel></div>` +
       `<div class="profile-dialog__panel" role="dialog" aria-modal="true">` +
       `<div class="profile-dialog__title">确认发起赛事招募</div>` +
-      `<div class="profile-dialog__body">确认发起赛事招募后，在我的页>服务中心>我的招募中查看。</div>` +
+      `<div class="profile-dialog__body">确认发起赛事招募后，在我的页>服务中心>我的活动赛事中查看。</div>` +
       `<div class="profile-dialog__actions">` +
       `<button type="button" class="profile-dialog__btn" data-initiate-cancel>取消</button>` +
       `<button type="button" class="profile-dialog__btn profile-dialog__btn--primary" data-initiate-confirm>确认开始招募</button>` +
@@ -27,7 +57,8 @@
     dialog.addEventListener('click', (e) => {
       if (e.target.closest('[data-initiate-confirm]')) {
         closeInitiateConfirm();
-        window.location.href = 'my-recruitments.html';
+        if (typeof onSuccess === 'function') onSuccess();
+        openInitiateSuccess();
         return;
       }
       if (e.target.closest('[data-initiate-cancel]')) closeInitiateConfirm();
@@ -164,18 +195,26 @@
     }
   }
 
-  function resolveFooter(item, approvedHero) {
+  function resolveFooter(item, approvedHero, fromPublish) {
     const resolve =
       window.SignupActionPreview?.resolveSignupFooter ||
       (() => ({ label: '立即报名', disabled: false, action: 'signup' }));
-    return resolve({ recruitment: item, isApprovedHero: approvedHero });
+    return resolve({
+      recruitment: item,
+      isApprovedHero: approvedHero,
+      fromPublish: !!fromPublish,
+    });
   }
 
   async function init() {
+    const params = new URLSearchParams(location.search);
     const id =
-      new URLSearchParams(location.search).get('id') ||
+      params.get('id') ||
       (root && root.getAttribute('data-default-recruit-id')) ||
       'r1';
+    const fromPublish = params.get('from') === 'publish';
+    // 首页英雄横滑 / 英雄详情活动·赛事入口：立即报名暂不响应
+    const signupNoop = params.get('from') === 'home' || params.get('from') === 'hero';
     const item = await loadRecruitment(id);
     if (!item) {
       root.innerHTML =
@@ -185,7 +224,7 @@
 
     let signup = await loadSignup(id);
     const approvedHero = await isApprovedHero();
-    let footerAction = resolveFooter(item, approvedHero);
+    let footerAction = resolveFooter(item, approvedHero, fromPublish);
 
     const titleEl = document.getElementById('navbar-recruit-title');
     if (titleEl) titleEl.textContent = item.title;
@@ -323,11 +362,17 @@
 
     const signupBtn = document.getElementById('recruit-signup-btn');
     signupBtn?.addEventListener('click', async () => {
-      footerAction = resolveFooter(item, approvedHero);
+      if (signupNoop) return;
+      footerAction = resolveFooter(item, approvedHero, fromPublish);
       if (footerAction.disabled || footerAction.action === 'none') return;
 
       if (footerAction.action === 'initiate') {
-        openInitiateConfirm();
+        openInitiateConfirm(() => {
+          item = { ...item, hero_initiated: true };
+          footerAction = resolveFooter(item, approvedHero, fromPublish);
+          const footerEl = document.querySelector('.recruit-detail-preview__footer');
+          if (footerEl) updateFooterButton(footerEl, footerAction);
+        });
         return;
       }
 
@@ -370,7 +415,7 @@
         const nextSigned = (item.signed || 0) + 1;
         item.signed = nextSigned;
         signup = created;
-        footerAction = resolveFooter(item, approvedHero);
+        footerAction = resolveFooter(item, approvedHero, fromPublish);
         updateFooterButton(footer, footerAction);
         if (window.PreviewToast) window.PreviewToast.show('报名成功', 'success');
         else window.alert('报名成功');

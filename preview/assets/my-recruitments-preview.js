@@ -13,6 +13,9 @@
 
   let lists = { active: [], ended: [], draft: [] };
   let activeTab = 'active';
+  let onlyMine = false;
+  /** 已认证英雄才展示「仅显示我发起的」 */
+  let showOnlyMineFilter = false;
 
   const EMPTY_STATES = {
     draft: {
@@ -38,28 +41,95 @@
     },
   };
 
+  function parseDate(value) {
+    if (!value) return null;
+    const d = new Date(String(value).replace(/-/g, '/').replace('T', ' '));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+
+  /** 与发布赛事招募列表一致：如「06/08 (周六) 09:00-16:00」 */
+  function formatCardTimeRange(startAt, endAt) {
+    const start = parseDate(startAt);
+    const end = parseDate(endAt);
+    if (!start) return startAt || '';
+    const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+    const pad = (n) => String(n).padStart(2, '0');
+    const startPart = `${pad(start.getMonth() + 1)}/${pad(start.getDate())} (${weekdays[start.getDay()]}) ${pad(start.getHours())}:${pad(start.getMinutes())}`;
+    if (!end) return startPart;
+    const sameDay =
+      start.getFullYear() === end.getFullYear() &&
+      start.getMonth() === end.getMonth() &&
+      start.getDate() === end.getDate();
+    if (sameDay) return `${startPart}-${pad(end.getHours())}:${pad(end.getMinutes())}`;
+    return `${startPart}-${pad(end.getMonth() + 1)}/${pad(end.getDate())} ${pad(end.getHours())}:${pad(end.getMinutes())}`;
+  }
+
+  function formatQuota(signed, total, item) {
+    const s = Number(signed) || 0;
+    const hasTotal = total != null && total !== '';
+    const t = hasTotal ? Number(total) : NaN;
+    const base = Number.isFinite(t) ? `招募名额：${s}/${t}` : `招募名额：${s}/不限`;
+    // 已结束 Tab / 活动已结束 → 已结束；报名截止(closed) → 已招满
+    if (item && (item.listTab === 'ended' || item.displayStatus === 'ended')) {
+      return `${base} · 已结束`;
+    }
+    if (item && item.displayStatus === 'closed') {
+      return `${base} · 已招满`;
+    }
+    const full = Number.isFinite(t) && s >= t && t > 0;
+    const status = full ? '已招满' : '进行中';
+    return `${base} · ${status}`;
+  }
+
+  function placeLabelForType(type) {
+    if (type === 'activity') return '活动地点';
+    if (type === 'course') return '课程地点';
+    return '赛事地点';
+  }
+
+  /** is_mine=false → 我参加的；缺省/true → 我发起的 */
+  function resolveRelation(item) {
+    const isMine = item.is_mine !== false;
+    return {
+      isMine,
+      relationLabel: isMine ? '我发起的' : '我参加的',
+      canViewSignup: isMine,
+    };
+  }
+
   function enrichItem(item) {
     const badge = BADGE_MAP[item.displayStatus] || BADGE_MAP.recruiting;
     let actionType = 'active';
     if (item.listTab === 'draft') actionType = 'draft';
-    else if (item.displayStatus === 'closed' || item.displayStatus === 'ended') actionType = 'closed';
+    else if (
+      item.listTab === 'ended' ||
+      item.displayStatus === 'closed' ||
+      item.displayStatus === 'ended'
+    ) {
+      actionType = 'closed';
+    }
     const cover = (item.cover_images && item.cover_images[0]) || 'recruit-cover.jpg';
-    const desc = (item.description || item.highlights || item.location || '').trim();
+    const type = item.type === 'activity' ? 'activity' : item.type === 'course' ? 'course' : 'event';
+    const typeLabel =
+      item.typeLabel || (type === 'activity' ? '活动' : type === 'course' ? '课程' : '赛事');
+    const relation = resolveRelation(item);
     return {
       ...item,
+      type,
       badgeLabel: badge.label,
       badgeType: badge.type,
       actionType,
-      typeLabel: item.typeLabel || (item.type === 'course' ? '课程' : '赛事'),
+      typeLabel,
+      placeLabel: placeLabelForType(type),
+      quotaText: formatQuota(item.signed, item.total, {
+        listTab: item.listTab,
+        displayStatus: item.displayStatus,
+      }),
       coverSrc: cover.startsWith('http') || cover.startsWith('../') || cover.startsWith('/')
         ? cover
         : `../assets/images/${cover}`,
-      descSnippet: desc.length > 36 ? `${desc.slice(0, 36)}…` : desc,
-      timeDisplay:
-        item.timeDisplay ||
-        (window.formatRecruitmentTimeRange
-          ? window.formatRecruitmentTimeRange(item.start_at, item.end_at)
-          : item.start_at),
+      timeDisplay: formatCardTimeRange(item.start_at, item.end_at) || item.timeDisplay || '',
+      ...relation,
     };
   }
 
@@ -101,18 +171,14 @@
   }
 
   function actions(item) {
-    if (item.actionType === 'active') {
+    const titleQ = encodeURIComponent(item.title || '');
+    const signedQ = `&signed=${encodeURIComponent(Number(item.signed) || 0)}`;
+    const idQ = item.recruit_id ? `&id=${encodeURIComponent(item.recruit_id)}` : '';
+    if (item.actionType === 'active' || item.actionType === 'closed') {
+      if (!item.canViewSignup) return '';
       return (
         `<div class="my-recruit__actions">` +
-        `<a class="my-recruit__btn my-recruit__btn--primary nav-forward" href="signup-list.html">查看报名</a>` +
-        `</div>`
-      );
-    }
-    if (item.actionType === 'closed') {
-      return (
-        `<div class="my-recruit__actions">` +
-        `<a class="my-recruit__btn my-recruit__btn--primary nav-forward" href="signup-list.html"><img class="my-recruit__btn-icon" src="../assets/icons/list.png" alt=""><span>查看名单</span></a>` +
-        `<button type="button" class="my-recruit__btn my-recruit__btn--outline" data-stats><img class="my-recruit__btn-icon" src="../assets/icons/chart.png" alt=""> 数据</button>` +
+        `<a class="my-recruit__btn my-recruit__btn--primary nav-forward" href="signup-list.html?title=${titleQ}${signedQ}${idQ}">已报名人员</a>` +
         `</div>`
       );
     }
@@ -130,6 +196,7 @@
       : '';
     return (
       `<article class="my-recruit__card my-recruit__card--draft">` +
+      `<div class="my-recruit__relation">${item.relationLabel || '我发起的'}</div>` +
       `<div class="my-recruit__draft-head">` +
       `<div class="my-recruit__draft-icon-wrap"><img class="my-recruit__draft-icon" src="../assets/icons/edit.png" alt=""></div>` +
       `<div class="my-recruit__draft-body"><h3 class="my-recruit__title">${item.title}</h3>` +
@@ -144,31 +211,30 @@
 
   function card(item) {
     if (item.actionType === 'draft') return draftCard(item);
-    const muted = item.badgeType === 'closed' || item.badgeType === 'ended' ? ' my-recruit__fee--muted' : '';
+    // 仅活动已结束才灰化；报名截止(closed)/已招满仍用进行中卡色
+    const ended = item.listTab === 'ended' || item.displayStatus === 'ended';
+    const muted = ended ? ' my-recruit__fee--muted' : '';
+    const detailPage = item.type === 'activity' ? 'activity-detail.html' : 'recruitment-detail.html';
     return (
-      `<article class="my-recruit__card" data-href="${item.type === 'activity' ? 'activity-detail.html' : 'recruitment-detail.html'}?id=${item.recruit_id}">` +
-      `<div class="my-recruit__meta">` +
-      `<span class="my-recruit__meta-id">编号：${item.recruit_id}</span>` +
-      `<span class="my-recruit__meta-time">${item.timeDisplay || ''}</span>` +
-      `</div>` +
-      `<div class="my-recruit__body">` +
+      `<article class="my-recruit__card${ended ? ' my-recruit__card--ended' : ''}" data-href="${detailPage}?id=${item.recruit_id}">` +
+      `<div class="my-recruit__relation">${item.relationLabel || '我发起的'}</div>` +
+      `<div class="my-recruit__main">` +
       `<div class="my-recruit__cover">` +
       `<img class="my-recruit__cover-img" src="${item.coverSrc}" alt="">` +
-      `<span class="my-recruit__cover-tag">${item.typeLabel || '赛事'}</span>` +
       `</div>` +
       `<div class="my-recruit__info">` +
+      `<div class="my-recruit__info-top">` +
       `<h3 class="my-recruit__title">${item.title}</h3>` +
-      (item.descSnippet
-        ? `<p class="my-recruit__desc">${item.descSnippet}</p>`
-        : item.location
-          ? `<p class="my-recruit__desc">${item.location}</p>`
-          : '') +
-      `<div class="my-recruit__foot">` +
-      `<span class="my-recruit__foot-stat">已报 ${item.signed || 0}/${item.total || 0} 人 · ${item.badgeLabel}</span>` +
-      `<span class="my-recruit__fee${muted}">¥${item.fee}/人</span>` +
+      `<span class="my-recruit__type-tag my-recruit__type-tag--${item.type}">${item.typeLabel || '赛事'}</span>` +
       `</div>` +
+      `<div class="my-recruit__time">${item.timeDisplay || ''}</div>` +
+      `<div class="my-recruit__place">${item.placeLabel}：${item.location || '地点待定'}</div>` +
+      `<div class="my-recruit__fee${muted}">¥${item.fee}/人</div>` +
       `</div></div>` +
+      `<div class="my-recruit__bar">` +
+      `<span class="my-recruit__quota">${item.quotaText}</span>` +
       actions(item) +
+      `</div>` +
       `</article>`
     );
   }
@@ -190,21 +256,41 @@
     return count > 0 ? `${label}(${count})` : label;
   }
 
+  function visibleItems(tab) {
+    const all = lists[tab] || [];
+    if (!onlyMine) return all;
+    return all.filter((item) => item.isMine !== false);
+  }
+
   function render() {
-    const current = lists[activeTab] || [];
+    const rawCurrent = lists[activeTab] || [];
+    const current = visibleItems(activeTab);
     const tabs = [
-      { key: 'active', label: '招募', count: lists.active.length },
-      { key: 'ended', label: '招募已结束', count: lists.ended.length },
+      { key: 'active', label: '进行中', count: visibleItems('active').length },
+      { key: 'ended', label: '已结束', count: visibleItems('ended').length },
     ];
+    const checkIcon = onlyMine
+      ? `<img class="my-recruit__filter-check" src="../assets/icons/check-primary.png" alt="">`
+      : '';
+    // 当前 Tab 无数据（空态）时不展示筛选；筛选后变空仍展示，便于取消勾选
+    const toolbar =
+      showOnlyMineFilter && rawCurrent.length > 0
+        ? `<div class="my-recruit__toolbar">` +
+          `<button type="button" class="my-recruit__filter${onlyMine ? ' my-recruit__filter--on' : ''}" data-filter-mine aria-pressed="${onlyMine ? 'true' : 'false'}">` +
+          `<span class="my-recruit__filter-box">${checkIcon}</span>` +
+          `<span class="my-recruit__filter-label">仅显示我发起的</span>` +
+          `</button></div>`
+        : '';
 
     root.innerHTML =
       `<div class="my-recruit">` +
-      `<div class="my-recruit__tabs">${tabs
+      `<div class="my-recruit__tabs"><div class="my-recruit__tabs-track">${tabs
         .map(
           (t) =>
             `<button type="button" class="my-recruit__tab${activeTab === t.key ? ' my-recruit__tab--active' : ''}" data-tab="${t.key}">${tabDisplay(t.label, t.count)}</button>`,
         )
-        .join('')}</div>` +
+        .join('')}</div></div>` +
+      toolbar +
       `<div class="my-recruit__list">${current.map(card).join('') || emptyState(activeTab)}</div>` +
       `</div>`;
 
@@ -215,19 +301,17 @@
       });
     });
 
+    root.querySelector('[data-filter-mine]')?.addEventListener('click', () => {
+      onlyMine = !onlyMine;
+      render();
+    });
+
     root.querySelectorAll('[data-delete-id]').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
         handleDelete(btn.dataset.deleteId, btn.dataset.delete);
       });
     });
-    root.querySelectorAll('[data-stats]').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        window.alert('预览：数据报表开发中');
-      });
-    });
-
     root.querySelectorAll('.my-recruit__actions a, .my-recruit__actions button').forEach((el) => {
       el.addEventListener('click', (e) => e.stopPropagation());
     });
@@ -244,8 +328,22 @@
     }
   }
 
+  async function resolveShowOnlyMineFilter() {
+    try {
+      if (window.HeroPlazaDB && (await window.HeroPlazaDB.isAvailable())) {
+        const res = await window.HeroPlazaDB.getHeroApplyStatus();
+        return res && res.status === 'approved' && res.hero_enabled !== false;
+      }
+    } catch (err) {
+      console.warn('[my-recruitments] 身份读取失败', err);
+    }
+    return false;
+  }
+
   async function refresh() {
     applySessionTab();
+    showOnlyMineFilter = await resolveShowOnlyMineFilter();
+    if (!showOnlyMineFilter) onlyMine = false;
     lists = await loadLists();
     render();
   }

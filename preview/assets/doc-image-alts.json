@@ -19,14 +19,49 @@
       "已驳回状态预览": "./images/profile/state-rejected.png",
       "已驳回 · 查看原因弹窗": "./images/profile/state-rejected-dialog.png",
       "已认证可用状态预览": "./images/profile/state-approved.png",
+      "修改资料 · 审核中角标": "./images/profile/state-approved-profile-pending.png",
+      "修改资料 · 待审仅撤回审核": "./images/hero-apply/state-edit-pending-withdraw.png",
       "禁用状态预览": "./images/profile/state-disabled.png",
       "禁用 · 查看原因弹窗": "./images/profile/state-disabled-dialog.png"
+    },
+    "申请成为英雄.md": {
+      "修改资料 · 待审仅撤回审核": "./images/hero-apply/state-edit-pending-withdraw.png",
+      "返回 · 是否保存本次的编辑内容": "./images/hero-apply/state-save-edit-dialog.png"
     },
     "消息.md": {
       "消息中心": "./images/messages/hub.png"
     },
     "消息详情.md": {
       "暂无消息": "./images/messages/state-empty.png"
+    },
+    "报名人员列表.md": {
+      "暂无报名人员": "./images/signup-list/state-empty.png"
+    },
+    "赛事详情.md": {
+      "未认证 · 招募进行中": "./images/recruitment-detail/state-user-active.png",
+      "已认证 · 招募进行中": "./images/recruitment-detail/state-hero-active.png",
+      "未认证 · 招募已结束": "./images/recruitment-detail/state-user-ended.png",
+      "已认证 · 招募已结束": "./images/recruitment-detail/state-hero-ended.png",
+      "发布入口 · 发起招募": "./images/recruitment-detail/state-publish-initiate.png",
+      "发布入口 · 招募中": "./images/recruitment-detail/state-publish-recruiting.png",
+      "赛事不存在": "./images/recruitment-detail/state-missing.png",
+      "确认发起赛事招募": "./images/recruitment-detail/state-confirm-initiate.png",
+      "发起成功底部弹层": "./images/recruitment-detail/state-success-sheet.png"
+    },
+    "发布招募.md": {
+      "列表空态": "./images/recruitment-create/state-empty.png"
+    },
+    "我的招募.md": {
+      "进行中 · 空态": "./images/my-recruitments/state-active-empty.png",
+      "已结束 · 空态": "./images/my-recruitments/state-ended-empty.png"
+    },
+    "我的订单.md": {
+      "评分对话框": "./images/my-orders/state-rate-sheet.png",
+      "订单详情已评价": "./images/my-orders/state-rated.png"
+    },
+    "订单详情.md": {
+      "评分对话框": "./images/order-detail/state-rate-sheet.png",
+      "订单详情已评价": "./images/order-detail/state-rated.png"
     }
   }
 }

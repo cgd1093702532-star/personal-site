@@ -47,39 +47,42 @@
     <view class="profile-orders">
       <view class="profile-orders__head">
         <text class="profile-orders__title">我的订单</text>
-        <text class="profile-orders__more">全部订单 ›</text>
+        <text class="profile-orders__more" data-tab="all" bindtap="onOpenOrders">全部订单 ›</text>
       </view>
       <view class="profile-orders__grid">
-        <view class="profile-orders__item">
+        <view class="profile-orders__item" data-tab="pending_pay" bindtap="onOpenOrders">
           <image class="profile-orders__icon" src="/assets/icons/order-pay.png" mode="aspectFit" />
           <text class="profile-orders__label">待付款</text>
         </view>
-        <view class="profile-orders__item">
+        <view class="profile-orders__item" data-tab="pending_ship" bindtap="onOpenOrders">
           <image class="profile-orders__icon" src="/assets/icons/order-ship.png" mode="aspectFit" />
           <text class="profile-orders__label">待发货</text>
         </view>
-        <view class="profile-orders__item">
-          <image class="profile-orders__icon" src="/assets/icons/order-receive.png" mode="aspectFit" />
+        <view class="profile-orders__item" data-tab="pending_use" bindtap="onOpenOrders">
+          <view class="profile-orders__icon-wrap">
+            <image class="profile-orders__icon" src="/assets/icons/order-receive.png" mode="aspectFit" />
+            <text class="profile-orders__badge">1</text>
+          </view>
           <text class="profile-orders__label">待使用/待收货</text>
         </view>
-        <view class="profile-orders__item">
+        <view class="profile-orders__item" data-tab="all" bindtap="onOpenOrders">
           <image class="profile-orders__icon" src="/assets/icons/order-refund.png" mode="aspectFit" />
           <text class="profile-orders__label">退款/售后</text>
         </view>
       </view>
     </view>
 
-    <view wx:if="{{!heroDisabled}}" class="profile-hero-center">
+    <view class="profile-hero-center">
       <text class="profile-section__title">服务中心</text>
       <view class="profile-hero-shortcuts">
-        <view class="profile-hero-shortcuts__row">
+        <view class="profile-hero-shortcuts__row" wx:if="{{isHero}}">
           <view class="profile-hero-shortcuts__item" bindtap="onPublishEntry">
             <image class="profile-hero-shortcuts__icon" src="/assets/icons/publish.png" mode="aspectFit" />
             <text class="profile-hero-shortcuts__label">发布招募/课程</text>
           </view>
           <view class="profile-hero-shortcuts__item" bindtap="onMyRecruitments">
             <image class="profile-hero-shortcuts__icon" src="/assets/icons/list.png" mode="aspectFit" />
-            <text class="profile-hero-shortcuts__label">我的招募</text>
+            <text class="profile-hero-shortcuts__label">我的活动赛事</text>
           </view>
           <view class="profile-hero-shortcuts__item" bindtap="onMyCourses">
             <image class="profile-hero-shortcuts__icon" src="/assets/icons/book.png" mode="aspectFit" />
@@ -89,6 +92,16 @@
             <text wx:if="{{profileChangePending}}" class="profile-hero-shortcuts__badge">审核中</text>
             <image class="profile-hero-shortcuts__icon" src="/assets/icons/user.png" mode="aspectFit" />
             <text class="profile-hero-shortcuts__label">修改资料</text>
+          </view>
+        </view>
+        <view class="profile-hero-shortcuts__row" wx:else>
+          <view class="profile-hero-shortcuts__item" bindtap="onMyActivityEvents">
+            <image class="profile-hero-shortcuts__icon" src="/assets/icons/trophy.png" mode="aspectFit" />
+            <text class="profile-hero-shortcuts__label">我的活动赛事</text>
+          </view>
+          <view class="profile-hero-shortcuts__item" bindtap="onMyCoursesUser">
+            <image class="profile-hero-shortcuts__icon" src="/assets/icons/book.png" mode="aspectFit" />
+            <text class="profile-hero-shortcuts__label">我的课程</text>
           </view>
         </view>
       </view>

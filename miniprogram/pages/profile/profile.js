@@ -240,6 +240,21 @@ Page({
     wx.navigateTo({ url: '/pages/my-courses/my-courses' });
   },
 
+  /** 未认证：我的活动赛事 → 我的报名列表 */
+  onMyActivityEvents() {
+    wx.navigateTo({ url: '/pages/my-signups/my-signups' });
+  },
+
+  /** 未认证：我的课程（用户侧，不设英雄门禁） */
+  onMyCoursesUser() {
+    wx.navigateTo({ url: '/pages/my-courses/my-courses' });
+  },
+
+  onOpenOrders(e) {
+    const tab = (e.currentTarget.dataset && e.currentTarget.dataset.tab) || 'all';
+    wx.navigateTo({ url: `/pages/my-orders/my-orders?tab=${tab}` });
+  },
+
   onPublishEntry() {
     if (!this.requireHeroActive()) return;
     this.setData({ showPublishSheet: true });
@@ -255,6 +270,17 @@ Page({
   },
 
   onPublishCourse() {
-    // 申请课程：不收起弹层、不跳转、无提示（预览侧仅切换需求说明）
+    this.setData({ showPublishSheet: false });
+    // 跳转后台投票调研表单（地址待配置）
+    const surveyUrl = '';
+    if (surveyUrl) {
+      // 正式：web-view 或复制链接打开；地址由后台投票调研配置
+      wx.setClipboardData({
+        data: surveyUrl,
+        success: () => wx.showToast({ title: '表单链接已复制', icon: 'none' }),
+      });
+      return;
+    }
+    wx.showToast({ title: '投票调研表单地址待配置', icon: 'none' });
   },
 });

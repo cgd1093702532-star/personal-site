@@ -1,6 +1,11 @@
 @import "../../styles/common.wxss";
 
 .heroes {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  box-sizing: border-box;
   padding: 0 var(--space-page-x);
 }
 
@@ -14,6 +19,10 @@
   margin: 0 calc(0px - var(--space-page-x));
   padding: 24rpx var(--space-page-x);
   background: var(--color-bg-page);
+}
+
+.heroes--empty .heroes-search {
+  z-index: 30;
 }
 
 .heroes-search__field {
@@ -136,6 +145,10 @@
 }
 
 .heroes-list {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   margin-top: 24rpx;
   padding-bottom: 24rpx;
 }
@@ -151,10 +164,25 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 80rpx 48rpx;
+  box-sizing: border-box;
+  padding: 48rpx;
   text-align: center;
   font-size: var(--text-body);
   color: var(--color-text-secondary);
+}
+
+/* 空态：相对整页可视区居中（避开底栏） */
+.heroes--empty .heroes-empty {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 10;
+  margin: 0;
+  padding: 0 48rpx calc(120rpx + env(safe-area-inset-bottom));
+  pointer-events: none;
+  background: var(--color-bg-page);
 }
 
 .heroes-empty__icon {

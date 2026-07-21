@@ -16,7 +16,7 @@
     location: '滴水湖二号码头',
     hero_id: '1',
     hero_name: '小哥',
-    remark: '',
+    remark: '请穿着运动服，注意防晒，自备防滑鞋与水。',
     tags: DEFAULT_TAGS,
     banner_images: ['course.jpg'],
     description: 'ASA 101+103 组合课程，适合零基础学员，含理论讲解、岸上模拟与水上实操。',
@@ -82,7 +82,7 @@
       price: raw.price != null ? raw.price : raw.fee,
       banner_images: imgs.map((img) => String(img).replace(/^.*\//, '')),
       tags: Array.isArray(raw.tags) && raw.tags.length ? raw.tags : DEFAULT_TAGS,
-      remark: raw.remark || '',
+      remark: raw.remark || fallback.remark,
     };
   }
 
@@ -101,6 +101,15 @@
       const row = window.getCourseById(id);
       if (row) return normalizeItem(row);
     }
+    if (window.HEROES_DATA) {
+      const heroes = window.HEROES_DATA;
+      for (const key of Object.keys(heroes)) {
+        const list = heroes[key] && heroes[key].courses;
+        if (!Array.isArray(list)) continue;
+        const row = list.find((c) => String(c.course_id || c.id) === String(id));
+        if (row) return normalizeItem(row);
+      }
+    }
     if (id === 'c1' || !id) return normalizeItem(fallback);
     return null;
   }
@@ -111,7 +120,10 @@
   }
 
   async function init() {
-    const id = new URLSearchParams(location.search).get('id') || 'c1';
+    const params = new URLSearchParams(location.search);
+    const id = params.get('id') || 'c1';
+    // 首页英雄横滑 / 英雄详情课程入口：立即报名暂不响应
+    const signupNoop = params.get('from') === 'home' || params.get('from') === 'hero';
     const item = await loadCourse(id);
     if (!item) {
       root.innerHTML =
@@ -249,6 +261,7 @@
     });
 
     document.getElementById('course-signup-btn')?.addEventListener('click', async () => {
+      if (signupNoop) return;
       const name = window.prompt('联系人姓名');
       if (!name || !name.trim()) return;
       const phone = window.prompt('手机号');

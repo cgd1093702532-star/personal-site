@@ -349,6 +349,7 @@ const events = [
     timeDisplay: '06/08 (周六) 09:00-16:00',
     signupDisplay: '招募名额：0/16',
     cover_images: ['recruit-cover.jpg'],
+    hero_initiated: false,
   },
   {
     recruit_id: 'r2',
@@ -371,6 +372,7 @@ const events = [
     signupDisplay: '招募名额：3/不限',
     cover_images: ['banner.jpg'],
     tags: ['亲子友好', '含装备', '小班教学'],
+    hero_initiated: true,
     description:
       '亲子帆船体验日：家长与孩子一同登船，含岸上安全讲解、基础操帆与短途体验航段。适合 6 岁以上儿童在家长陪同下参与。',
     remark: '请穿着防滑运动鞋；儿童需家长全程陪同；建议自备防晒与换洗衣物。',
@@ -580,6 +582,7 @@ const MY_RECRUITMENT_LISTS = {
       total: 20,
       displayStatus: 'recruiting',
       listTab: 'active',
+      is_mine: true,
       cover_images: ['event.jpg'],
       project_types: ['帆船', '游艇'],
       phone: '13800138000',
@@ -597,10 +600,11 @@ const MY_RECRUITMENT_LISTS = {
       end_at: '2026-07-26T17:00:00',
       location: '三亚帆船港',
       fee: 299,
-      signed: 4,
-      total: 6,
+      signed: 0,
+      total: 10,
       displayStatus: 'recruiting',
       listTab: 'active',
+      is_mine: true,
       cover_images: ['recruit-cover.jpg'],
       project_types: ['帆船'],
       phone: '13800138000',
@@ -610,7 +614,7 @@ const MY_RECRUITMENT_LISTS = {
     {
       recruit_id: 'mine-a3',
       hero_id: '1',
-      hero_name: '小哥',
+      hero_name: '熊猫',
       type: 'event',
       typeLabel: '赛事',
       title: '金鸡湖浆板周末联赛',
@@ -622,6 +626,7 @@ const MY_RECRUITMENT_LISTS = {
       total: 12,
       displayStatus: 'ongoing',
       listTab: 'active',
+      is_mine: false,
       cover_images: ['event.jpg'],
       project_types: ['桨板', '浆板'],
       phone: '13800138000',
@@ -631,7 +636,7 @@ const MY_RECRUITMENT_LISTS = {
     {
       recruit_id: 'mine-a4',
       hero_id: '1',
-      hero_name: '小哥',
+      hero_name: '阿星',
       type: 'event',
       typeLabel: '赛事',
       title: '暑期帆船入门营',
@@ -643,6 +648,7 @@ const MY_RECRUITMENT_LISTS = {
       total: 6,
       displayStatus: 'closed',
       listTab: 'active',
+      is_mine: false,
       cover_images: ['recruit-cover.jpg'],
       project_types: ['帆船'],
       phone: '13800138000',
@@ -695,7 +701,7 @@ const MY_RECRUITMENT_LISTS = {
     },
     {
       recruit_id: 'mine-e3',
-      hero_id: '2',
+      hero_id: '1',
       hero_name: '熊猫',
       type: 'event',
       typeLabel: '赛事',
@@ -729,6 +735,7 @@ const MY_RECRUITMENT_LISTS = {
       total: 12,
       displayStatus: 'draft',
       listTab: 'draft',
+      is_mine: true,
       cover_images: ['recruit-cover.jpg'],
       project_types: ['帆船'],
       phone: '13800138000',
@@ -747,6 +754,7 @@ const MY_RECRUITMENT_LISTS = {
       total: 8,
       displayStatus: 'draft',
       listTab: 'draft',
+      is_mine: true,
       cover_images: ['recruit-cover.jpg'],
       project_types: ['帆船'],
       phone: '13800138000',
@@ -852,7 +860,8 @@ function formatSignupTimeRange(startAt, endAt) {
 
 function formatRecruitmentSignup(signed, total) {
   const signedCount = Number(signed);
-  const totalCount = Number(total);
+  const hasTotal = total != null && total !== '';
+  const totalCount = hasTotal ? Number(total) : NaN;
   if (Number.isFinite(signedCount) && Number.isFinite(totalCount)) {
     return `招募名额：${signedCount}/${totalCount}`;
   }
@@ -955,6 +964,7 @@ const courses = [
     detail_html: '<p>ASA 101+103 组合课程，适合<strong>零基础学员</strong>。</p><ul><li>理论讲解与岸上模拟</li><li>水上实操与结业评估</li></ul>',
     banner_images: ['/assets/images/course.jpg'],
     cover_image: 'course',
+    remark: '请穿着运动服，注意防晒，自备防滑鞋与水。',
   },
   {
     id: 'c2',
@@ -972,6 +982,7 @@ const courses = [
     detail_html: '<p>桨板入门体验，含安全讲解与基础划行练习。</p>',
     banner_images: ['/assets/images/course.jpg', '/assets/images/event.jpg'],
     cover_image: 'course',
+    remark: '请穿着运动服，注意防晒，自备防滑鞋与水。',
   },
   {
     id: 'c3',
@@ -989,6 +1000,7 @@ const courses = [
     detail_html: '<p>潜水基础课程，含装备介绍与开放水域体验。</p>',
     banner_images: ['/assets/images/course.jpg'],
     cover_image: 'course',
+    remark: '请穿着运动服，注意防晒，自备防滑鞋与水。',
   },
   {
     id: 'c4',
@@ -1006,6 +1018,7 @@ const courses = [
     detail_html: '<p>皮划艇入门体验，适合零基础学员。</p>',
     banner_images: ['/assets/images/course.jpg'],
     cover_image: 'course',
+    remark: '请穿着运动服，注意防晒，自备防滑鞋与水。',
   },
   {
     id: 'c5',
@@ -1023,6 +1036,7 @@ const courses = [
     detail_html: '<p>帆船入门周末班，适合周末体验学员。</p>',
     banner_images: ['/assets/images/course.jpg'],
     cover_image: 'course',
+    remark: '请穿着运动服，注意防晒，自备防滑鞋与水。',
   },
   {
     id: 'c6',
@@ -1040,6 +1054,7 @@ const courses = [
     detail_html: '<p>ASA 进阶航行课，适合有基础学员提升。</p>',
     banner_images: ['/assets/images/course.jpg'],
     cover_image: 'course',
+    remark: '请穿着运动服，注意防晒，自备防滑鞋与水。',
   },
 ];
 
@@ -1202,6 +1217,7 @@ module.exports = {
   getCourseById,
   formatRecruitmentTime,
   formatRecruitmentTimeRange,
+  formatSignupTimeRange,
   formatRecruitmentSignup,
   enrichActivitySupplier,
   listActivitySuppliersFromMock,

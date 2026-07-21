@@ -9,28 +9,47 @@
     >{{item.display}}</view>
   </view>
 
+  <view class="my-courses__toolbar" wx:if="{{showOnlyMineFilter}}">
+    <view class="my-courses__filter {{onlyMine ? 'my-courses__filter--on' : ''}}" bindtap="onToggleOnlyMine">
+      <view class="my-courses__filter-box">
+        <image wx:if="{{onlyMine}}" class="my-courses__filter-check" src="/assets/icons/check-primary.png" mode="aspectFit" />
+      </view>
+      <text class="my-courses__filter-label">仅显示我发起的</text>
+    </view>
+  </view>
+
   <view class="my-courses__list">
     <block wx:for="{{currentList}}" wx:key="course_id">
-      <view class="my-courses__card" data-id="{{item.course_id}}" bindtap="onViewDetail">
-        <view class="my-courses__card-head">
-          <text class="my-courses__title">{{item.title}}</text>
-          <text wx:if="{{item.listTab === 'ended'}}" class="my-courses__badge">已结束</text>
-        </view>
-        <text class="my-courses__meta">{{item.timeDisplay}} · {{item.location}}</text>
-        <text class="my-courses__price">¥{{item.price}}/人</text>
-        <view wx:if="{{item.listTab !== 'ended'}}" class="my-courses__progress">
-          <text>已报名 {{item.signed}}/{{item.total}}</text>
-          <view class="my-courses__bar">
-            <view class="my-courses__bar-inner" style="width: {{item.progress}}%;"></view>
+      <view
+        class="my-courses__card {{item.listTab === 'ended' ? 'my-courses__card--ended' : ''}}"
+        data-id="{{item.course_id}}"
+        bindtap="onViewDetail"
+      >
+        <text class="my-courses__relation">{{item.relationLabel}}</text>
+        <view class="my-courses__main">
+          <view class="my-courses__cover">
+            <image class="my-courses__cover-img" src="{{item.coverSrc}}" mode="aspectFill" />
+          </view>
+          <view class="my-courses__info">
+            <view class="my-courses__info-top">
+              <text class="my-courses__title">{{item.title}}</text>
+              <text class="my-courses__type-tag my-courses__type-tag--course">{{item.typeLabel}}</text>
+            </view>
+            <text class="my-courses__time">{{item.timeDisplay}}</text>
+            <text class="my-courses__place">{{item.placeLabel}}：{{item.location || '地点待定'}}</text>
+            <text class="my-courses__fee {{item.listTab === 'ended' ? 'my-courses__fee--muted' : ''}}">¥{{item.price}}/人</text>
           </view>
         </view>
-        <view class="my-courses__actions">
-          <view
-            class="my-courses__btn"
-            data-id="{{item.course_id}}"
-            data-title="{{item.title}}"
-            catchtap="onViewMembers"
-          >已报名成员</view>
+        <view class="my-courses__bar">
+          <text class="my-courses__quota">{{item.quotaText}}</text>
+          <view class="my-courses__actions" wx:if="{{item.canViewSignup}}">
+            <view
+              class="my-courses__btn my-courses__btn--primary"
+              data-id="{{item.course_id}}"
+              data-title="{{item.title}}"
+              catchtap="onViewMembers"
+            >已报名成员</view>
+          </view>
         </view>
       </view>
     </block>

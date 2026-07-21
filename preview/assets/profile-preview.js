@@ -179,43 +179,43 @@
     return `<div class="profile-orders">
       <div class="profile-orders__head">
         <span class="profile-orders__title">我的订单</span>
-        <a class="profile-orders__more" href="#">全部订单 ›</a>
+        <a class="profile-orders__more nav-forward" href="my-orders.html?tab=all" data-order-entry>全部订单 ›</a>
       </div>
       <div class="profile-orders__grid">
-        <a class="profile-orders__item" href="#"><img class="profile-orders__icon" src="../assets/icons/order-pay.png" alt=""><span class="profile-orders__label">待付款</span></a>
-        <a class="profile-orders__item" href="#"><img class="profile-orders__icon" src="../assets/icons/order-ship.png" alt=""><span class="profile-orders__label">待发货</span></a>
-        <a class="profile-orders__item" href="#"><img class="profile-orders__icon" src="../assets/icons/order-receive.png" alt=""><span class="profile-orders__label">待使用/待收货</span></a>
-        <a class="profile-orders__item" href="#"><img class="profile-orders__icon" src="../assets/icons/order-refund.png" alt=""><span class="profile-orders__label">退款/售后</span></a>
+        <a class="profile-orders__item nav-forward" href="my-orders.html?tab=pending_pay" data-order-entry><img class="profile-orders__icon" src="../assets/icons/order-pay.png" alt=""><span class="profile-orders__label">待付款</span></a>
+        <a class="profile-orders__item nav-forward" href="my-orders.html?tab=pending_ship" data-order-entry><img class="profile-orders__icon" src="../assets/icons/order-ship.png" alt=""><span class="profile-orders__label">待发货</span></a>
+        <a class="profile-orders__item nav-forward" href="my-orders.html?tab=pending_use" data-order-entry><span class="profile-orders__icon-wrap"><img class="profile-orders__icon" src="../assets/icons/order-receive.png" alt=""><span class="profile-orders__badge">1</span></span><span class="profile-orders__label">待使用/待收货</span></a>
+        <a class="profile-orders__item nav-forward" href="my-orders.html?tab=all" data-order-entry data-order-refund><img class="profile-orders__icon" src="../assets/icons/order-refund.png" alt=""><span class="profile-orders__label">退款/售后</span></a>
       </div>
     </div>`;
   }
 
   function heroBlock(state) {
-    const active = state.heroActive;
-    const profileBadge =
-      active && state.profileChangePending
-        ? '<span class="profile-hero-shortcuts__badge">审核中</span>'
-        : '';
     const itemClass = 'profile-hero-shortcuts__item';
-    const gate = active ? '' : ' data-hero-gate="1"';
-    const publish = active
-      ? `<button type="button" class="${itemClass}" id="profile-publish-entry"><img class="profile-hero-shortcuts__icon" src="../assets/icons/publish.png" alt=""><span class="profile-hero-shortcuts__label">发布招募/课程</span></button>`
-      : `<button type="button" class="${itemClass}"${gate}><img class="profile-hero-shortcuts__icon" src="../assets/icons/publish.png" alt=""><span class="profile-hero-shortcuts__label">发布招募/课程</span></button>`;
-    const link = (href, icon, label) =>
-      active
-        ? `<a class="${itemClass} nav-forward" href="${href}"><img class="profile-hero-shortcuts__icon" src="../assets/icons/${icon}" alt=""><span class="profile-hero-shortcuts__label">${label}</span></a>`
-        : `<button type="button" class="${itemClass}"${gate}><img class="profile-hero-shortcuts__icon" src="../assets/icons/${icon}" alt=""><span class="profile-hero-shortcuts__label">${label}</span></button>`;
-    const edit = active
-      ? `<a class="${itemClass} nav-forward" href="hero-apply.html?mode=edit">${profileBadge}<img class="profile-hero-shortcuts__icon" src="../assets/icons/user.png" alt=""><span class="profile-hero-shortcuts__label">修改资料</span></a>`
-      : `<button type="button" class="${itemClass}"${gate}><img class="profile-hero-shortcuts__icon" src="../assets/icons/user.png" alt=""><span class="profile-hero-shortcuts__label">修改资料</span></button>`;
+    // 已认证英雄（含禁用）展示四入口；未认证展示用户侧两入口
+    if (!state.hero) {
+      // 未认证通过：用户侧入口（可进，不走英雄门禁）
+      return `<div class="profile-hero-center">
+      <div class="profile-section__title">服务中心</div>
+      <div class="profile-hero-shortcuts">
+      <div class="profile-hero-shortcuts__row">
+      <a class="${itemClass} nav-forward" href="my-signups.html"><img class="profile-hero-shortcuts__icon" src="../assets/icons/trophy.png" alt=""><span class="profile-hero-shortcuts__label">我的活动赛事</span></a>
+      <a class="${itemClass} nav-forward" href="my-courses.html"><img class="profile-hero-shortcuts__icon" src="../assets/icons/book.png" alt=""><span class="profile-hero-shortcuts__label">我的课程</span></a>
+      </div>
+    </div>
+    </div>`;
+    }
+    const profileBadge = state.profileChangePending
+      ? '<span class="profile-hero-shortcuts__badge">审核中</span>'
+      : '';
     return `<div class="profile-hero-center">
       <div class="profile-section__title">服务中心</div>
       <div class="profile-hero-shortcuts">
       <div class="profile-hero-shortcuts__row">
-      ${publish}
-      ${link('my-recruitments.html', 'list.png', '我的招募')}
-      ${link('my-courses.html', 'book.png', '我的课程')}
-      ${edit}
+      <button type="button" class="${itemClass}" id="profile-publish-entry"><img class="profile-hero-shortcuts__icon" src="../assets/icons/publish.png" alt=""><span class="profile-hero-shortcuts__label">发布招募/课程</span></button>
+      <a class="${itemClass} nav-forward" href="my-recruitments.html"><img class="profile-hero-shortcuts__icon" src="../assets/icons/list.png" alt=""><span class="profile-hero-shortcuts__label">我的活动赛事</span></a>
+      <a class="${itemClass} nav-forward" href="my-courses.html"><img class="profile-hero-shortcuts__icon" src="../assets/icons/book.png" alt=""><span class="profile-hero-shortcuts__label">我的课程</span></a>
+      <a class="${itemClass} nav-forward" href="hero-apply.html?mode=edit">${profileBadge}<img class="profile-hero-shortcuts__icon" src="../assets/icons/user.png" alt=""><span class="profile-hero-shortcuts__label">修改资料</span></a>
       </div>
     </div>
     </div>`;
@@ -323,15 +323,22 @@
     sheet.addEventListener('click', (e) => {
       const pub = e.target.closest('[data-publish]');
       if (pub) {
-        // 申请课程：不收起弹层、不跳转、无提示；仅切换右侧需求预览
+        // 申请课程：跳转后台投票调研表单（地址待配置）；并展示右侧需求说明
         if (pub.dataset.publish === 'course') {
           e.preventDefault();
           e.stopPropagation();
+          closePublishSheet();
           const docUrl = '../docs/miniprogram/pages/发布课程.md';
           if (window.PreviewDocAside?.render) {
             window.PreviewDocAside.render(docUrl, 'intro');
           } else if (window.PreviewDocAside?.sync) {
             window.PreviewDocAside.sync(docUrl, 'intro');
+          }
+          const surveyUrl = window.__COURSE_APPLY_SURVEY_URL__;
+          if (surveyUrl) {
+            window.open(surveyUrl, '_blank', 'noopener');
+          } else if (window.PreviewToast) {
+            window.PreviewToast.show('投票调研表单地址待配置', 'info');
           }
           return;
         }
@@ -376,6 +383,17 @@
         }
         showToast('请先成为认证英雄');
         return;
+      }
+
+      // 禁用英雄仍展示服务中心，但点入口弹出禁用原因（与小程序一致）
+      const heroShortcut = e.target.closest('.profile-hero-center .profile-hero-shortcuts__item');
+      if (heroShortcut) {
+        const status = await getApplyStatus();
+        if (status.status === 'approved' && status.hero_enabled === false) {
+          e.preventDefault();
+          showDisableReasonDialog(status.disable_reason);
+          return;
+        }
       }
 
       const publishBtn = e.target.closest('#profile-publish-entry');
@@ -455,6 +473,16 @@
         e.preventDefault();
         return;
       }
+      const orderEntry = e.target.closest('[data-order-entry]');
+      if (orderEntry) {
+        if (isGuestPreview()) {
+          e.preventDefault();
+          showToast('请先授权登录');
+          return;
+        }
+        // 已登录：交给 nav-forward 默认跳转
+        return;
+      }
       const msg = e.target.closest('#profile-messages');
       if (msg) {
         e.preventDefault();
@@ -494,7 +522,6 @@
     const state = await resolveDisplayRole();
     const showVip = !!state.hero;
     const showCta = !state.heroActive;
-    const showHeroModules = !state.disabled;
     root.innerHTML = `
       <div class="profile-page">
       ${userBlock(state)}
@@ -502,7 +529,7 @@
       ${showCta ? uncertCta(state) : ''}
       ${assetsBlock()}
       ${ordersBlock()}
-      ${showHeroModules ? heroBlock(state) : ''}
+      ${heroBlock(state)}
       ${serviceBlock()}
       </div>`;
     bindApplyHero();

@@ -2,7 +2,7 @@ const data = require('../../utils/data.js');
 
 const CERT_OPTIONS = ['国家级教练', '省级教练', 'ACA认证', 'ISA认证', '其他'];
 const PRESET_CERT_LIST = CERT_OPTIONS.filter((item) => item !== '其他');
-const YEARS_OPTIONS = ['1-3年', '3-5年', '5-10年', '10年+'];
+const YEARS_OPTIONS = ['1-3年', '3-5年', '5-10年', '10-15年', '15年+'];
 const ID_DOC_TYPES = [
   '身份证',
   '护照',
@@ -939,7 +939,7 @@ Page({
               return;
             }
             wx.showToast({ title: '已撤回审核', icon: 'success' });
-            setTimeout(() => wx.navigateBack(), 600);
+            this.setData({ profileChangePending: false });
           })
           .catch(() => {
             wx.showToast({ title: '撤回失败', icon: 'none' });
@@ -949,6 +949,10 @@ Page({
   },
 
   onSubmit() {
+    if (this.data.isEdit && this.data.profileChangePending) {
+      wx.showToast({ title: '请先撤回审核后再提交修改', icon: 'none' });
+      return;
+    }
     const {
       nickname,
       name,

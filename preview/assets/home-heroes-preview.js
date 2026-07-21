@@ -129,18 +129,26 @@
         if (left > 0) quotaText = `招募${left}人`;
       }
       const text = quotaText ? `${status} | ${title} ${quotaText}` : `${status} | ${title}`;
-      rows.push(taggedRow(`recruitment-detail.html?id=${escapeHtml(id)}`, 'event', text));
+      rows.push(
+        taggedRow(`recruitment-detail.html?id=${escapeHtml(id)}&from=home`, 'event', text),
+      );
     }
     if (activity) {
       const id = activity.recruit_id || activity.id || activity.target_id;
       const title = activity.title || '';
       const status = statusLabel(activity.status_label || activity.status, '报名中');
-      rows.push(taggedRow(`activity-detail.html?id=${escapeHtml(id)}`, 'activity', `${status} | ${title}`));
+      rows.push(
+        taggedRow(
+          `activity-detail.html?id=${escapeHtml(id)}&from=home`,
+          'activity',
+          `${status} | ${title}`,
+        ),
+      );
     }
     if (course) {
       const id = course.course_id || course.id || course.target_id;
       const title = course.title || '';
-      rows.push(taggedRow(`course-detail.html?id=${escapeHtml(id)}`, 'course', title));
+      rows.push(taggedRow(`course-detail.html?id=${escapeHtml(id)}&from=home`, 'course', title));
     }
     return rows.join('');
   }

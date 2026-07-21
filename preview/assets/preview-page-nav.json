@@ -41,7 +41,7 @@
           "doc": "赛事详情.md",
           "label": "赛事详情",
           "docUrl": "../docs/miniprogram/pages/赛事详情.md",
-          "scope": ""
+          "scope": "intro"
         },
         {
           "html": "activity-detail.html",
@@ -91,7 +91,7 @@
         {
           "html": "my-recruitments.html",
           "doc": "我的招募.md",
-          "label": "我的招募",
+          "label": "我的活动赛事",
           "docUrl": "../docs/miniprogram/pages/我的招募.md",
           "scope": ""
         },
@@ -115,13 +115,6 @@
       "title": "用户活动",
       "pages": [
         {
-          "html": "my-signups.html",
-          "doc": "我的报名.md",
-          "label": "我的报名",
-          "docUrl": "../docs/miniprogram/pages/我的报名.md",
-          "scope": ""
-        },
-        {
           "html": "messages.html",
           "doc": "消息.md",
           "label": "消息",
@@ -133,6 +126,32 @@
           "doc": "消息详情.md",
           "label": "消息详情",
           "docUrl": "../docs/miniprogram/pages/消息详情.md",
+          "scope": ""
+        }
+      ]
+    },
+    {
+      "title": "我的订单",
+      "pages": [
+        {
+          "html": "my-orders.html",
+          "doc": "我的订单.md",
+          "label": "我的订单",
+          "docUrl": "../docs/miniprogram/pages/我的订单.md",
+          "scope": ""
+        },
+        {
+          "html": "order-voucher.html",
+          "doc": "二维码凭证.md",
+          "label": "二维码凭证",
+          "docUrl": "../docs/miniprogram/pages/二维码凭证.md",
+          "scope": ""
+        },
+        {
+          "html": "order-detail.html",
+          "doc": "订单详情.md",
+          "label": "订单详情",
+          "docUrl": "../docs/miniprogram/pages/订单详情.md",
           "scope": ""
         }
       ]

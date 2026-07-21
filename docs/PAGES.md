@@ -18,13 +18,20 @@
 
 ## 浏览器预览
 
-### 线上（GitHub Pages）
+### 线上（Cloudflare Pages · 优先）
+
+说明：[CLOUDFLARE-PAGES.md](./CLOUDFLARE-PAGES.md)
 
 | 项 | 链接 |
 |----|------|
-| **预览入口** | [https://cgd1093702532-star.github.io/personal-site/](https://cgd1093702532-star.github.io/personal-site/) |
+| **预览入口** | [https://personal-site-1e8.pages.dev/](https://personal-site-1e8.pages.dev/) |
+| 小程序预览 | [https://personal-site-1e8.pages.dev/miniprogram/index.html](https://personal-site-1e8.pages.dev/miniprogram/index.html) |
+| 后台预览 | [https://personal-site-1e8.pages.dev/admin/dashboard.html](https://personal-site-1e8.pages.dev/admin/dashboard.html) |
 
-> 线上仅静态预览；申请提交与后台审核需本地 `bash scripts/start-dev.sh`（预览 :8765 + API :8787）。
+备用 · GitHub Pages：https://cgd1093702532-star.github.io/personal-site/
+
+> 线上仅静态预览；申请提交与后台审核需本地 `bash scripts/start-dev.sh`（预览 :8765 + API :8787）。  
+> **不要**用 jsDelivr（`cdn.jsdelivr.net/gh/...`）打开预览页：HTML 会被当成纯文本，只显示源码。
 
 ### 本地
 

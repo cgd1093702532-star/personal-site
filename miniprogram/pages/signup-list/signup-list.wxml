@@ -1,25 +1,20 @@
 <view class="page signup-list">
-  <view class="signup-member">
-    <text class="signup-member__head">{{pageTitle}}</text>
-    <view class="signup-member__list">
+  <view class="signup-member {{list.length === 0 ? 'signup-member--empty-page' : ''}}">
+    <view wx:if="{{list.length > 0}}" class="signup-member__list">
       <view class="signup-member__item" wx:for="{{list}}" wx:key="id">
         <image class="signup-member__avatar" src="{{item.avatar}}" mode="aspectFill" />
         <view class="signup-member__body">
           <text class="signup-member__name">{{item.nickname}}</text>
           <text class="signup-member__phone">{{item.phone}}</text>
-          <text class="signup-member__time">{{item.signedAtText}}</text>
-          <text wx:if="{{!isCourseMode && item.status}}" class="signup-member__status">{{item.status}}</text>
         </view>
-        <view
-          wx:if="{{!isCourseMode && item.status === '待确认'}}"
-          class="signup-member__confirm"
-          data-id="{{item.id}}"
-          bindtap="onConfirm"
-        >确认</view>
+        <text class="signup-member__time">{{item.signedAtText}}</text>
       </view>
-      <view wx:if="{{list.length === 0}}" class="signup-member__empty">
-        {{isCourseMode ? '暂无已报名成员' : '暂无报名人员'}}
+    </view>
+    <view wx:else class="signup-member__empty">
+      <view class="signup-member__empty-icon">
+        <image src="/assets/icons/empty.png" mode="aspectFit" />
       </view>
+      <text class="signup-member__empty-title">{{isCourseMode ? '暂无已报名成员' : '暂无报名人员'}}</text>
     </view>
   </view>
 </view>

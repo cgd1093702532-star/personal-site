@@ -22,11 +22,14 @@ Page({
     showForm: false,
     showCheckin: false,
     showInitiateConfirm: false,
+    showInitiateSuccess: false,
     form: { name: '', phone: '', remark: '' },
     footerLabel: '立即报名',
     footerDisabled: false,
     footerAction: 'signup',
     isApprovedHero: false,
+    fromPublish: false,
+    signupNoop: false,
     feeInt: '0',
     feeDec: '00',
     displayTags: [],
@@ -41,6 +44,8 @@ Page({
 
   onLoad(options) {
     const id = options.id;
+    const fromPublish = options.from === 'publish';
+    const signupNoop = options.from === 'home' || options.from === 'hero';
     if (!id) {
       wx.showToast({ title: '活动不存在', icon: 'none' });
       return;
@@ -63,6 +68,7 @@ Page({
       const footer = signupAction.resolveSignupFooter({
         recruitment: item,
         isApprovedHero,
+        fromPublish,
       });
       const feeParts = formatFeeParts(item.fee);
       const displayTags = (Array.isArray(item.tags) ? item.tags : [])
@@ -81,6 +87,8 @@ Page({
         signup,
         coverImages,
         isApprovedHero,
+        fromPublish,
+        signupNoop,
         feeInt: feeParts.int,
         feeDec: feeParts.dec,
         displayTags,
@@ -131,6 +139,7 @@ Page({
     const footer = signupAction.resolveSignupFooter({
       recruitment: this.data.item,
       isApprovedHero: this.data.isApprovedHero,
+      fromPublish: this.data.fromPublish,
     });
     this.setData({
       footerLabel: footer.label,
@@ -173,6 +182,7 @@ Page({
   },
 
   onFooterTap() {
+    if (this.data.signupNoop) return;
     if (this.data.footerDisabled) return;
     if (this.data.footerAction === 'initiate') {
       this.setData({ showInitiateConfirm: true });
@@ -192,7 +202,28 @@ Page({
   },
 
   onConfirmInitiate() {
-    this.setData({ showInitiateConfirm: false });
+    const item = { ...(this.data.item || {}), hero_initiated: true };
+    const footer = signupAction.resolveSignupFooter({
+      recruitment: item,
+      isApprovedHero: this.data.isApprovedHero,
+      fromPublish: this.data.fromPublish,
+    });
+    this.setData({
+      showInitiateConfirm: false,
+      showInitiateSuccess: true,
+      item,
+      footerLabel: footer.label,
+      footerDisabled: footer.disabled,
+      footerAction: footer.action,
+    });
+  },
+
+  onCloseInitiateSuccess() {
+    this.setData({ showInitiateSuccess: false });
+  },
+
+  onViewMyRecruitments() {
+    this.setData({ showInitiateSuccess: false });
     wx.navigateTo({ url: '/pages/my-recruitments/my-recruitments' });
   },
 

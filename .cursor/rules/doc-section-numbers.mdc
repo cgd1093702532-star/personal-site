@@ -1,0 +1,37 @@
+---
+description: 铁律：需求文档章节与正文序号必须通篇连续，删改后自动重排
+alwaysApply: true
+---
+
+# 铁律：需求文档序号通篇连续
+
+适用于 `docs/miniprogram/pages/*.md`、`docs/admin/pages/*.md`（不含 README / _TEMPLATE）。
+
+## 规则（方案 B）
+
+| 形态 | 连续方式 |
+|------|----------|
+| `## N. 标题` | 全文按出现顺序重排为 1、2、3… |
+| `### N.M 标题` | 大号跟随当前所属 `##`，小号保留 |
+| 正文行首 `N、` | **每个 `###` 小节内**从 1 重新连续（该章无 `###` 时按当前 `##`） |
+| 正文行首 `N.M、` | 跟随当前父项，子序号在该父项下从 1 连续 |
+
+不改：表格单元格内序号、代码块、引用块、`## 变更记录` 内的历史 `§` 叙述。
+
+正文区（变更记录前）的 `§N` / `§N.M` 会随章节重排同步。
+
+预览右侧会隐藏「规则补充」等章；隐藏后**仅预览展示**会对可见 `##` 再连续编号（真源序号不变），避免出现「3 然后 5」。
+
+## 自检
+
+```bash
+python3 scripts/check-doc-section-numbers.py --fix
+python3 scripts/check-doc-section-numbers.py   # 须 OK
+```
+
+`preview/build-pages.py` 与 `.cursor/hooks/fix-doc-images.sh` 已接入 `--fix`。
+
+## 禁止
+
+- 手改造成 `## 1` 后直接 `## 3` 等跳号且不跑脚本
+- 弱化、删除或绕过 `check-doc-section-numbers.py`

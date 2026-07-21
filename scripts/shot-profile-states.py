@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""截取个人中心未登录 + 五种身份预览图，写入 docs 配图目录，并尽量恢复原状态。"""
+"""截取个人中心未登录 + 五种身份预览图（含「修改资料」审核中角标），写入 docs 配图目录，并尽量恢复原状态。"""
 from __future__ import annotations
 
 import json
@@ -37,6 +37,9 @@ def backup_state():
         row = conn.execute("SELECT * FROM heroes WHERE hero_id = ?", (hid,)).fetchone()
         if row:
             heroes.append(row_dict(row))
+    profile_changes = [
+        row_dict(r) for r in conn.execute("SELECT * FROM profile_change_requests").fetchall()
+    ]
     role = conn.execute(
         "SELECT payload FROM app_state WHERE key = 'mock_hero_role'"
     ).fetchone()
@@ -44,6 +47,7 @@ def backup_state():
     return {
         "apps": apps,
         "heroes": heroes,
+        "profile_changes": profile_changes,
         "mock_hero_role": json.loads(role["payload"]) if role else None,
     }
 
@@ -52,6 +56,7 @@ def restore_state(snap):
     conn = db.connect()
     db.init_schema(conn)
     conn.execute("DELETE FROM hero_applications WHERE user_id = ?", (USER_ID,))
+    conn.execute("DELETE FROM profile_change_requests")
     for h in snap["heroes"]:
         conn.execute(
             "INSERT OR REPLACE INTO heroes (hero_id, payload, updated_at) VALUES (?, ?, ?)",
@@ -75,6 +80,24 @@ def restore_state(snap):
                 a["submitted_at"],
                 a["reviewed_at"],
                 a["updated_at"],
+            ),
+        )
+    for pc in snap.get("profile_changes") or []:
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO profile_change_requests
+            (change_id, hero_id, status, payload, reject_reason, submitted_at, reviewed_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                pc["change_id"],
+                pc["hero_id"],
+                pc["status"],
+                pc["payload"],
+                pc["reject_reason"],
+                pc["submitted_at"],
+                pc["reviewed_at"],
+                pc["updated_at"],
             ),
         )
     conn.commit()
@@ -220,7 +243,8 @@ def set_state(name: str, app_id: str, hero_id: str):
     payload = json.loads(hrow["payload"]) if hrow else {"hero_id": hero_id, "name": "航海用户"}
     if name == "disabled":
         payload["enabled"] = False
-        payload["disable_reason"] = "平台抽检未通过，暂不可用"
+        # 空原因 → 弹窗正文走兜底「您的英雄身份不可用，具体原因可联系客服处理」
+        payload["disable_reason"] = ""
     else:
         payload["enabled"] = True
         payload["disable_reason"] = ""
@@ -231,6 +255,22 @@ def set_state(name: str, app_id: str, hero_id: str):
     conn.commit()
     conn.close()
     db.set_app_state("mock_hero_role", "approved")
+
+
+def clear_profile_pending(hero_id: str):
+    conn = db.connect()
+    db.init_schema(conn)
+    conn.execute(
+        "DELETE FROM profile_change_requests WHERE hero_id = ? AND status = 'pending'",
+        (str(hero_id),),
+    )
+    conn.commit()
+    conn.close()
+
+
+def ensure_profile_pending(hero_id: str):
+    clear_profile_pending(hero_id)
+    db.submit_profile_change(str(hero_id), {"bio": "截图用资料变更待审"}, change_type="profile")
 
 
 def run_one_shot(path: Path, dialog: bool, guest: bool = False):
@@ -278,10 +318,30 @@ def main():
             ("rejected", "state-rejected.png", False),
             ("rejected", "state-rejected-dialog.png", True),
             ("approved", "state-approved.png", False),
+            ("approved-profile-pending", "state-approved-profile-pending.png", False),
             ("disabled", "state-disabled.png", False),
             ("disabled", "state-disabled-dialog.png", True),
         ]
         for state, filename, dialog in sequence:
+            if state == "approved-profile-pending":
+                set_state("approved", app_id, hero_id)
+                st = db.get_hero_apply_status(USER_ID)
+                if st.get("hero_id"):
+                    hero_id = str(st["hero_id"])
+                ensure_profile_pending(hero_id)
+                st = db.get_hero_apply_status(USER_ID)
+                print(
+                    "shoot",
+                    state,
+                    "status=",
+                    st.get("status"),
+                    "profile_pending=",
+                    st.get("profile_change_pending"),
+                )
+                run_one_shot(OUT_DIR / filename, dialog)
+                clear_profile_pending(hero_id)
+                continue
+
             set_state(state, app_id, hero_id)
             st = db.get_hero_apply_status(USER_ID)
             if st.get("application_id"):

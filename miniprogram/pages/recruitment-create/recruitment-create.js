@@ -11,6 +11,7 @@ function mapCard(e) {
       (e.fee != null ? String(e.fee).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''),
     typeLabel: e.typeLabel || (e.type === 'activity' ? '活动' : '赛事'),
     is_mine: e.is_mine !== false,
+    hero_initiated: e.hero_initiated === true,
   };
 }
 
@@ -20,14 +21,22 @@ function withAction(item, tab) {
       ...item,
       actionText: '活动已结束',
       actionDisabled: true,
-      actionKind: 'none',
+      actionKind: 'detail',
+    };
+  }
+  if (item.hero_initiated) {
+    return {
+      ...item,
+      actionText: '招募中...',
+      actionDisabled: true,
+      actionKind: 'detail',
     };
   }
   return {
     ...item,
     actionText: '发起招募',
     actionDisabled: false,
-    actionKind: 'initiate',
+    actionKind: 'detail',
   };
 }
 
@@ -44,11 +53,8 @@ Page({
     activeTab: 'active',
     lists: { active: [], ended: [] },
     list: [],
-    activeTabLabel: '招募进行中',
-    endedTabLabel: '招募已结束',
-    emptyText: '暂无赛事招募',
-    showInitiateConfirm: false,
-    pendingRecruitId: '',
+    activeTabLabel: '进行中',
+    endedTabLabel: '已结束',
     statusBarHeight: 20,
     navBarHeight: 44,
   },
@@ -130,9 +136,8 @@ Page({
     this.setData({
       activeTab: next,
       list,
-      activeTabLabel: tabLabel('招募进行中', lists.active.length),
-      endedTabLabel: tabLabel('招募已结束', lists.ended.length),
-      emptyText: next === 'ended' ? '暂无已结束的赛事招募' : '暂无赛事招募',
+      activeTabLabel: tabLabel('进行中', lists.active.length),
+      endedTabLabel: tabLabel('已结束', lists.ended.length),
     });
   },
 
@@ -151,24 +156,9 @@ Page({
     } catch (_) {
       /* ignore */
     }
-    wx.navigateTo({ url: `/pages/recruitment-detail/recruitment-detail?id=${id}` });
+    wx.navigateTo({
+      url: `/pages/recruitment-detail/recruitment-detail?id=${id}&from=publish`,
+    });
   },
 
-  onItemAction(e) {
-    const type = e.detail?.type;
-    const id = e.detail?.recruit_id;
-    if (type !== 'initiate' || !id) return;
-    this.setData({ showInitiateConfirm: true, pendingRecruitId: id });
-  },
-
-  onCloseInitiateConfirm() {
-    this.setData({ showInitiateConfirm: false, pendingRecruitId: '' });
-  },
-
-  onConfirmInitiate() {
-    this.setData({ showInitiateConfirm: false, pendingRecruitId: '' });
-    wx.navigateTo({ url: '/pages/my-recruitments/my-recruitments' });
-  },
-
-  noop() {},
 });

@@ -68,6 +68,26 @@
     },
     {
       "doc": "个人中心.md",
+      "alt": "修改资料 · 审核中角标",
+      "src": "./images/profile/state-approved-profile-pending.png"
+    },
+    {
+      "doc": "申请成为英雄.md",
+      "alt": "修改资料 · 待审仅撤回审核",
+      "src": "./images/hero-apply/state-edit-pending-withdraw.png"
+    },
+    {
+      "doc": "申请成为英雄.md",
+      "alt": "返回 · 是否保存本次的编辑内容",
+      "src": "./images/hero-apply/state-save-edit-dialog.png"
+    },
+    {
+      "doc": "个人中心.md",
+      "alt": "修改资料 · 待审仅撤回审核",
+      "src": "./images/hero-apply/state-edit-pending-withdraw.png"
+    },
+    {
+      "doc": "个人中心.md",
       "alt": "禁用状态预览",
       "src": "./images/profile/state-disabled.png"
     },
@@ -85,6 +105,91 @@
       "doc": "消息详情.md",
       "alt": "暂无消息",
       "src": "./images/messages/state-empty.png"
+    },
+    {
+      "doc": "报名人员列表.md",
+      "alt": "暂无报名人员",
+      "src": "./images/signup-list/state-empty.png"
+    },
+    {
+      "doc": "赛事详情.md",
+      "alt": "未认证 · 招募进行中",
+      "src": "./images/recruitment-detail/state-user-active.png"
+    },
+    {
+      "doc": "赛事详情.md",
+      "alt": "已认证 · 招募进行中",
+      "src": "./images/recruitment-detail/state-hero-active.png"
+    },
+    {
+      "doc": "赛事详情.md",
+      "alt": "未认证 · 招募已结束",
+      "src": "./images/recruitment-detail/state-user-ended.png"
+    },
+    {
+      "doc": "赛事详情.md",
+      "alt": "已认证 · 招募已结束",
+      "src": "./images/recruitment-detail/state-hero-ended.png"
+    },
+    {
+      "doc": "赛事详情.md",
+      "alt": "发布入口 · 发起招募",
+      "src": "./images/recruitment-detail/state-publish-initiate.png"
+    },
+    {
+      "doc": "赛事详情.md",
+      "alt": "发布入口 · 招募中",
+      "src": "./images/recruitment-detail/state-publish-recruiting.png"
+    },
+    {
+      "doc": "赛事详情.md",
+      "alt": "赛事不存在",
+      "src": "./images/recruitment-detail/state-missing.png"
+    },
+    {
+      "doc": "赛事详情.md",
+      "alt": "确认发起赛事招募",
+      "src": "./images/recruitment-detail/state-confirm-initiate.png"
+    },
+    {
+      "doc": "赛事详情.md",
+      "alt": "发起成功底部弹层",
+      "src": "./images/recruitment-detail/state-success-sheet.png"
+    },
+    {
+      "doc": "发布招募.md",
+      "alt": "列表空态",
+      "src": "./images/recruitment-create/state-empty.png"
+    },
+    {
+      "doc": "我的招募.md",
+      "alt": "进行中 · 空态",
+      "src": "./images/my-recruitments/state-active-empty.png"
+    },
+    {
+      "doc": "我的招募.md",
+      "alt": "已结束 · 空态",
+      "src": "./images/my-recruitments/state-ended-empty.png"
+    },
+    {
+      "doc": "我的订单.md",
+      "alt": "评分对话框",
+      "src": "./images/my-orders/state-rate-sheet.png"
+    },
+    {
+      "doc": "我的订单.md",
+      "alt": "订单详情已评价",
+      "src": "./images/my-orders/state-rated.png"
+    },
+    {
+      "doc": "订单详情.md",
+      "alt": "评分对话框",
+      "src": "./images/order-detail/state-rate-sheet.png"
+    },
+    {
+      "doc": "订单详情.md",
+      "alt": "订单详情已评价",
+      "src": "./images/order-detail/state-rated.png"
     }
   ]
 }

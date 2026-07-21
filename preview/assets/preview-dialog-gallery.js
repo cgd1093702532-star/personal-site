@@ -101,6 +101,19 @@
           title: '确认发起赛事招募',
           src: '../assets/dialog-gallery/recruit-initiate-dialog.png',
         },
+        {
+          title: '发起成功底部提示',
+          src: '../assets/dialog-gallery/recruit-initiate-success-sheet.png',
+        },
+      ],
+    },
+    {
+      group: '我的订单',
+      items: [
+        {
+          title: '综合评分底部弹层',
+          src: '../assets/dialog-gallery/order-rate-sheet.png',
+        },
       ],
     },
     {
@@ -176,6 +189,8 @@
       items: [
         { title: '报名列表 · 已确认', message: '已确认', type: 'success' },
         { title: '页面加载失败', message: '页面加载失败', type: 'error' },
+        { title: '订单 · 评分成功', message: '评分成功', type: 'none' },
+        { title: '订单 · 已复制', message: '已复制', type: 'none' },
       ],
     },
   ];

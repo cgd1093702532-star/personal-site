@@ -128,15 +128,20 @@ Component({
     onRowTap(e) {
       const { type, targetId } = e.currentTarget.dataset;
       if (!targetId) return;
+      const fromHome = this.properties.layout === 'home' ? '&from=home' : '';
       if (type === 'event' || type === 'activity') {
-        wx.navigateTo({ url: `/pages/recruitment-detail/recruitment-detail?id=${targetId}` });
+        wx.navigateTo({
+          url: `/pages/recruitment-detail/recruitment-detail?id=${targetId}${fromHome}`,
+        });
         return;
       }
       if (type === 'course') {
-        wx.navigateTo({ url: `/pages/course-detail/course-detail?id=${targetId}` });
+        wx.navigateTo({ url: `/pages/course-detail/course-detail?id=${targetId}${fromHome}` });
         return;
       }
-      wx.navigateTo({ url: `/pages/recruitment-detail/recruitment-detail?id=${targetId}` });
+      wx.navigateTo({
+        url: `/pages/recruitment-detail/recruitment-detail?id=${targetId}${fromHome}`,
+      });
     },
   },
 });

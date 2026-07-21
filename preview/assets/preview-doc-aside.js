@@ -76,7 +76,7 @@
       .replace(/"/g, '&quot;');
   }
 
-  /** 需求文档协作标记：【重复】【矛盾】→ 彩色高亮（勿覆盖用户原文，仅标出） */
+  /** 需求文档协作标记：【重复】【矛盾】【特别说明】→ 彩色高亮 */
   function applyDocFlags(escapedHtml) {
     return String(escapedHtml || '')
       .replace(
@@ -86,6 +86,10 @@
       .replace(
         /【重复】([^【<]*)/g,
         '<mark class="preview-doc-aside__flag preview-doc-aside__flag--dup" title="重复描述，供产品删并">【重复】$1</mark>',
+      )
+      .replace(
+        /【特别说明】([^【<]*)/g,
+        '<mark class="preview-doc-aside__flag preview-doc-aside__flag--note" title="特别说明">【特别说明】$1</mark>',
       );
   }
 
@@ -93,6 +97,7 @@
     const t = String(text || '');
     if (t.includes('【矛盾】')) return 'preview-doc-aside__callout preview-doc-aside__callout--conflict';
     if (t.includes('【重复】')) return 'preview-doc-aside__callout preview-doc-aside__callout--dup';
+    if (t.includes('【特别说明】')) return 'preview-doc-aside__callout preview-doc-aside__callout--note';
     return '';
   }
 
@@ -168,17 +173,24 @@
     return /^(UI设计图地址|设计图地址)\s*[：:]/.test(String(part || '').trim());
   }
 
-  /** 正文标题图标：按章节语义选更醒目的 primary 图标 */
+  /** 正文标题图标：按章节语义选更醒目的 primary 图标（勿用「^1.」误判为业务目标） */
   function headingIconFor(title, level) {
     const t = String(title || '').trim();
     const icon = (name) => `../assets/icons/${name}`;
-    if (/^1(\.|．|、|\s)|业务目标/.test(t)) return icon('star-primary.png');
-    if (/^2(\.|．|、|\s)|登录|身份/.test(t)) return icon('user-primary.png');
-    if (/^3(\.|．|、|\s)|详细描述|页面详细/.test(t)) return icon('list-primary.png');
-    if (/^4(\.|．|、|\s)|常见路径|路径/.test(t)) return icon('location-primary.png');
-    if (/^5(\.|．|、|\s)|相关页面|相关/.test(t)) return icon('share.png');
-    if (/^6(\.|．|、|\s)|规则|验收/.test(t)) return icon('check-primary.png');
-    if (/^7(\.|．|、|\s)|变更/.test(t)) return icon('calendar-primary.png');
+    if (/业务目标/.test(t)) return icon('star-primary.png');
+    if (/登录|身份/.test(t)) return icon('user-primary.png');
+    if (/详细描述|页面详细/.test(t)) return icon('list-primary.png');
+    if (/常见路径|路径/.test(t)) return icon('location-primary.png');
+    if (/相关页面|相关/.test(t)) return icon('share.png');
+    if (/规则|验收/.test(t)) return icon('check-primary.png');
+    if (/变更/.test(t)) return icon('calendar-primary.png');
+    if (/^1(\.|．|、|\s)/.test(t)) return icon('star-primary.png');
+    if (/^2(\.|．|、|\s)/.test(t)) return icon('user-primary.png');
+    if (/^3(\.|．|、|\s)/.test(t)) return icon('list-primary.png');
+    if (/^4(\.|．|、|\s)/.test(t)) return icon('location-primary.png');
+    if (/^5(\.|．|、|\s)/.test(t)) return icon('share.png');
+    if (/^6(\.|．|、|\s)/.test(t)) return icon('check-primary.png');
+    if (/^7(\.|．|、|\s)/.test(t)) return icon('calendar-primary.png');
     if (/说明/.test(t)) return icon('announce-primary.png');
     if (level <= 2) return icon('medal-primary.png');
     if (level === 3) return icon('edit-primary.png');
@@ -228,9 +240,11 @@
     return raw.split('|').map((c) => c.trim());
   }
 
-  /** 预览协作面板隐藏「§6 规则补充 / 实现对照」整章，源 md 仍保留。 */
-  function filterPreviewMarkdown(md, scope) {
-    const hideTitles = [/^\s*6(\.|．|、|\s)/, /实现对照/, /规则补充/];
+  /** 预览协作面板隐藏「规则补充 / 实现对照 / 页面业务目标」等章，源 md 可仍保留。 */
+  function filterPreviewMarkdown(md, scope, docUrl) {
+    // 按标题关键词隐藏（勿写死章节号，通篇重排后号会变）
+    const hideTitles = [/实现对照/, /规则补充/, /页面业务目标/];
+    void docUrl;
     const lines = String(md || '').replace(/\r\n/g, '\n').split('\n');
     const out = [];
     let skipping = false;
@@ -241,7 +255,7 @@
       if (heading) {
         const level = heading[1].length;
         const title = heading[2].trim();
-        /* intro：只保留文首说明，遇到第一个二级标题即止 */
+        /* intro：只保留文首说明，遇到第一个二级标题即止（## UI说明 须在 filter 前抽出） */
         if (scope === 'intro' && level === 2) {
           break;
         }
@@ -256,7 +270,33 @@
       }
       if (!skipping) out.push(line);
     }
-    return out.join('\n').trim();
+    // 隐藏章节后，预览侧对可见 ## / ### 重新连续编号（避免 3 后面直接 5）
+    return renumberVisibleHeadings(out.join('\n').trim());
+  }
+
+  /** 仅用于预览展示：可见二级/三级标题序号连续；不写回 md 真源。 */
+  function renumberVisibleHeadings(md) {
+    const lines = String(md || '').split('\n');
+    let h2 = 0;
+    const majorMap = Object.create(null);
+    return lines
+      .map((line) => {
+        const h2m = /^(##)\s+(\d+)\.\s+(.+)$/.exec(line);
+        if (h2m) {
+          const oldMajor = Number(h2m[2]);
+          h2 += 1;
+          majorMap[oldMajor] = h2;
+          return `## ${h2}. ${h2m[3]}`;
+        }
+        const h3m = /^(###)\s+(\d+)\.(\d+)\s+(.+)$/.exec(line);
+        if (h3m) {
+          const oldMajor = Number(h3m[2]);
+          const newMajor = majorMap[oldMajor] != null ? majorMap[oldMajor] : h2;
+          return `### ${newMajor}.${h3m[3]} ${h3m[4]}`;
+        }
+        return line;
+      })
+      .join('\n');
   }
 
   function resolveDocScope(explicit) {
@@ -268,8 +308,52 @@
     );
   }
 
-  function renderMarkdown(md, docBaseUrl, cacheToken) {
-    const lines = String(md || '').replace(/\r\n/g, '\n').split('\n');
+  /**
+   * 抽出 md 中的「## UI说明」正文（到下一个同级/上级标题或 --- 为止），
+   * 由预览在元信息下方统一渲染，避免与注入标题重复。
+   */
+  function extractUiNoteSection(rawLines) {
+    const lines = [];
+    const bodyLines = [];
+    let inUi = false;
+    for (let i = 0; i < rawLines.length; i += 1) {
+      const trimmed = rawLines[i].trim();
+      const heading = /^(#{1,4})\s+(.+)$/.exec(trimmed);
+      if (inUi) {
+        if ((heading && heading[1].length <= 2) || /^---+$/.test(trimmed)) {
+          inUi = false;
+          // --- / 下一标题仍留给正文流
+        } else {
+          bodyLines.push(rawLines[i]);
+          continue;
+        }
+      }
+      if (heading && heading[2].trim() === 'UI说明') {
+        inUi = true;
+        continue;
+      }
+      lines.push(rawLines[i]);
+    }
+    while (bodyLines.length && !String(bodyLines[0]).trim()) bodyLines.shift();
+    while (bodyLines.length && !String(bodyLines[bodyLines.length - 1]).trim()) bodyLines.pop();
+    // 去掉误收的分隔线
+    while (bodyLines.length && /^---+$/.test(String(bodyLines[bodyLines.length - 1]).trim())) {
+      bodyLines.pop();
+    }
+    return { lines, bodyLines };
+  }
+
+  function renderMarkdown(md, docBaseUrl, cacheToken, preextractedUiBody) {
+    let lines;
+    let uiNoteBodyLines;
+    if (Array.isArray(preextractedUiBody)) {
+      lines = String(md || '').replace(/\r\n/g, '\n').split('\n');
+      uiNoteBodyLines = preextractedUiBody;
+    } else {
+      const extracted = extractUiNoteSection(String(md || '').replace(/\r\n/g, '\n').split('\n'));
+      lines = extracted.lines;
+      uiNoteBodyLines = extracted.bodyLines;
+    }
     const html = [];
     let i = 0;
     let inList = false;
@@ -284,6 +368,37 @@
       }
     };
 
+    let uiNoteInserted = false;
+    const ensureUiNoteSection = (out) => {
+      if (uiNoteInserted) return;
+      uiNoteInserted = true;
+      const uiTitle = 'UI说明';
+      const uiIcon = headingIconFor(uiTitle, 2);
+      const uiIconHtml = uiIcon
+        ? `<img class="preview-doc-aside__heading-icon" src="${escapeHtml(uiIcon)}" alt="" aria-hidden="true" />`
+        : '';
+      out.push('<section class="preview-doc-aside__ui-note-block">');
+      out.push(
+        `<h2 class="preview-doc-aside__heading preview-doc-aside__heading--h2 preview-doc-aside__ui-note">${uiIconHtml}<span class="preview-doc-aside__heading-text">${escapeHtml(
+          uiTitle,
+        )}</span></h2>`,
+      );
+      if (uiNoteBodyLines.length) {
+        const bodyParts = [];
+        uiNoteBodyLines.forEach((line) => {
+          const t = String(line || '').trim();
+          if (!t) return;
+          bodyParts.push(`<p>${fmt(t)}</p>`);
+        });
+        if (bodyParts.length) {
+          out.push(
+            `<div class="preview-doc-aside__ui-note-content">${bodyParts.join('')}</div>`,
+          );
+        }
+      }
+      out.push('</section>');
+    };
+
     while (i < lines.length) {
       const line = lines[i];
       const trimmed = line.trim();
@@ -296,6 +411,7 @@
 
       if (/^---+$/.test(trimmed)) {
         closeList();
+        ensureUiNoteSection(html);
         html.push('<hr />');
         i += 1;
         continue;
@@ -326,6 +442,8 @@
         closeList();
         const level = heading[1].length;
         const title = heading[2].trim();
+        // 文首 # 标题之后、其余章节之前：若尚无元信息块，仍补「UI说明」
+        if (level >= 2) ensureUiNoteSection(html);
         const icon = headingIconFor(title, level);
         const iconHtml = icon
           ? `<img class="preview-doc-aside__heading-icon" src="${escapeHtml(icon)}" alt="" aria-hidden="true" />`
@@ -362,6 +480,8 @@
                 .join('')}</blockquote>`,
             );
           }
+          // 所有需求预览：元信息下方固定增加「UI说明」
+          ensureUiNoteSection(html);
           continue;
         }
         html.push(`<blockquote class="${calloutClassFromText(parts.join(' ')) || ''}"><p>${fmt(parts.join(' '))}</p></blockquote>`);
@@ -405,8 +525,16 @@
       const bareImg = resolveBareAltImage(trimmed, docBaseUrl, cacheToken);
       if (bareImg) {
         html.push(bareImg);
+      } else if (/^\d+\.\d+[、.]/.test(trimmed)) {
+        // 子序号 4.1、4.2、…：预览首行缩进，与上级 4、区分层级
+        html.push(`<p class="preview-doc-aside__p--sub">${fmt(trimmed)}</p>`);
       } else {
-        html.push(`<p>${fmt(trimmed)}</p>`);
+        const imgCount = (trimmed.match(/!\[[^\]]*\]\([^)]+\)/g) || []).length;
+        const cls =
+          imgCount >= 2
+            ? ' class="preview-doc-aside__shots-row"'
+            : '';
+        html.push(`<p${cls}>${fmt(trimmed)}</p>`);
       }
       i += 1;
     }
@@ -556,12 +684,14 @@
       const absolute = new URL(docUrl, window.location.href).href;
       const raw = await loadMarkdown(absolute);
       const scope = docScope || resolveDocScope();
-      const md = filterPreviewMarkdown(raw, scope);
+      // 先抽出 UI说明，再做 intro 裁剪，避免「## UI说明」被当成第一个二级标题整段丢掉
+      const uiExtracted = extractUiNoteSection(String(raw || '').replace(/\r\n/g, '\n').split('\n'));
+      const md = filterPreviewMarkdown(uiExtracted.lines.join('\n'), scope, absolute);
       const bust = await resolveShotCacheToken(absolute, md);
       if (seq !== loadSeq) return;
       const titleMatch = /^#\s+(.+)$/m.exec(md);
       setHeadTitle(aside, titleMatch ? titleMatch[1].trim() : '需求说明');
-      body.innerHTML = renderMarkdown(md, absolute, bust);
+      body.innerHTML = renderMarkdown(md, absolute, bust, uiExtracted.bodyLines);
       body.scrollTop = 0;
       await renderMermaidBlocks(body);
     } catch (err) {

@@ -208,7 +208,7 @@ async function goto(page, file, waitSel) {
       `<div class="profile-dialog__mask"></div>` +
       `<div class="profile-dialog__panel" role="dialog" aria-modal="true">` +
       `<div class="profile-dialog__title">确认发起赛事招募</div>` +
-      `<div class="profile-dialog__body">确认发起赛事招募后，在我的页>服务中心>我的招募中查看。</div>` +
+      `<div class="profile-dialog__body">确认发起赛事招募后，在我的页>服务中心>我的活动赛事中查看。</div>` +
       `<div class="profile-dialog__actions">` +
       `<button type="button" class="profile-dialog__btn">取消</button>` +
       `<button type="button" class="profile-dialog__btn profile-dialog__btn--primary">确认开始招募</button>` +

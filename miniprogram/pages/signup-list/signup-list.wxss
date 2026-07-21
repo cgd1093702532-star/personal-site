@@ -1,18 +1,17 @@
 @import "../../styles/common.wxss";
 
 .signup-member {
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   padding: 24rpx var(--space-page-x) 48rpx;
   background: var(--color-bg-subtle);
   box-sizing: border-box;
 }
 
-.signup-member__head {
-  display: block;
-  margin-bottom: 16rpx;
-  font-size: var(--text-section-title);
-  font-weight: 600;
-  color: var(--color-text-primary);
+.signup-member--empty-page {
+  min-height: 100vh;
+  padding-bottom: calc(48rpx + env(safe-area-inset-bottom));
 }
 
 .signup-member__list {
@@ -23,7 +22,7 @@
 
 .signup-member__item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 20rpx;
   padding: 24rpx;
   background: var(--color-bg-page);
@@ -42,6 +41,7 @@
 .signup-member__body {
   flex: 1;
   min-width: 0;
+  padding-right: 12rpx;
 }
 
 .signup-member__name {
@@ -60,10 +60,13 @@
 }
 
 .signup-member__time {
-  display: block;
-  margin-top: 8rpx;
-  font-size: 24rpx;
+  flex-shrink: 0;
+  max-width: 42%;
+  margin: 0;
+  font-size: 22rpx;
+  line-height: 1.35;
   color: var(--color-text-secondary);
+  text-align: right;
 }
 
 .signup-member__status {
@@ -84,8 +87,35 @@
 }
 
 .signup-member__empty {
-  padding: 80rpx 24rpx;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 80rpx 48rpx 160rpx;
   text-align: center;
-  font-size: 28rpx;
-  color: var(--color-text-secondary);
+  box-sizing: border-box;
+}
+
+.signup-member__empty-icon {
+  width: 80rpx;
+  height: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.signup-member__empty-icon image {
+  width: 72rpx;
+  height: 72rpx;
+  display: block;
+}
+
+.signup-member__empty-title {
+  margin-top: 24rpx;
+  font-size: 30rpx;
+  font-weight: 500;
+  color: #999999;
+  line-height: 1.4;
 }

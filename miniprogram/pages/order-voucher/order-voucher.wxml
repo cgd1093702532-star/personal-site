@@ -1,0 +1,36 @@
+<view class="page order-voucher" wx:if="{{!missing && order}}">
+  <view class="order-voucher__card order-voucher__card--event">
+    <text class="order-voucher__event-title">{{order.title}}</text>
+    <view class="order-voucher__meta">
+      <image class="order-voucher__meta-icon" src="/assets/icons/time.png" mode="aspectFit" />
+      <text class="order-voucher__meta-text">{{order.timeRange}}</text>
+    </view>
+    <view class="order-voucher__meta order-voucher__meta--loc" bindtap="onLocationTap">
+      <image class="order-voucher__meta-icon" src="/assets/icons/location.png" mode="aspectFit" />
+      <text class="order-voucher__meta-text">{{order.location}}</text>
+      <text class="order-voucher__chevron">›</text>
+    </view>
+  </view>
+
+  <view class="order-voucher__card order-voucher__card--code">
+    <text class="order-voucher__hint">使用时请向工作人员出示二维码或券码</text>
+    <view class="order-voucher__qr-wrap {{redeemed ? 'order-voucher__qr-wrap--used' : ''}}">
+      <image class="order-voucher__qr-img" src="/assets/images/order-voucher-qr.png" mode="aspectFit" />
+      <view class="order-voucher__stamp" wx:if="{{redeemed}}">
+        <text class="order-voucher__stamp-text">已核销</text>
+      </view>
+    </view>
+    <text class="order-voucher__code">券码: {{order.voucherCode}}</text>
+    <text class="order-voucher__warn">为保障您的权益，未使用前请不要将二维码提供给商家</text>
+  </view>
+
+  <view class="order-voucher__card order-voucher__card--detail" bindtap="onOrderDetail">
+    <view class="order-voucher__detail-text">
+      <text class="order-voucher__detail-title">订单详情</text>
+      <text class="order-voucher__detail-sub">查看订单详情</text>
+    </view>
+    <text class="order-voucher__chevron">›</text>
+  </view>
+</view>
+
+<view class="order-voucher__missing" wx:else>订单不存在</view>

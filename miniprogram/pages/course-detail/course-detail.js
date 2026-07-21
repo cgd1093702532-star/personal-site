@@ -43,10 +43,12 @@ Page({
     navSolid: false,
     shareVisible: false,
     shareHero: null,
+    signupNoop: false,
   },
 
   onLoad(options) {
     const id = options.id;
+    const signupNoop = options.from === 'home' || options.from === 'hero';
     const item = mock.getCourseById(id);
     if (!item) {
       wx.showToast({ title: '课程不存在', icon: 'none' });
@@ -73,6 +75,7 @@ Page({
       feeInt: feeParts.int,
       feeDec: feeParts.dec,
       displayTags,
+      signupNoop,
       statusBarHeight,
       coverThreshold: COVER_BODY_HEIGHT,
       coverStyle: `height: ${chromeHeight + COVER_BODY_HEIGHT}px`,
@@ -146,6 +149,7 @@ Page({
   },
 
   onSignupTap() {
+    if (this.data.signupNoop) return;
     this.setData({ showForm: true });
   },
 

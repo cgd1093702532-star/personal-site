@@ -9,13 +9,15 @@
 ## 文档约定
 
 1. **读者**：不懂技术也能看懂；全文（含 §6）用产品语言  
-2. **结构**：§1 页面业务目标 → §2 登录和身份描述 → §3 页面详细描述 → §4 常见路径 → §5 相关页面 → §6 规则补充与验收要点 → §7 变更记录  
+2. **结构**：§1 页面业务目标 → §2 登录和身份描述 → §3 页面详细描述 → §4 常见路径 → §5 相关页面 → §6 规则补充与验收要点 → §7 变更记录（新→旧；只保留最近 6 条 + 最早 1 条）  
 3. **预览**：打开对应预览页时，桌面为「左侧页面导航 | 手机预览 | 右侧需求文档」三方联动；左侧导航只含有需求文档的页面，目录真源为 `preview/page_catalog.py`（新增文档页须登记后 build）；自查：`python3 scripts/check-preview-page-nav.py`；改文档后执行 `python3 preview/build-pages.py`  
 4. **配图**：必须用 `![说明](./images/…)`，禁止只写说明文字；登记 `images/IMAGE_REGISTRY.json`；自查 `python3 scripts/check-doc-images.py`（见 `.cursor/rules/doc-embedded-images.mdc`）  
 5. **表格序号**：单元格内 `1、` `2、` / `场景 1：` 等分点必须用 `<br>` 换行（铁律，永久）；自查 `python3 scripts/check-doc-table-linebreaks.py`（见 `.cursor/rules/doc-table-linebreaks.mdc`）  
-6. **流程图**：保留，标签用中文  
-7. **§6**：预览右侧隐藏；仍写验收规则，不写接口/代码字段  
-8. **个人中心**另有状态截图同步规则：`.cursor/rules/profile-doc-sync.mdc`
+6. **章节/正文序号**：`## N.` 通篇连续；正文 `N、` / `N.M、` 在每个 `##` 内连续；删改后自动重排；自查 `python3 scripts/check-doc-section-numbers.py`（见 `.cursor/rules/doc-section-numbers.mdc`）  
+7. **变更记录**：表顶为最近改动、表底为初稿/最早一条；超过 7 条时只留最近 6 条 + 最早 1 条  
+8. **流程图**：保留，标签用中文  
+9. **§ 规则补充**：预览右侧隐藏；仍写验收规则，不写接口/代码字段  
+10. **个人中心**另有状态截图同步规则：`.cursor/rules/profile-doc-sync.mdc`
 
 ## Tab 页
 
@@ -67,3 +69,11 @@
 | [我的评价.md](./我的评价.md) | `my-reviews.html` |
 | [消息.md](./消息.md) | `messages.html` |
 | [消息详情.md](./消息详情.md) | `message-detail.html` |
+
+## 子页 · 我的订单
+
+| 需求文档 | 预览 |
+|----------|------|
+| [我的订单.md](./我的订单.md) | `my-orders.html` |
+| [二维码凭证.md](./二维码凭证.md) | `order-voucher.html` |
+| [订单详情.md](./订单详情.md) | `order-detail.html` |

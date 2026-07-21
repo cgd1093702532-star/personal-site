@@ -38,24 +38,54 @@ function enrichItem(item) {
   const progress = item.total ? Math.min(100, Math.round((item.signed / item.total) * 100)) : 0;
   let actionType = 'active';
   if (item.listTab === 'draft') actionType = 'draft';
-  else if (item.displayStatus === 'closed' || item.displayStatus === 'ended') actionType = 'closed';
+  else if (
+    item.listTab === 'ended' ||
+    item.displayStatus === 'closed' ||
+    item.displayStatus === 'ended'
+  ) {
+    actionType = 'closed';
+  }
 
   const cover = (item.cover_images && item.cover_images[0]) || 'recruit-cover.jpg';
-  const desc = String(item.description || item.highlights || item.location || '').trim();
   const coverSrc = cover.startsWith('http') || cover.startsWith('/')
     ? cover
     : `/assets/images/${cover}`;
+  const type = item.type === 'activity' ? 'activity' : item.type === 'course' ? 'course' : 'event';
+  const typeLabel =
+    item.typeLabel || (type === 'activity' ? '活动' : type === 'course' ? '课程' : '赛事');
+  const placeLabel = type === 'activity' ? '活动地点' : type === 'course' ? '课程地点' : '赛事地点';
+  const quotaBase = data.formatRecruitmentSignup(item.signed, item.total);
+  const signedNum = Number(item.signed) || 0;
+  const hasTotal = item.total != null && item.total !== '';
+  const totalNum = hasTotal ? Number(item.total) : NaN;
+  const quotaFull = Number.isFinite(totalNum) && signedNum >= totalNum && totalNum > 0;
+  let fillStatus = quotaFull ? '已招满' : '进行中';
+  if (item.listTab === 'ended' || item.displayStatus === 'ended') {
+    fillStatus = '已结束';
+  } else if (item.displayStatus === 'closed') {
+    fillStatus = '已招满';
+  }
+  const quotaText = quotaBase ? `${quotaBase} · ${fillStatus}` : fillStatus;
+  const isMine = item.is_mine !== false;
+  const relationLabel = isMine ? '我发起的' : '我参加的';
+  const canViewSignup = isMine;
 
   return {
     ...item,
+    type,
     badgeLabel: badge.label,
     badgeType: badge.type,
     progress,
-    timeDisplay: item.timeDisplay || data.formatRecruitmentTimeRange(item.start_at, item.end_at),
+    timeDisplay:
+      data.formatRecruitmentTimeRange(item.start_at, item.end_at) || item.timeDisplay || '',
     actionType,
-    typeLabel: item.typeLabel || (item.type === 'course' ? '课程' : '赛事'),
+    typeLabel,
+    placeLabel,
+    quotaText,
     coverSrc,
-    descSnippet: desc.length > 36 ? `${desc.slice(0, 36)}…` : desc,
+    isMine,
+    relationLabel,
+    canViewSignup,
   };
 }
 
@@ -71,16 +101,33 @@ function formatTabDisplay(label, count) {
   return count > 0 ? `${label}(${count})` : label;
 }
 
+function visibleItems(list, onlyMine) {
+  const rows = list || [];
+  if (!onlyMine) return rows;
+  return rows.filter((item) => item.isMine !== false);
+}
+
 function applyLists(page, lists) {
   const activeTab = page.data.activeTab === 'draft' ? 'active' : page.data.activeTab;
+  const showOnlyMineFilter = !!page.data.showOnlyMineFilter;
+  const onlyMine = showOnlyMineFilter && !!page.data.onlyMine;
+  const activeVisible = visibleItems(lists.active, onlyMine);
+  const endedVisible = visibleItems(lists.ended, onlyMine);
+  const currentSource = activeTab === 'ended' ? endedVisible : activeVisible;
+  const rawCurrent = activeTab === 'ended' ? lists.ended || [] : lists.active || [];
+  // 当前 Tab 无数据（空态）时不展示筛选；筛选后变空仍展示，便于取消勾选
+  const showFilterToolbar = showOnlyMineFilter && rawCurrent.length > 0;
   page.setData({
     lists,
     activeTab,
+    onlyMine,
+    showOnlyMineFilter,
+    showFilterToolbar,
     tabs: [
-      { key: 'active', label: '招募', count: lists.active.length, display: formatTabDisplay('招募', lists.active.length) },
-      { key: 'ended', label: '招募已结束', count: lists.ended.length, display: formatTabDisplay('招募已结束', lists.ended.length) },
+      { key: 'active', label: '进行中', count: activeVisible.length, display: formatTabDisplay('进行中', activeVisible.length) },
+      { key: 'ended', label: '已结束', count: endedVisible.length, display: formatTabDisplay('已结束', endedVisible.length) },
     ],
-    currentList: lists[activeTab] || lists.active,
+    currentList: currentSource,
     emptyState: getEmptyState(activeTab),
   });
 }
@@ -88,10 +135,13 @@ function applyLists(page, lists) {
 Page({
   data: {
     tabs: [
-      { key: 'active', label: '招募', count: 0, display: '招募' },
-      { key: 'ended', label: '招募已结束', count: 0, display: '招募已结束' },
+      { key: 'active', label: '进行中', count: 0, display: '进行中' },
+      { key: 'ended', label: '已结束', count: 0, display: '已结束' },
     ],
     activeTab: 'active',
+    onlyMine: false,
+    showOnlyMineFilter: false,
+    showFilterToolbar: false,
     lists: { active: [], ended: [], draft: [] },
     currentList: [],
     emptyState: getEmptyState('active'),
@@ -101,23 +151,41 @@ Page({
     if (options.tab === 'active' || options.tab === 'ended') {
       this.setData({ activeTab: options.tab, emptyState: getEmptyState(options.tab) });
     }
-    data.getMyRecruitmentLists().then((source) => {
-      applyLists(this, buildLists(source));
-    });
+    this.reload();
   },
 
   onShow() {
-    data.getMyRecruitmentLists().then((source) => {
-      applyLists(this, buildLists(source));
+    this.reload();
+  },
+
+  reload() {
+    Promise.all([data.getMyRecruitmentLists(), data.getHeroApplyStatus()]).then(([source, status]) => {
+      const showOnlyMineFilter =
+        status && status.status === 'approved' && status.hero_enabled !== false;
+      const onlyMine = showOnlyMineFilter ? !!this.data.onlyMine : false;
+      this.setData({ showOnlyMineFilter, onlyMine }, () => {
+        applyLists(this, buildLists(source));
+      });
     });
   },
 
   onTabChange(e) {
     const key = e.currentTarget.dataset.key;
+    const onlyMine = !!this.data.showOnlyMineFilter && !!this.data.onlyMine;
+    const raw = this.data.lists[key] || [];
+    const list = visibleItems(raw, onlyMine);
     this.setData({
       activeTab: key,
-      currentList: this.data.lists[key] || [],
+      currentList: list,
+      showFilterToolbar: !!this.data.showOnlyMineFilter && raw.length > 0,
       emptyState: getEmptyState(key),
+    });
+  },
+
+  onToggleOnlyMine() {
+    const onlyMine = !this.data.onlyMine;
+    this.setData({ onlyMine }, () => {
+      applyLists(this, this.data.lists);
     });
   },
 
@@ -131,14 +199,13 @@ Page({
   },
 
   onViewSignup(e) {
-    const { title } = e.currentTarget.dataset;
+    const { title, signed, id } = e.currentTarget.dataset;
+    const signedNum = Number(signed);
+    const signedQ = Number.isFinite(signedNum) ? `&signed=${signedNum}` : '';
+    const idQ = id ? `&id=${encodeURIComponent(id)}` : '';
     wx.navigateTo({
-      url: `/pages/signup-list/signup-list?title=${encodeURIComponent(title || '招募报名')}`,
+      url: `/pages/signup-list/signup-list?title=${encodeURIComponent(title || '招募报名')}${signedQ}${idQ}`,
     });
-  },
-
-  onViewData() {
-    wx.showToast({ title: '数据报表开发中', icon: 'none' });
   },
 
   onEditDraft(e) {

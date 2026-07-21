@@ -1,17 +1,29 @@
 <view class="page my-recruit">
   <view class="my-recruit__tabs">
-    <view
-      wx:for="{{tabs}}"
-      wx:key="key"
-      class="my-recruit__tab {{activeTab === item.key ? 'my-recruit__tab--active' : ''}}"
-      data-key="{{item.key}}"
-      bindtap="onTabChange"
-    >{{item.display}}</view>
+    <view class="my-recruit__tabs-track">
+      <view
+        wx:for="{{tabs}}"
+        wx:key="key"
+        class="my-recruit__tab {{activeTab === item.key ? 'my-recruit__tab--active' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onTabChange"
+      >{{item.display}}</view>
+    </view>
+  </view>
+
+  <view class="my-recruit__toolbar" wx:if="{{showFilterToolbar}}">
+    <view class="my-recruit__filter {{onlyMine ? 'my-recruit__filter--on' : ''}}" bindtap="onToggleOnlyMine">
+      <view class="my-recruit__filter-box">
+        <image wx:if="{{onlyMine}}" class="my-recruit__filter-check" src="/assets/icons/check-primary.png" mode="aspectFit" />
+      </view>
+      <text class="my-recruit__filter-label">仅显示我发起的</text>
+    </view>
   </view>
 
   <view class="my-recruit__list">
     <block wx:for="{{currentList}}" wx:key="recruit_id">
       <view wx:if="{{item.actionType === 'draft'}}" class="my-recruit__card my-recruit__card--draft">
+        <text class="my-recruit__relation">{{item.relationLabel}}</text>
         <view class="my-recruit__draft-head">
           <view class="my-recruit__draft-icon-wrap">
             <image class="my-recruit__draft-icon" src="/assets/icons/edit.png" mode="aspectFit" />
@@ -35,38 +47,27 @@
         </view>
       </view>
 
-      <view wx:else class="my-recruit__card" data-id="{{item.recruit_id}}" bindtap="onViewDetail">
-        <view class="my-recruit__meta">
-          <text class="my-recruit__meta-id">编号：{{item.recruit_id}}</text>
-          <text class="my-recruit__meta-time">{{item.timeDisplay}}</text>
-        </view>
-        <view class="my-recruit__body">
+      <view wx:else class="my-recruit__card {{item.listTab === 'ended' || item.displayStatus === 'ended' ? 'my-recruit__card--ended' : ''}}" data-id="{{item.recruit_id}}" bindtap="onViewDetail">
+        <text class="my-recruit__relation">{{item.relationLabel}}</text>
+        <view class="my-recruit__main">
           <view class="my-recruit__cover">
             <image class="my-recruit__cover-img" src="{{item.coverSrc}}" mode="aspectFill" />
-            <text class="my-recruit__cover-tag">{{item.typeLabel}}</text>
           </view>
           <view class="my-recruit__info">
-            <text class="my-recruit__title">{{item.title}}</text>
-            <text wx:if="{{item.descSnippet}}" class="my-recruit__desc">{{item.descSnippet}}</text>
-            <view class="my-recruit__foot">
-              <text class="my-recruit__foot-stat">已报 {{item.signed}}/{{item.total}} 人 · {{item.badgeLabel}}</text>
-              <text class="my-recruit__fee {{item.badgeType === 'closed' || item.badgeType === 'ended' ? 'my-recruit__fee--muted' : ''}}">¥{{item.fee}}/人</text>
+            <view class="my-recruit__info-top">
+              <text class="my-recruit__title">{{item.title}}</text>
+              <text class="my-recruit__type-tag my-recruit__type-tag--{{item.type}}">{{item.typeLabel}}</text>
             </view>
+            <text class="my-recruit__time">{{item.timeDisplay}}</text>
+            <text class="my-recruit__place">{{item.placeLabel}}：{{item.location || '地点待定'}}</text>
+            <text class="my-recruit__fee {{item.listTab === 'ended' || item.displayStatus === 'ended' ? 'my-recruit__fee--muted' : ''}}">¥{{item.fee}}/人</text>
           </view>
         </view>
 
-        <view class="my-recruit__actions" wx:if="{{item.actionType === 'active'}}">
-          <view class="my-recruit__btn my-recruit__btn--primary" data-title="{{item.title}}" catchtap="onViewSignup">查看报名</view>
-        </view>
-
-        <view class="my-recruit__actions" wx:elif="{{item.actionType === 'closed'}}">
-          <view class="my-recruit__btn my-recruit__btn--primary" data-title="{{item.title}}" catchtap="onViewSignup">
-            <image class="my-recruit__btn-icon" src="/assets/icons/list.png" mode="aspectFit" />
-            <text>查看名单</text>
-          </view>
-          <view class="my-recruit__btn my-recruit__btn--outline" data-id="{{item.recruit_id}}" catchtap="onViewData">
-            <image class="my-recruit__btn-icon" src="/assets/icons/chart.png" mode="aspectFit" />
-            <text>数据</text>
+        <view class="my-recruit__bar">
+          <text class="my-recruit__quota">{{item.quotaText}}</text>
+          <view class="my-recruit__actions" wx:if="{{item.canViewSignup && (item.actionType === 'active' || item.actionType === 'closed')}}">
+            <view class="my-recruit__btn my-recruit__btn--primary" data-title="{{item.title}}" data-signed="{{item.signed}}" data-id="{{item.recruit_id}}" catchtap="onViewSignup">已报名人员</view>
           </view>
         </view>
       </view>

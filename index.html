@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>英雄广场 · 预览</title>
+  <link rel="stylesheet" href="assets/preview.css">
+  <script>
+    // 手机访问时直接进入小程序首页
+    if (/iPhone|iPad|Android/i.test(navigator.userAgent) && !location.search.includes('catalog')) {
+      location.replace('miniprogram/index.html');
+    }
+  </script>
+</head>
+<body>
+  <div class="catalog-mobile">
+    <div class="catalog-mobile__header">
+      <h1>英雄广场</h1>
+      <p>手机端 UI 预览 · iPhone 17 Pro（402×874）</p>
+      <a class="catalog-mobile__cta" href="miniprogram/index.html">进入小程序预览 ›</a>
+    </div>
+
+    <div class="catalog-mobile__section">
+      <h2>Tab 页</h2>
+      <div class="catalog-mobile__list">
+        <a href="miniprogram/index.html">营销首页 <span>首页</span></a>
+        <a href="miniprogram/heroes.html">英雄广场 <span>英雄</span></a>
+        <a href="miniprogram/mall.html">商城 <span>商城</span></a>
+        <a href="miniprogram/profile.html">个人中心 <span>我的</span></a>
+      </div>
+    </div>
+
+    <div class="catalog-mobile__section">
+      <h2>子页</h2>
+      <div class="catalog-mobile__list">
+        <a href="miniprogram/hero-detail.html">英雄详情</a>
+        <a href="miniprogram/recruitment-detail.html">赛事详情</a>
+        <a href="miniprogram/activity-detail.html">活动详情</a>
+        <a href="miniprogram/course-detail.html">课程详情</a>
+        <a href="miniprogram/hero-apply.html">申请成为英雄</a>
+        <a href="miniprogram/my-signups.html">我的报名</a>
+        <a href="miniprogram/my-recruitments.html">我的活动赛事</a>
+      </div>
+    </div>
+
+    <div class="catalog-mobile__section">
+      <h2>管理后台（认证治理）</h2>
+      <div class="catalog-mobile__list">
+        <a href="admin/heroes.html">供方列表 / 申请审核</a>
+        <a href="admin/profile-changes.html">主页变更审核</a>
+        <a href="admin/users.html">用户管理</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

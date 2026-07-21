@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>用户管理 · 英雄广场管理后台</title>
+  <link rel="stylesheet" href="../assets/preview.css">
+  <link rel="stylesheet" href="../assets/admin.css">
+</head>
+<body data-admin-page="users" data-admin-title="用户管理" data-admin-breadcrumb="管理中心 / 用户管理">
+  <div id="admin-page-root">
+    <p id="users-admin-hint" class="admin-page-tip"></p>
+    <div class="admin-card">
+      <div class="admin-card__body admin-card__body--compact">
+        <div class="admin-filter">
+          <div class="admin-form-item"><label class="admin-form-item__label">昵称 / 手机号</label><input id="users-admin-search" class="admin-input" type="search" placeholder="请输入" /></div>
+          <div class="admin-filter__actions">
+            <button type="button" class="admin-btn admin-btn--primary" id="users-admin-search-btn">查询</button>
+            <button type="button" class="admin-btn" id="users-admin-reset-btn">重置</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="admin-tabs admin-tabs--pills">
+      <button type="button" class="admin-tabs__item is-active" data-user-status="">全部</button>
+      <button type="button" class="admin-tabs__item" data-user-status="active">正常</button>
+      <button type="button" class="admin-tabs__item" data-user-status="disabled">已禁用</button>
+    </div>
+    <div class="admin-card">
+      <div class="admin-card__body admin-card__body--compact">
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead><tr><th>昵称</th><th>手机号</th><th>注册时间</th><th>报名次数</th><th>状态</th><th>操作</th></tr></thead>
+            <tbody id="users-admin-tbody"><tr><td colspan="6" class="admin-table__empty">加载中…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="../assets/admin-layout.js"></script>
+  <script src="../assets/db-client.js"></script>
+  <script src="../assets/users-admin-preview.js"></script>
+</body>
+</html>

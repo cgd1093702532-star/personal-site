@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>创建供方 · 英雄广场管理后台</title>
+  <link rel="stylesheet" href="../assets/preview.css">
+  <link rel="stylesheet" href="../assets/admin.css">
+</head>
+<body data-admin-page="heroes" data-admin-title="创建供方" data-admin-breadcrumb="供需管理 / 供方列表 / 创建供方">
+  <script>
+    (function () {
+      var id = new URLSearchParams(location.search).get('id');
+      if (!id) return;
+      document.title = '编辑供方 · 英雄广场管理后台';
+      document.body.dataset.adminTitle = '编辑供方';
+      document.body.dataset.adminBreadcrumb = '供需管理 / 供方列表 / 编辑供方';
+    })();
+  </script>
+  <div id="admin-page-root">
+    <div class="admin-card admin-form-page admin-form-page--wide">
+      <div class="admin-card__body">
+        <form id="supplier-form" class="admin-form-stack" novalidate>
+
+          <section class="admin-form-block">
+            <div class="admin-form-block__head">基本信息</div>
+            <div class="admin-form-block__body">
+              <div class="admin-form-item" data-field="name">
+                <label class="admin-form-item__label admin-form-item__label--required" for="field-name">供方昵称</label>
+                <input id="field-name" name="name" class="admin-input" type="text" maxlength="20" placeholder="请输入" autocomplete="off" />
+              </div>
+
+              <div class="admin-form-item" data-field="real_name">
+                <label class="admin-form-item__label admin-form-item__label--required" for="field-real-name">供方姓名</label>
+                <input id="field-real-name" name="real_name" class="admin-input" type="text" maxlength="20" placeholder="请输入" autocomplete="off" />
+              </div>
+
+              <div class="admin-form-item" data-field="avatar">
+                <label class="admin-form-item__label admin-form-item__label--required">供方头像</label>
+                <label class="admin-upload" id="avatar-upload">
+                  <span class="admin-upload__plus" id="avatar-plus">+</span>
+                  <img class="admin-upload__preview" id="avatar-preview" alt="" hidden />
+                  <input class="admin-upload__input" id="field-avatar" type="file" accept="image/*" />
+                </label>
+                <div class="admin-upload__hint">建议尺寸800*800px，最多可上传1张</div>
+              </div>
+
+              <div class="admin-form-item" data-field="phone">
+                <label class="admin-form-item__label admin-form-item__label--required" for="field-phone">手机号码</label>
+                <input id="field-phone" name="phone" class="admin-input" type="tel" maxlength="11" placeholder="请输入" autocomplete="off" />
+              </div>
+
+              <div class="admin-form-item" data-field="id_card">
+                <label class="admin-form-item__label admin-form-item__label--required" for="field-id-card">身份证号</label>
+                <input id="field-id-card" name="id_card" class="admin-input" type="text" maxlength="18" placeholder="请输入" autocomplete="off" />
+              </div>
+
+              <div class="admin-form-item" data-field="address">
+                <label class="admin-form-item__label" for="field-address">收货地址</label>
+                <input id="field-address" name="address" class="admin-input" type="text" maxlength="120" placeholder="请输入" autocomplete="off" />
+              </div>
+
+              <div class="admin-form-item" data-field="bank_account">
+                <label class="admin-form-item__label" for="field-bank-account">银行账户</label>
+                <input id="field-bank-account" name="bank_account" class="admin-input" type="text" maxlength="64" placeholder="请输入" autocomplete="off" />
+              </div>
+            </div>
+          </section>
+
+          <section class="admin-form-block">
+            <div class="admin-form-block__head">资质认证</div>
+            <div class="admin-form-block__body">
+              <div class="admin-form-item" data-field="project_types">
+                <label class="admin-form-item__label admin-form-item__label--required" for="field-project-type">项目类型</label>
+                <div class="admin-select-affix-row">
+                  <div class="admin-select-wrap admin-select-wrap--affix">
+                    <select id="field-project-type" name="project_type" class="admin-select admin-select--placeholder">
+                      <option value="">请选择</option>
+                      <option value="帆船">帆船</option>
+                      <option value="皮划艇">皮划艇</option>
+                      <option value="桨板">桨板</option>
+                      <option value="潜水">潜水</option>
+                      <option value="冲浪">冲浪</option>
+                      <option value="游艇">游艇</option>
+                    </select>
+                  </div>
+                  <button type="button" class="admin-link-btn" id="project-type-add">新增</button>
+                  <button type="button" class="admin-link-btn" id="project-type-refresh">刷新</button>
+                </div>
+              </div>
+
+              <div class="admin-form-item" data-field="certification">
+                <label class="admin-form-item__label admin-form-item__label--required" for="field-certification">资质等级</label>
+                <select id="field-certification" name="certification" class="admin-select">
+                  <option value="">请选择</option>
+                  <option value="国家级教练">国家级教练</option>
+                  <option value="省级教练">省级教练</option>
+                  <option value="ASA认证教练">ASA认证教练</option>
+                  <option value="PADI潜水教练">PADI潜水教练</option>
+                  <option value="其他">其他</option>
+                </select>
+              </div>
+
+              <div class="admin-form-item" data-field="years_exp">
+                <label class="admin-form-item__label" for="field-years">从业年限</label>
+                <select id="field-years" name="years_exp" class="admin-select">
+                  <option value="">请选择</option>
+                  <option value="1-3 年">1-3 年</option>
+                  <option value="3-5 年">3-5 年</option>
+                  <option value="5-10 年">5-10 年</option>
+                  <option value="10 年+">10 年+</option>
+                </select>
+              </div>
+
+              <div class="admin-form-item" data-field="honors">
+                <label class="admin-form-item__label" for="field-honor-input">荣誉成就</label>
+                <div class="admin-input-row">
+                  <input id="field-honor-input" class="admin-input" type="text" maxlength="10" placeholder="请输入荣誉成就标签，10 字以内" autocomplete="off" />
+                  <button type="button" class="admin-link-btn" id="honor-add">+添加</button>
+                </div>
+                <div class="admin-chip-list" id="honor-list"></div>
+              </div>
+
+              <div class="admin-form-item" data-field="certificates">
+                <label class="admin-form-item__label">资质证书</label>
+                <div class="admin-upload-list" id="cert-list"></div>
+                <div class="admin-upload__hint">建议尺寸800*800px，最多可上传9张</div>
+                <input class="admin-upload__input" id="cert-file" type="file" accept="image/*" multiple hidden />
+              </div>
+            </div>
+          </section>
+
+          <div id="showcase-blocks">
+            <section class="admin-form-block" data-showcase-section="moments">
+              <div class="admin-form-block__head admin-form-block__head--inline">
+                <span>个人展示</span>
+                <div class="admin-form-block__head-actions">
+                  <button type="button" class="admin-link-btn" data-media-add="moments">+添加图片</button>
+                  <button type="button" class="admin-link-btn" data-showcase-add>增加栏目</button>
+                </div>
+              </div>
+              <div class="admin-form-block__body">
+                <div class="admin-form-item" data-field="moments_text">
+                  <label class="admin-form-item__label" for="field-moments-text">栏目说明</label>
+                  <textarea id="field-moments-text" class="admin-textarea" rows="4" maxlength="500" placeholder="请输入多行文本"></textarea>
+                </div>
+                <div class="admin-form-item" data-field="moments">
+                  <div class="admin-media-grid" id="moments-media"></div>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <input class="admin-upload__input" id="media-file" type="file" accept="image/*" hidden />
+
+          <div class="admin-form-footer admin-form-footer--end">
+            <button type="button" class="admin-btn admin-btn--outline-primary" id="supplier-cancel">取消</button>
+            <button type="submit" class="admin-btn admin-btn--primary" id="supplier-submit">创建</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="project-type-modal" class="admin-modal" hidden>
+    <div class="admin-modal__mask" data-project-type-close></div>
+    <div class="admin-modal__panel admin-modal__panel--manage" role="dialog" aria-modal="true" aria-labelledby="project-type-modal-title">
+      <div class="admin-modal__head">
+        <h2 class="admin-modal__title" id="project-type-modal-title">管理项目类型</h2>
+        <button type="button" class="admin-modal__close" data-project-type-close aria-label="关闭">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="admin-modal__body">
+        <div class="admin-manage-toolbar">
+          <button type="button" class="admin-btn admin-btn--primary" id="project-type-modal-add">新增项目类型</button>
+        </div>
+        <div class="admin-manage-table">
+          <div class="admin-manage-table__head">
+            <span>项目类型</span>
+            <span>操作</span>
+          </div>
+          <div class="admin-manage-table__body" id="project-type-modal-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="project-type-create-modal" class="admin-modal admin-modal--nested" hidden>
+    <div class="admin-modal__mask" data-project-type-create-close></div>
+    <div class="admin-modal__panel admin-modal__panel--create" role="dialog" aria-modal="true" aria-labelledby="project-type-create-title">
+      <div class="admin-modal__head">
+        <h2 class="admin-modal__title" id="project-type-create-title">新增项目类型</h2>
+        <button type="button" class="admin-modal__close" data-project-type-create-close aria-label="关闭">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="admin-modal__body">
+        <div class="admin-manage-create-field">
+          <label class="admin-form-item__label admin-form-item__label--required" for="project-type-add-input">项目类型名称</label>
+          <input id="project-type-add-input" class="admin-input" type="text" maxlength="20" placeholder="请输入项目类型名称" autocomplete="off" />
+        </div>
+      </div>
+      <div class="admin-modal__foot">
+        <button type="button" class="admin-btn" id="project-type-add-cancel">取消</button>
+        <button type="button" class="admin-btn admin-btn--primary" id="project-type-add-confirm">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/admin-layout.js"></script>
+  <script src="../assets/db-client.js"></script>
+  <script src="../assets/project-types.js"></script>
+  <script src="../assets/supplier-edit-preview.js"></script>
+</body>
+</html>

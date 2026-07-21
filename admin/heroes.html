@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>供方列表 · 英雄广场管理后台</title>
+  <link rel="stylesheet" href="../assets/preview.css">
+  <link rel="stylesheet" href="../assets/admin.css">
+</head>
+<body data-admin-page="heroes" data-admin-title="供方列表" data-admin-breadcrumb="供需管理 / 供方列表">
+  <div id="admin-page-root">
+    <div class="admin-filter-panel" id="suppliers-filter">
+      <div class="admin-filter-panel__grid admin-filter-panel__grid--5">
+        <div class="admin-form-item">
+          <label class="admin-form-item__label" for="filter-supplier-id">供方id</label>
+          <input id="filter-supplier-id" class="admin-input" type="text" placeholder="请输入" autocomplete="off" />
+        </div>
+        <div class="admin-form-item">
+          <label class="admin-form-item__label" for="filter-supplier-keyword">供方昵称/手机号码</label>
+          <input id="filter-supplier-keyword" class="admin-input" type="text" placeholder="请输入" autocomplete="off" />
+        </div>
+        <div class="admin-form-item">
+          <label class="admin-form-item__label" for="filter-project-type">项目类型</label>
+          <div class="admin-select-wrap">
+            <select id="filter-project-type" class="admin-select admin-select--placeholder">
+              <option value="" selected>请选择</option>
+              <option value="帆船">帆船</option>
+              <option value="桨板">桨板</option>
+              <option value="潜水">潜水</option>
+              <option value="冲浪">冲浪</option>
+              <option value="皮划艇">皮划艇</option>
+              <option value="游艇">游艇</option>
+              <option value="活动">活动</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-form-item">
+          <label class="admin-form-item__label" for="filter-enabled">供方状态</label>
+          <div class="admin-select-wrap">
+            <select id="filter-enabled" class="admin-select admin-select--placeholder">
+              <option value="" selected>请选择</option>
+              <option value="enabled">启用</option>
+              <option value="disabled">禁用</option>
+            </select>
+          </div>
+        </div>
+        <div class="admin-form-item">
+          <label class="admin-form-item__label" for="filter-audit-status">审核状态</label>
+          <div class="admin-select-wrap">
+            <select id="filter-audit-status" class="admin-select admin-select--placeholder">
+              <option value="" selected>请选择</option>
+              <option value="pending">待审核</option>
+              <option value="approved">审核通过</option>
+              <option value="rejected">审核驳回</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="admin-filter-panel__actions">
+        <button type="button" class="admin-btn admin-btn--primary" id="suppliers-search">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M16 16l4 4"/></svg>
+          查询
+        </button>
+        <button type="button" class="admin-btn admin-btn--outline-primary" id="suppliers-reset">重置</button>
+        <button type="button" class="admin-btn admin-btn--outline-primary" id="suppliers-export">导出</button>
+        <button type="button" class="admin-btn admin-btn--outline-primary" id="suppliers-order-report">查看已生成订单报表</button>
+      </div>
+    </div>
+
+    <div class="admin-action-bar" style="margin-top:16px">
+      <div class="admin-action-bar__left" style="display:flex;gap:8px;flex-wrap:wrap">
+        <button type="button" class="admin-btn admin-btn--primary" id="suppliers-create">+ 创建供方</button>
+        <button type="button" class="admin-btn admin-btn--outline-primary" id="suppliers-batch-review">批量审核</button>
+      </div>
+    </div>
+
+    <div class="admin-tabs" id="suppliers-tabs" role="tablist">
+      <button type="button" class="admin-tabs__item is-active" data-tab="all" role="tab">全部</button>
+      <button type="button" class="admin-tabs__item" data-tab="apply-pending" role="tab">申请入驻待审核 <span class="admin-tabs__count" id="tab-count-apply">(0)</span></button>
+      <button type="button" class="admin-tabs__item" data-tab="profile-pending" role="tab">资料变更待审核 <span class="admin-tabs__count" id="tab-count-profile">(0)</span></button>
+    </div>
+
+    <div class="admin-card admin-card--table">
+      <div class="admin-card__body admin-card__body--table">
+        <div class="admin-table-wrap">
+          <table class="admin-table admin-table--supplier">
+            <thead>
+              <tr>
+                <th class="admin-table__check">
+                  <input type="checkbox" id="suppliers-check-all" aria-label="全选" />
+                </th>
+                <th>供方ID</th>
+                <th>供方头像和昵称</th>
+                <th>手机号</th>
+                <th>身份证号</th>
+                <th>项目类型</th>
+                <th>资质等级</th>
+                <th>申请渠道</th>
+                <th>入驻审核状态</th>
+                <th>审核人员</th>
+                <th>审核时间</th>
+                <th>创建时间</th>
+                <th class="admin-table__ops">操作</th>
+              </tr>
+            </thead>
+            <tbody id="suppliers-tbody">
+              <tr><td colspan="13" class="admin-table__empty">加载中…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="admin-pagination" id="suppliers-pagination" hidden>
+          <span class="admin-pagination__total" id="suppliers-pagination-total">共 0 条</span>
+          <div class="admin-pagination__controls" role="navigation" aria-label="分页">
+            <button type="button" class="admin-pagination__btn" id="suppliers-page-prev" aria-label="上一页">‹</button>
+            <div class="admin-pagination__pages" id="suppliers-pagination-pages"></div>
+            <button type="button" class="admin-pagination__btn" id="suppliers-page-next" aria-label="下一页">›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="heroes-review-modal" class="admin-modal" hidden>
+    <div class="admin-modal__mask" data-modal-close></div>
+    <div class="admin-modal__panel" role="dialog" aria-modal="true" aria-labelledby="heroes-review-title">
+      <div class="admin-modal__head">
+        <h2 class="admin-modal__title" id="heroes-review-title">审核供方</h2>
+        <button type="button" class="admin-modal__close" data-modal-close aria-label="关闭">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="admin-modal__body" id="heroes-review-body">
+        <p class="admin-modal__loading">加载详情…</p>
+      </div>
+      <div class="admin-modal__foot" id="heroes-review-foot" hidden>
+        <button type="button" class="admin-btn" data-modal-close>取消</button>
+        <button type="button" class="admin-btn admin-btn--primary" id="heroes-review-submit">提交</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="heroes-hero-modal" class="admin-modal" hidden>
+    <div class="admin-modal__mask" data-hero-modal-close></div>
+    <div class="admin-modal__panel" role="dialog" aria-modal="true" aria-labelledby="heroes-hero-title">
+      <div class="admin-modal__head">
+        <h2 class="admin-modal__title" id="heroes-hero-title">供方详情</h2>
+        <button type="button" class="admin-modal__close" data-hero-modal-close aria-label="关闭">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+      <div class="admin-modal__body" id="heroes-hero-body">
+        <p class="admin-modal__loading">加载详情…</p>
+      </div>
+      <div class="admin-modal__foot" id="heroes-hero-foot" hidden>
+        <button type="button" class="admin-btn" data-hero-modal-close>取消</button>
+        <button type="button" class="admin-btn admin-btn--primary" id="heroes-hero-submit">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="heroes-delete-modal" class="admin-modal admin-modal--confirm" hidden>
+    <div class="admin-modal__mask" data-delete-close></div>
+    <div class="admin-modal__panel admin-modal__panel--confirm" role="dialog" aria-modal="true" aria-labelledby="heroes-delete-title">
+      <div class="admin-confirm">
+        <div class="admin-confirm__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="#fa8c16" stroke-width="1.8"/>
+            <path d="M12 7v7" stroke="#fa8c16" stroke-width="1.8" stroke-linecap="round"/>
+            <circle cx="12" cy="17" r="1.2" fill="#fa8c16"/>
+          </svg>
+        </div>
+        <div class="admin-confirm__content">
+          <h2 class="admin-confirm__title" id="heroes-delete-title">确认删除</h2>
+          <p class="admin-confirm__desc" id="heroes-delete-desc">确定要删除该供方吗？删除后不可恢复！</p>
+        </div>
+      </div>
+      <div class="admin-confirm__foot">
+        <button type="button" class="admin-btn" data-delete-close>取消</button>
+        <button type="button" class="admin-btn admin-btn--primary" id="heroes-delete-confirm">确认</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/admin-layout.js"></script>
+  <script src="../assets/db-client.js"></script>
+  <script src="../assets/heroes-admin-preview.js"></script>
+</body>
+</html>
